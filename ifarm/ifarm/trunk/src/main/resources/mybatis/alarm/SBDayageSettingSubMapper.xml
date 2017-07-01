@@ -1,0 +1,2240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SBDayageSettingSubMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+  <select id="selectByCondition2" resultType="pd" useCache="false">
+        SELECT distinct s.day_age ,
+         s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.record_datetime,
+		 ROUND(s.set_temp,1) set_temp ,
+		 ROUND(s.high_alarm_temp,1) high_alarm_temp ,
+		 ROUND(s.low_alarm_temp,1) low_alarm_temp ,
+		 ROUND(s.set_humidity,1) set_humidity,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 ROUND(s.high_alarm_humidity,1) high_alarm_humidity,
+		 ROUND(s.low_alarm_humidity,1) low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 ROUND(s.set_negative_pressure,1) set_negative_pressure ,
+		 ROUND(s.high_alarm_negative_pressure,1) high_alarm_negative_pressure ,
+		 ROUND(s.low_alarm_negative_pressure,1) low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 ROUND(s.set_lux,1) set_lux ,
+		 ROUND(s.high_lux,1) high_lux ,
+		 ROUND(s.low_lux,1) low_lux ,
+		 ROUND(s.set_co2,1) set_co2 ,
+		 ROUND(s.high_alarm_co2,1) high_alarm_co2 ,
+		 ROUND(s.low_alarm_co2,1) low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 ROUND(s.set_water_deprivation,1) set_water_deprivation ,
+		 ROUND(s.high_water_deprivation,1) high_water_deprivation ,
+		 ROUND(s.low_water_deprivation,1) low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 s.alarm_type,
+		 d.start_time,
+		 d.end_time,
+		 ROUND(s.high_temp_warning,1) high_temp_warning,
+		 ROUND(s.low_temp_warning,1) low_temp_warning,
+		 ROUND(s.high_lux_warning,1) high_lux_warning,
+		 ROUND(s.low_lux_warning,1) low_lux_warning,
+		 ROUND(s.high_co2_warning,1) high_co2_warning,
+		 ROUND(s.high_humidity_warning,1) high_humidity_warning,
+		 ROUND(s.low_humidity_warning,1) low_humidity_warning,
+		 ROUND(s.high_negative_pressure_warning,1) high_negative_pressure_warning,
+		 ROUND(s.low_negative_pressure_warning,1) low_negative_pressure_warning
+        FROM s_b_dayage_temp_sub s
+        left join 
+        s_b_dayage_setting_sub d
+        on d.uid_num = s.uid_num
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        and HOUR(s.record_datetime) =0
+        and s.alarm_type = #{alarm_type}
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+    </select>
+  <select id="selectByCondition1" resultType="pd" useCache="false">
+  <if test="alarm_type == 1"> 
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.set_humidity ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 s.high_alarm_humidity ,
+		 s.low_alarm_humidity ,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning 
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        and s.set_temp is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 2"> 
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.set_humidity ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 s.high_alarm_humidity ,
+		 s.low_alarm_humidity ,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        and s.high_lux is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 3"> 
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.set_humidity ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 s.high_alarm_humidity ,
+		 s.low_alarm_humidity ,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        and s.high_alarm_co2 is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 4"> 
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.set_humidity ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 s.high_alarm_humidity ,
+		 s.low_alarm_humidity ,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time start_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        and s.set_water_deprivation is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 5"> 
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        and s.high_alarm_humidity is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 6"> 
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        and s.high_alarm_negative_pressure is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+    </select>
+    <select id="selectByCondition3" resultType="pd" useCache="false">
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.set_humidity ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 s.high_alarm_humidity ,
+		 s.low_alarm_humidity ,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null "> 
+        and s.farm_id = #{farmId} 
+        </if>	
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null"> 
+        and s.day_age = #{day_age}
+        </if>	
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </select>
+    <!-- 查询日龄目标温度设置 -->
+    <select id="selectByCondition" resultType="pd" useCache="false">
+    <if test="alarm_type == 1">
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null"> 
+        and s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        and s.set_temp is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 2">
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 (s.day_age DIV 7) day_age,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 DATE_FORMAT(s.start_time,'%H:%i:%s') start_time,
+		 DATE_FORMAT(s.end_time,'%H:%i:%s') end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null"> 
+        and s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        and s.high_lux is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 3">
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null"> 
+        and s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        and s.high_alarm_co2 is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 4">
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 s.start_time start_time,
+		 s.end_time end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null"> 
+        and s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        and s.set_water_deprivation is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 5">
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity ,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 DATE_FORMAT(s.start_time,'%H:%i:%s') start_time,
+		 DATE_FORMAT(s.end_time,'%H:%i:%s') end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null"> 
+        and s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        and s.high_alarm_humidity is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+        <if test="alarm_type == 6">
+        SELECT  s.uid_num id,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 IFNULL(ROUND(s.set_temp,1),"") set_temp ,
+		 IFNULL(ROUND(s.high_alarm_temp,1),"") high_alarm_temp ,
+		 IFNULL(ROUND(s.low_alarm_temp,1),"") low_alarm_temp ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 IFNULL(ROUND(s.set_humidity,1),"") set_humidity ,
+		 IFNULL(ROUND(s.high_alarm_humidity,1),"") high_alarm_humidity,
+		 IFNULL(ROUND(s.low_alarm_humidity,1),"") low_alarm_humidity,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 IFNULL(ROUND(s.set_negative_pressure,1),"") set_negative_pressure ,
+		 IFNULL(ROUND(s.high_alarm_negative_pressure,1),"") high_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.low_alarm_negative_pressure,1),"") low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 IFNULL(ROUND(s.set_lux,1),"") set_lux ,
+		 IFNULL(ROUND(s.high_lux,1),"") high_lux ,
+		 IFNULL(ROUND(s.low_lux,1),"") low_lux ,
+		 DATE_FORMAT(s.start_time,'%H:%i:%s') start_time,
+		 DATE_FORMAT(s.end_time,'%H:%i:%s') end_time,
+		 (hour(end_time)-hour(start_time)) hours,
+		 IFNULL(ROUND(s.set_co2,1),"") set_co2 ,
+		 IFNULL(ROUND(s.high_alarm_co2,1),"") high_alarm_co2 ,
+		 IFNULL(ROUND(s.low_alarm_co2,1),"") low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 IFNULL(ROUND(s.set_water_deprivation,1),"") set_water_deprivation ,
+		 IFNULL(ROUND(s.high_water_deprivation,1),"") high_water_deprivation ,
+		 IFNULL(ROUND(s.low_water_deprivation,1),"") low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 IFNULL(ROUND(s.high_temp_warning,1),0) high_temp_warning,
+		 IFNULL(ROUND(s.low_temp_warning,1),0) low_temp_warning,
+		 IFNULL(ROUND(s.high_lux_warning,1),0) high_lux_warning,
+		 IFNULL(ROUND(s.low_lux_warning,1),0) low_lux_warning,
+		 IFNULL(ROUND(s.high_co2_warning,1),0) high_co2_warning,
+		 IFNULL(ROUND(s.high_humidity_warning,1),0) high_humidity_warning,
+		 IFNULL(ROUND(s.low_humidity_warning,1),0) low_humidity_warning,
+		 IFNULL(ROUND(s.high_negative_pressure_warning,1),0) high_negative_pressure_warning,
+		 IFNULL(ROUND(s.low_negative_pressure_warning,1),0) low_negative_pressure_warning
+        FROM s_b_dayage_setting_sub s
+        WHERE 1=1
+        <if test="farmId != null"> 
+        and s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        and s.high_alarm_negative_pressure is not null
+        ORDER BY s.farm_id,s.house_id,s.day_age 
+        </if>
+        
+    </select>
+    <!-- 新增日龄目标温度设置 -->
+    <insert id="saveSBDayageSettingSub" parameterType="pd"  flushCache="false" keyProperty="uid_num">
+      <!-- 温度 -->
+	   <if test="alarm_type == 1">
+		INSERT into s_b_dayage_setting_sub (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 set_temp ,
+		 high_alarm_temp ,
+		 low_alarm_temp ,
+		 high_temp_warning,
+		 low_temp_warning,
+		 set_humidity ,
+		 memo ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time 
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{set_temp},
+			#{high_alarm_temp},
+			#{low_alarm_temp},
+			#{high_temp_warning},
+		    #{low_temp_warning},
+			#{set_humidity},
+			#{memo},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+		</if>
+		<!-- 光照 -->
+	   <if test="alarm_type == 2">
+	   INSERT into s_b_dayage_setting_sub (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 set_lux ,
+		 high_lux ,
+		 low_lux ,
+		 high_lux_warning,
+		 low_lux_warning,
+		 start_time ,
+		 end_time ,
+		 set_humidity ,
+		 memo ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time 
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{set_lux},
+			#{high_lux},
+			#{low_lux},
+			#{high_lux_warning},
+		    #{low_lux_warning},
+			#{start_time},
+			#{end_time},
+			#{set_humidity},
+			#{memo},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	   </if>
+	   <!-- 二氧化碳 -->
+	   <if test="alarm_type == 3"> 
+	   INSERT into s_b_dayage_setting_sub (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 high_alarm_co2 ,
+		 <if test="set_co2 != null and set_co2 !=''">
+		 set_co2,
+		 </if>
+		 high_co2_warning,
+		 set_humidity ,
+		 memo ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time 
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{high_alarm_co2},
+			<if test="set_co2 != null and set_co2 != ''">
+			#{set_co2},
+			</if>
+			#{high_co2_warning},
+			#{set_humidity},
+			#{memo},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	   </if>
+	   <!-- 耗水 -->
+	   <if test="alarm_type == 4">
+	   INSERT into s_b_dayage_setting_sub (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 set_water_deprivation ,
+		 high_water_deprivation ,
+		 low_water_deprivation ,
+		 set_humidity ,
+		 memo ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time 
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{set_water_deprivation},
+			#{high_water_deprivation},
+			#{low_water_deprivation},
+			#{set_humidity},
+			#{memo},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	   </if>
+	   
+	   <!-- 湿度 -->
+	   <if test="alarm_type == 5">
+		INSERT into s_b_dayage_setting_sub (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 set_humidity ,
+		 high_alarm_humidity ,
+		 low_alarm_humidity ,
+		 high_humidity_warning,
+		 low_humidity_warning,
+		 memo ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time 
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{set_humidity},
+			#{high_alarm_humidity},
+			#{low_alarm_humidity},
+			#{high_humidity_warning},
+		    #{low_humidity_warning},
+			#{memo},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+		</if>
+		
+		<!-- 负压 -->
+	   <if test="alarm_type == 6">
+		INSERT into s_b_dayage_setting_sub (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 set_negative_pressure ,
+		 high_alarm_negative_pressure ,
+		 low_alarm_negative_pressure ,
+		 high_negative_pressure_warning,
+		 low_negative_pressure_warning,
+		 memo ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time 
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{set_negative_pressure},
+			#{high_alarm_negative_pressure},
+			#{low_alarm_negative_pressure},
+			#{high_negative_pressure_warning},
+		    #{low_negative_pressure_warning},
+			#{memo},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+		</if>
+		
+	</insert>
+	
+	<insert id="saveSBDayageSettingSub2" parameterType="pd"  flushCache="false" keyProperty="uid_num">
+		INSERT into s_b_dayage_setting_sub (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 set_temp ,
+		 high_alarm_temp ,
+		 low_alarm_temp ,
+		 set_lux ,
+		 high_lux ,
+		 low_lux ,
+		 start_time ,
+		 end_time ,
+		 <if test="set_co2 != null and set_co2 !=''">
+		 set_co2 ,
+		 </if>
+		 high_alarm_co2 ,
+		 low_alarm_co2 ,
+		 set_water_deprivation ,
+		 high_water_deprivation ,
+		 low_water_deprivation ,
+		 set_humidity ,
+		 memo ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time ,
+		 high_temp_warning,
+		 low_temp_warning,
+		 high_lux_warning,
+		 low_lux_warning,
+		 high_co2_warning
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{set_temp},
+			#{high_alarm_temp},
+			#{low_alarm_temp},
+			#{set_lux},
+			#{high_lux},
+			#{low_lux},
+			#{start_time},
+			#{end_time},
+			<if test="set_co2 != null and set_co2 !=''">
+			#{set_co2},
+			</if>
+			#{high_alarm_co2},
+			#{low_alarm_co2},
+			#{set_water_deprivation},
+			#{high_water_deprivation},
+			#{low_water_deprivation},
+			#{set_humidity},
+			#{memo},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time},
+			#{high_temp_warning},
+			#{low_temp_warning},
+			#{high_lux_warning},
+			#{low_lux_warning},
+			#{high_co2_warning}
+		)
+		</insert>
+	
+	<!-- 删除日龄目标温度设置 -->
+	<delete id="deleteSBDayageSettingSub" flushCache="false">
+	   <!-- 温度 -->
+	   <if test="alarm_type == 1"> 
+		UPDATE s_b_dayage_setting_sub SET set_temp = null,high_alarm_temp = null,low_alarm_temp = null,high_temp_warning = null,low_temp_warning = null
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 光照 -->
+	   <if test="alarm_type == 2"> 
+		UPDATE s_b_dayage_setting_sub SET set_lux = null , high_lux = null , low_lux = null , start_time =null , end_time = null,high_lux_warning = null,low_lux_warning = null
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 二氧化碳 -->
+	   <if test="alarm_type == 3"> 
+		UPDATE s_b_dayage_setting_sub SET set_co2 = null , high_alarm_co2 = null, low_alarm_co2 = null ,high_co2_warning = null
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 耗水 -->
+	   <if test="alarm_type == 4"> 
+		UPDATE s_b_dayage_setting_sub SET set_water_deprivation = null , high_water_deprivation = null , low_water_deprivation = null 
+		 , modify_person = #{modify_person}
+		  ,modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 湿度 -->
+	   <if test="alarm_type == 5"> 
+		UPDATE s_b_dayage_setting_sub SET set_humidity = null,high_alarm_humidity = null,low_alarm_humidity = null,high_humidity_warning = null,low_humidity_warning = null
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 负压 -->
+	   <if test="alarm_type == 6"> 
+		UPDATE s_b_dayage_setting_sub SET set_negative_pressure = null,high_alarm_negative_pressure = null,low_alarm_negative_pressure = null,high_negative_pressure_warning = null,low_negative_pressure_warning = null
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	</delete>
+	
+	<delete id="deleteSBDayageSettingSub2" flushCache="false">
+	delete from s_b_dayage_setting_sub s 
+	where 1=1
+        <if test="farmId != null"> 
+        and s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null">
+        and s.house_id = #{houseId}
+        </if>
+        <if test="day_age != null">
+        and s.day_age = #{day_age}
+        </if>
+	</delete>
+	
+	<!-- 更新日龄目标温度设置 -->
+	<update id="updateSBDayageSettingSub" flushCache="false">
+	 <!-- 温度 -->
+	   <if test="alarm_type == 1"> 
+		UPDATE s_b_dayage_setting_sub SET set_temp = #{set_temp} , high_alarm_temp = #{high_alarm_temp} , low_alarm_temp = #{low_alarm_temp} 
+		 , high_temp_warning = #{high_temp_warning} , low_temp_warning = #{low_temp_warning}
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 光照 -->
+	   <if test="alarm_type == 2"> 
+		UPDATE s_b_dayage_setting_sub SET set_lux = #{set_lux} , high_lux = #{high_lux}
+		,low_lux = #{low_lux} , start_time = #{start_time} , end_time = #{end_time}
+		 , high_lux_warning = #{high_lux_warning} , low_lux_warning = #{low_lux_warning}
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 二氧化碳 -->
+	   <if test="alarm_type == 3"> 
+		UPDATE s_b_dayage_setting_sub SET high_alarm_co2 = #{high_alarm_co2} ,high_co2_warning = #{high_co2_warning}
+		<if test="set_co2 != null and set_co2 !=''">
+		, set_co2 = #{set_co2}
+		</if>
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 耗水 -->
+	   <if test="alarm_type == 4"> 
+		UPDATE s_b_dayage_setting_sub SET set_water_deprivation = #{set_water_deprivation} , high_water_deprivation = #{high_water_deprivation} , low_water_deprivation = #{low_water_deprivation} 
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+		</if>
+		<!-- 湿度 -->
+	   <if test="alarm_type == 5"> 
+		UPDATE s_b_dayage_setting_sub SET set_humidity = #{set_humidity} , high_alarm_humidity = #{high_alarm_humidity} , low_alarm_humidity = #{low_alarm_humidity} 
+		 , high_humidity_warning = #{high_humidity_warning} , low_humidity_warning = #{low_humidity_warning}
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	   <!-- 负压 -->
+	   <if test="alarm_type == 6"> 
+		UPDATE s_b_dayage_setting_sub SET set_negative_pressure = #{set_negative_pressure} , high_alarm_negative_pressure = #{high_alarm_negative_pressure} , low_alarm_negative_pressure = #{low_alarm_negative_pressure} 
+		 , high_negative_pressure_warning = #{high_negative_pressure_warning} , low_negative_pressure_warning = #{low_negative_pressure_warning}
+		 , modify_person = #{modify_person}
+		  , modify_date = #{modify_date} , modify_time = #{modify_time}
+		WHERE uid_num = #{uid_num}
+	   </if>
+	</update>
+	<!-- 查询日龄目标温度设置子表 -->
+    <select id="selectSBDayageTempSubByCondition" resultType="pd" useCache="false">
+        SELECT  s.uid_num ,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 s.set_temp ,
+		 s.record_datetime,
+		 s.high_alarm_temp ,
+		 s.low_alarm_temp ,
+		 s.set_humidity ,
+		 s.memo ,
+		 s.create_person ,
+		 s.create_date ,
+		 s.create_time ,
+		 s.modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 s.high_alarm_humidity ,
+		 s.low_alarm_humidity ,
+		 s.super_high_alarm_humidity ,
+		 s.super_low_alarm_humidity ,
+		 s.super_high_alarm_temp ,
+		 s.super_low_alarm_temp ,
+		 s.set_negative_pressure ,
+		 s.high_alarm_negative_pressure ,
+		 s.low_alarm_negative_pressure ,
+		 s.super_high_alarm_negative_pressure ,
+		 s.super_low_alarm_negative_pressure ,
+		 s.set_lux ,
+		 s.high_lux ,
+		 s.low_lux ,
+		 s.set_co2 ,
+		 s.high_alarm_co2 ,
+		 s.low_alarm_co2 ,
+		 s.super_high_alarm_co2 ,
+		 s.super_low_alarm_co2 ,
+		 s.set_water_deprivation ,
+		 s.high_water_deprivation ,
+		 s.low_water_deprivation ,
+		 s.super_high_water_deprivation ,
+		 s.super_low_water_deprivation ,
+		 s.alarm_type,
+		 d.start_time,
+		 d.end_time,
+		 s.high_temp_warning,
+		 s.low_temp_warning,
+		 s.high_lux_warning,
+		 s.low_lux_warning,
+		 s.high_co2_warning,
+		 s.high_humidity_warning,
+		 s.low_humidity_warning,
+		 s.high_negative_pressure_warning,
+		 s.low_negative_pressure_warning
+        FROM s_b_dayage_temp_sub s
+        left join 
+        s_b_dayage_setting_sub d
+        on d.uid_num = s.uid_num
+        WHERE 1=1
+        <if test="uid_num != null"> 
+        and s.uid_num = #{uid_num}
+        </if>
+        <if test="farmId != null"> 
+        AND s.farm_id = #{farmId} 
+        </if>
+        <if test="houseId != null"> 
+        AND s.house_id = #{houseId} 
+        </if>
+        <if test="day_age != null"> 
+        AND s.day_age = #{day_age} 
+        </if>
+        <if test="record_datetime != null"> 
+        AND record_datetime = #{record_datetime}
+        </if>
+        <if test="alarm_type != null">
+        AND s.alarm_type = #{alarm_type}
+        </if>
+        ORDER BY s.farm_id,s.house_id,s.day_age,s.record_datetime
+    </select>
+	<!-- 新增日龄目标温度子 -->	
+	<insert id="saveSBDayageTempSub" parameterType="java.util.List"  flushCache="false"> 
+		INSERT into s_b_dayage_temp_sub (		
+		 uid_num,
+			farm_id,
+			house_id,
+			day_age,
+			record_datetime,
+			set_temp,
+			high_alarm_temp,
+			low_alarm_temp,
+			set_humidity,
+			high_alarm_humidity,
+		    low_alarm_humidity,
+		    set_negative_pressure ,
+		    high_alarm_negative_pressure ,
+		    low_alarm_negative_pressure ,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time,
+			set_lux,
+			high_lux,
+			low_lux,
+			high_alarm_co2,
+			set_co2,
+			set_water_deprivation,
+			high_water_deprivation,
+			low_water_deprivation,
+			alarm_type,
+			is_start,
+			high_temp_warning,
+		    low_temp_warning,
+		    high_lux_warning,
+		    low_lux_warning,
+		    high_co2_warning,
+		    high_humidity_warning,
+		    low_humidity_warning,
+		    high_negative_pressure_warning,
+		    low_negative_pressure_warning
+		) values 
+		<foreach collection="list" index="index" item="item"  open="" separator="," close="" >
+	        (#{item.uid_num},
+				#{item.farmId},
+				#{item.houseId},
+				#{item.day_age},
+				#{item.record_datetime},
+				#{item.set_temp},
+				#{item.high_alarm_temp},
+				#{item.low_alarm_temp},
+				#{item.set_humidity},
+			    #{item.high_alarm_humidity},
+		        #{item.low_alarm_humidity},
+		        #{item.set_negative_pressure} ,
+		        #{item.high_alarm_negative_pressure} ,
+		        #{item.low_alarm_negative_pressure} ,
+				#{item.create_person},
+				#{item.create_date},
+				#{item.create_time},
+				#{item.modify_person},
+				#{item.modify_date},
+				#{item.modify_time},
+				#{item.set_lux},
+				#{item.high_lux},
+				#{item.low_lux},
+				#{item.high_alarm_co2},
+				#{item.set_co2},
+				#{item.set_water_deprivation},
+				#{item.high_water_deprivation},
+				#{item.low_water_deprivation},
+				#{item.alarm_type},
+				#{item.is_start},
+				#{item.high_temp_warning},
+				#{item.low_temp_warning},
+				#{item.high_lux_warning},
+				#{item.low_lux_warning},
+				#{item.high_co2_warning},
+				#{item.high_humidity_warning},
+		        #{item.low_humidity_warning},
+		        #{item.high_negative_pressure_warning},
+		        #{item.low_negative_pressure_warning})  
+         </foreach>
+		</insert>
+	
+	<!-- 更新日龄目标温度设置子表 -->
+	<update id="updateSBDayageTempSub" parameterType="java.util.List" flushCache="false">
+	 <!-- 温度 -->
+	   <if test="alarm_type == 1"> 
+	   <foreach collection="list" index="index" item="item"  open="" separator=";" close="" > 
+		UPDATE s_b_dayage_temp_sub SET
+		 set_temp = #{item.set_temp} , high_alarm_temp = #{item.high_alarm_temp} , low_alarm_temp = #{item.low_alarm_temp},high_temp_warning = #{item.high_temp_warning}
+		   , low_temp_warning = #{item.low_temp_warning}
+		   , modify_person = #{item.modify_person}
+		  , modify_date = #{item.modify_date}, modify_time = #{item.modify_time}
+		WHERE uid_num = #{item.uid_num} AND farm_id = #{item.farmId} 
+		AND house_id = #{item.houseId} AND day_age = #{item.day_age} 
+		AND record_datetime = #{item.record_datetime} and alarm_type = #{item.alarm_type}
+		</foreach>
+	   </if>
+	   <!-- 光照 -->
+	   <if test="alarm_type == 2"> 
+	   <foreach collection="list" index="index" item="item"  open="" separator=";" close="" > 
+		UPDATE s_b_dayage_temp_sub SET set_lux = #{item.set_lux} ,high_lux = #{item.high_lux} ,low_lux = #{item.low_lux} ,is_start = #{is_start}
+		  , high_lux_warning = #{item.high_lux_warning},low_lux_warning = #{item.low_lux_warning}
+		 , modify_person = #{item.modify_person}
+		  , modify_date = #{item.modify_date} , modify_time = #{item.modify_time}
+		WHERE uid_num = #{item.uid_num} AND farm_id = #{item.farmId} AND house_id = #{item.houseId} 
+		AND day_age = #{item.day_age} AND record_datetime = #{item.record_datetime}
+		and alarm_type = #{item.alarm_type}
+		</foreach>
+	   </if>
+	   <!-- 二氧化碳 -->
+	   <if test="alarm_type == 3"> 
+	   <foreach collection="list" index="index" item="item"  open="" separator=";" close="" > 
+		UPDATE s_b_dayage_temp_sub SET high_alarm_co2 = #{item.high_alarm_co2} , set_co2 = #{item.set_co2},high_co2_warning = #{item.high_co2_warning}
+		 , modify_person = #{item.modify_person}
+		  , modify_date = #{item.modify_date} , modify_time = #{item.modify_time}
+		WHERE uid_num = #{item.uid_num} AND farm_id = #{item.farmId} AND house_id = #{item.houseId} 
+		AND day_age = #{item.day_age} AND record_datetime = #{item.record_datetime}
+		and alarm_type = #{item.alarm_type}
+		</foreach>
+	   </if>
+	   <!-- 耗水 -->
+	   <if test="alarm_type == 4"> 
+	   <foreach collection="list" index="index" item="item"  open="" separator=";" close="" > 
+		UPDATE s_b_dayage_temp_sub SET set_water_deprivation = #{item.set_water_deprivation} , high_water_deprivation = #{item.high_water_deprivation} , 
+		low_water_deprivation = #{item.low_water_deprivation} 
+		 , modify_person = #{item.modify_person}
+		  , modify_date = #{item.modify_date} , modify_time = #{item.modify_time}
+		WHERE uid_num = #{item.uid_num} AND farm_id = #{item.farmId} AND house_id = #{item.houseId} 
+		AND day_age = #{item.day_age} AND record_datetime = #{item.record_datetime} 
+		and alarm_type = #{item.alarm_type}
+		</foreach>
+		</if>
+		<!-- 湿度 -->
+	   <if test="alarm_type == 5"> 
+	   <foreach collection="list" index="index" item="item"  open="" separator=";" close="" > 
+		UPDATE s_b_dayage_temp_sub SET
+		 set_humidity = #{item.set_humidity} , high_alarm_humidity = #{item.high_alarm_humidity} , low_alarm_humidity = #{item.low_alarm_humidity},high_humidity_warning = #{item.high_humidity_warning}
+		   , low_humidity_warning = #{item.low_humidity_warning}
+		   , modify_person = #{item.modify_person}
+		  , modify_date = #{item.modify_date}, modify_time = #{item.modify_time}
+		WHERE uid_num = #{item.uid_num} AND farm_id = #{item.farmId} 
+		AND house_id = #{item.houseId} AND day_age = #{item.day_age} 
+		AND record_datetime = #{item.record_datetime} and alarm_type = #{item.alarm_type}
+		</foreach>
+	   </if>
+	   <!-- 负压 -->
+	   <if test="alarm_type == 6"> 
+	   <foreach collection="list" index="index" item="item"  open="" separator=";" close="" > 
+		UPDATE s_b_dayage_temp_sub SET
+		 set_negative_pressure = #{item.set_negative_pressure} , high_alarm_negative_pressure = #{item.high_alarm_negative_pressure} , low_alarm_negative_pressure = #{item.low_alarm_negative_pressure},high_negative_pressure_warning = #{item.high_negative_pressure_warning}
+		   , low_negative_pressure_warning = #{item.low_negative_pressure_warning}
+		   , modify_person = #{item.modify_person}
+		  , modify_date = #{item.modify_date}, modify_time = #{item.modify_time}
+		WHERE uid_num = #{item.uid_num} AND farm_id = #{item.farmId} 
+		AND house_id = #{item.houseId} AND day_age = #{item.day_age} 
+		AND record_datetime = #{item.record_datetime} and alarm_type = #{item.alarm_type}
+		</foreach>
+	   </if>
+	</update>
+	<!-- 删除日龄目标温度设置子表 -->
+	<delete id="deleteSBDayageTempSub" flushCache="false">
+		delete from s_b_dayage_temp_sub 
+		WHERE uid_num = #{uid_num} and alarm_type = #{alarm_type}
+		 <if test="day_age1 != null"> 
+        and day_age > #{day_age1}
+        </if>
+        <if test="day_age2 != null"> 
+        and #{day_age2} >= day_age 
+        </if>
+	</delete>
+	
+	<delete id="deleteSBDayageTempSub2" flushCache="false">
+	delete from s_b_dayage_temp_sub s 
+	where 1=1
+        <if test="uid_num != null"> 
+        and uid_num = #{uid_num}
+        </if>
+	</delete>
+	
+	<!-- 查询栋舍报警设置 -->
+	<select id="selectSBHouseAlarmByCondition" resultType="pd" useCache="false">
+	SELECT farm_id,
+			house_id,
+			alarm_type,
+			alarm_delay,
+			temp_cpsation,
+			ifnull(ROUND(temp_cordon,1),0) temp_cordon,
+			alarm_way,
+			alarm_probe,
+			ifnull(point_alarm,0) point_alarm,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+			FROM s_b_house_alarm
+			where 1=1
+			<if test="farmId != null">
+			AND farm_id = #{farmId}
+			</if>
+			<if test="houseId != null">
+			AND house_id = #{houseId}
+			</if>
+			<if test="AlarmType != null and AlarmType != ''">
+				AND alarm_type = #{AlarmType}
+			</if>
+	</select>
+	<!-- 更新栋舍报警设置 -->
+	<update id="updateSBHouseAlarm" flushCache="false">
+	  UPDATE s_b_house_alarm SET alarm_delay = #{alarm_delay} , temp_cpsation = #{temp_cpsation}
+	  <if test="temp_cordon != null and temp_cordon != '' ">
+	  ,temp_cordon = #{temp_cordon}
+	  </if>
+	  , alarm_way = #{alarm_way}
+	  , alarm_probe = #{alarm_probe}
+	  <if test="point_alarm != null and point_alarm != '' ">
+	  ,point_alarm = #{point_alarm}
+	  </if>
+	  ,modify_person = #{modify_person},modify_date = #{modify_date},modify_time = #{modify_time}
+	  WHERE farm_id = #{farmId} AND house_id = #{houseId}
+	</update>
+	<!-- 查询报警人设置 -->
+	<select id="selectSBReminderByCondition" resultType="pd" useCache="false">
+	SELECT id,
+			user_order,
+			remind_method,
+			farm_id,
+			house_id,
+			user_type,
+			user_id,
+			create_time,
+			create_person,
+			modify_person,
+			modify_time,
+			bak1,
+			bak2
+    FROM s_b_reminder
+    WHERE farm_id = #{farmId} AND house_id = #{houseId}
+    
+	</select>
+	<!-- 新增报警人设置 -->
+    <insert id="saveSBReminder" parameterType="pd"  flushCache="false">
+    INSERT INTO s_b_reminder(user_order,
+							remind_method,
+							farm_id,
+							house_id,
+							user_type,
+							user_id,
+							create_time,
+							create_person,
+							modify_person,
+							modify_time
+							)value(#{user_order},
+							       #{remind_method},
+							       #{farmId},
+							       #{houseId},
+							       #{user_type},
+							       #{user_id},
+							       #{create_time},
+							       #{create_person},
+							       #{modify_person},
+							       #{modify_time})
+    </insert>
+    <!-- 更新报警人设置 -->
+    <update id="updateSBReminder" flushCache="false">
+    UPDATE s_b_reminder SET user_id = #{user_id},modify_person = #{modify_person}
+	  , modify_time = #{modify_time} 
+	  WHERE farm_id = #{farmId} AND house_id = #{houseId} AND user_order = #{user_order}
+    </update>
+    <!-- 查询提醒启用设置 -->
+    <select id="selectSBRemindSwitch" resultType="pd" useCache="false">
+    SELECT farm_id,
+			house_id,
+			remind_method,
+			status,
+			create_time,
+			create_person,
+			modify_person,
+			modify_time
+			FROM s_b_remind_switch 
+			WHERE farm_id = #{farmId} AND house_id = #{houseId}
+    </select>
+    <!-- 新增提醒启用设置 -->
+    <insert id="saveSBRemindSwitch" parameterType="pd"  flushCache="false">
+    INSERT INTO s_b_remind_switch(farm_id,
+			house_id,
+			remind_method,
+			status,
+			create_time,
+			create_person,
+			modify_person,
+			modify_time)value(
+			#{farmId},
+			#{houseId},
+			#{remind_method},
+			#{status},
+			#{create_time},
+			#{create_person},
+			#{modify_person},
+			#{modify_time})
+    </insert>
+    <!-- 更新提醒启用设置 -->
+	<update id="updateSBRemindSwitch" flushCache="false">
+	UPDATE s_b_remind_switch SET status = #{status}  , modify_person = #{modify_person}
+	  , modify_time = #{modify_time} 
+	  WHERE farm_id = #{farmId} AND house_id = #{houseId} 
+	</update>
+	<!-- 新增提醒指标配置 -->
+    <insert id="saveSBRemindAlarmcode" parameterType="pd"  flushCache="false">
+     INSERT INTO s_b_remind_alarmcode(
+        farm_id,
+		house_id,
+		remind_method,
+		alarm_code,
+		create_time,
+		create_person,
+		modify_person,
+		modify_time
+		)value(
+		#{farmId},
+		#{houseId},
+		#{remind_method},
+		#{alarm_code},
+		#{create_time},
+		#{create_person},
+		#{modify_person},
+		#{modify_time})
+    </insert>
+    <!-- 查询提醒指标配置 -->
+    <select id="selectSBRemindAlarmcodeByCondition" resultType="pd" useCache="false">
+    SELECT id,
+		farm_id,
+		house_id,
+		remind_method,
+		alarm_code,
+		create_time,
+		create_person,
+		modify_person,
+		modify_time,
+		bak1,
+		bak2
+     FROM s_b_remind_alarmcode WHERE farm_id = #{farmId} AND house_id = #{houseId} AND alarm_code = #{alarm_code}
+    </select>
+    <!-- 查询农场提醒设置-->
+    <select id="selectSBRemindSetting" resultType="pd" useCache="false">
+    SELECT farm_id,
+		remind_method,
+		switch_rele_house,
+		person_rele_house,
+		alarm_rele_house,
+		create_time,
+		bak1,
+		bak2
+    FROM s_b_remind_setting WHERE farm_id = #{farmId} 
+    </select>
+    <!-- 新增农场提醒设置--> 
+    <insert id="saveSBRemindSetting" parameterType="pd"  flushCache="false">
+    INSERT INTO s_b_remind_setting(
+            farm_id,
+		remind_method,
+		switch_rele_house,
+		person_rele_house,
+		alarm_rele_house,
+		create_time)value(
+		#{farmId},
+		#{remind_method},
+		#{switch_rele_house},
+		#{person_rele_house},
+		#{alarm_rele_house},
+		#{create_time})
+    </insert>
+    
+    <select id="findUserAll" resultType="pd" useCache="false">
+		select distinct u.id,u.user_real_name from v_user u
+	 where 
+	 u.obj_id in(SELECT distinct obj_id FROM v_user 
+	where obj_type =2
+	and id = #{user_id})
+<!-- 	<if test="houseId != null and houseId != ''">  -->
+<!--         and u.obj_id = #{houseId} -->
+<!--         </if> -->
+    order by u.obj_id
+	</select>
+	
+	<update id="updateDeviceSub" flushCache="false">
+	UPDATE s_d_device_sub u SET u.is_alarm = #{is_alarm}  , u.modify_person = #{modify_person}
+	  , u.modify_date = #{modify_date}
+	  WHERE exists(select 1 FROM s_b_devi_house h
+	left join
+	s_d_device d
+	on d.device_code = h.device_code
+	left join
+	(select show_column,main_id,sensor_no from s_d_device_sub ) s
+	on s.main_id = d.main_id
+	left join
+	s_d_code c
+	on c.biz_code = s.show_column
+	where 
+	c.code_type = 'SENSOR_LOCATION' 
+	and c.biz_code !=#{biz_code}
+	and h.house_id = #{houseId}
+	<if test="device_code != null and device_code != ''">
+		and d.device_code = #{device_code}
+	</if>
+	and s.main_id = u.main_id)
+	and u.show_column = #{biz_code}
+	</update>
+	
+	<select id="selectInsideTemp" resultType="pd" useCache="false">
+	SELECT c.code_type,
+	        c.biz_code,
+			c.code_name,
+			c.bak1,
+			c.bak2,
+			c.code_desc,
+			s.is_alarm
+	FROM s_b_devi_house h
+	left join
+	s_d_device d
+	on d.device_code = h.device_code
+	left join
+	s_d_device_sub s
+	on s.main_id = d.main_id
+	left join
+	s_d_code c
+	on c.biz_code = s.show_column
+	where
+	c.code_type = #{code_type}
+	and c.biz_code !='outside_temp'
+	and h.house_id = #{houseId}
+	<if test="device_code != null and device_code != ''">
+		and d.device_code = #{device_code}
+	</if>
+	order by CONVERT(c.bak1,SIGNED)
+	</select>
+	
+	<select id="selectDevice" resultType="pd" useCache="false">
+	SELECT h.device_code,
+	       concat(d.device_code,'-',d.device_factory,'-',d.port_id) as device_name
+	FROM s_b_devi_house h
+	left join
+	s_d_device d
+	on d.device_code = h.device_code
+	where 
+    h.house_id = #{houseId}
+	</select>
+	
+	<select id="selectSBCode" resultType="pd" useCache="false">
+    SELECT code_type,
+			biz_code,
+			code_name,
+			bak1,
+			bak2,
+			code_desc
+    FROM s_d_code WHERE code_type = #{code_type} 
+    ORDER BY CAST(biz_code AS SIGNED)
+    </select>
+    <!-- 新增历史日龄目标温度设置--> 
+    <insert id="saveSbDayageSettingSubHis" parameterType="pd"  flushCache="false">
+    <!-- 温度 -->
+	   <if test="alarm_type == 1">
+		INSERT into s_b_dayage_setting_sub_his (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 alarm_type,
+		 set_values ,
+		 high_alarm_values ,
+		 low_alarm_values ,
+		 high_warning_values,
+		 low_warning_values,
+		 alarm_operation ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{alarm_type},
+			#{set_temp},
+			#{high_alarm_temp},
+			#{low_alarm_temp},
+			#{high_temp_warning},
+		    #{low_temp_warning},
+			#{alarm_operation},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+		</if>
+		<!-- 光照 -->
+	   <if test="alarm_type == 2">
+	   INSERT into s_b_dayage_setting_sub_his (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 alarm_type,
+		 set_values ,
+		 high_alarm_values ,
+		 low_alarm_values ,
+		 high_warning_values,
+		 low_warning_values,
+		 alarm_operation ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time,
+		 start_time,
+		 end_time
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{alarm_type},
+			#{set_lux},
+			#{high_lux},
+			#{low_lux},
+			#{high_lux_warning},
+			#{low_lux_warning},
+			#{alarm_operation},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time},
+			#{start_time},
+			#{end_time}
+		)
+	   </if>
+	   <!-- 二氧化碳 -->
+	   <if test="alarm_type == 3"> 
+	   INSERT into s_b_dayage_setting_sub_his (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 alarm_type,
+		 set_values ,
+		 high_alarm_values ,
+		 high_warning_values,
+		 alarm_operation ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{alarm_type},
+			#{set_co2},
+			#{high_alarm_co2},
+			#{high_co2_warning},
+			#{alarm_operation},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	   </if>
+	   <!-- 湿度 -->
+	   <if test="alarm_type == 5">
+		INSERT into s_b_dayage_setting_sub_his (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 alarm_type,
+		 set_values ,
+		 high_alarm_values ,
+		 low_alarm_values ,
+		 high_warning_values,
+		 low_warning_values,
+		 alarm_operation ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{alarm_type},
+			#{set_humidity},
+			#{high_alarm_humidity},
+			#{low_alarm_humidity},
+			#{high_humidity_warning},
+		    #{low_humidity_warning},
+			#{alarm_operation},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+		</if>
+		<!-- 负压 -->
+	   <if test="alarm_type == 6">
+		INSERT into s_b_dayage_setting_sub_his (
+		 farm_id ,
+		 house_id ,
+		 day_age ,
+		 alarm_type,
+		 set_values ,
+		 high_alarm_values ,
+		 low_alarm_values ,
+		 high_warning_values,
+		 low_warning_values,
+		 alarm_operation ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time
+		) values (
+			#{farmId},
+			#{houseId},
+			#{day_age},
+			#{alarm_type},
+			#{set_negative_pressure},
+			#{high_alarm_negative_pressure},
+			#{low_alarm_negative_pressure},
+			#{high_negative_pressure_warning},
+		    #{low_negative_pressure_warning},
+			#{alarm_operation},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+		</if>
+    </insert>
+    <!-- 新增栋舍报警设置历史设置--> 
+    <insert id="saveSbHouseAlarmHis" parameterType="pd"  flushCache="false">
+		INSERT into s_b_house_alarm_his (
+		 farm_id ,
+		 house_id ,
+		 alarm_type,
+		 alarm_delay ,
+		 temp_cpsation ,
+		 temp_cordon ,
+		 alarm_way ,
+		 alarm_probe,
+		 alarm_sensor_no,
+		 point_alarm,
+		 modify_person ,
+		 modify_date ,
+		 modify_time
+		) values (
+			#{farmId},
+			#{houseId},
+			#{alarm_type},
+			#{alarm_delay},
+			#{temp_cpsation},
+			#{temp_cordon},
+			'03',
+			#{alarm_probe},
+			#{alarm_sensor_no},
+			#{point_alarm},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+    </insert>
+    <!-- 查询日龄目标温度历史设置 -->
+    <select id="selectAlarmHisByCondition" resultType="pd" useCache="false">
+        SELECT  y.uid_num ,
+		 y.farm_id,
+		 y.house_id,
+		 y.day_age,
+		 y.alarm_type,
+		 y.set_values ,
+		 y.high_alarm_values ,
+		 y.low_alarm_values ,
+		 y.high_warning_values ,
+		 y.low_warning_values ,
+		 y.super_high_alarm_values ,
+		 y.super_low_alarm_values ,
+		 y.memo ,
+		 y.alarm_operation ,
+		 y.approve_status ,
+		 y.modify_person ,
+		 y.modify_date ,
+		 y.modify_time,
+		 y.start_time ,
+		 y.end_time 
+		 from (SELECT  s.uid_num ,
+		 max(s.farm_id) farm_id,
+		 max(s.house_id) house_id,
+		 max(s.day_age) day_age,
+		 max(s.alarm_type) alarm_type,
+		 IFNULL(ROUND(s.set_values,1),"-") set_values ,
+		 IFNULL(ROUND(s.high_alarm_values,1),"-") high_alarm_values ,
+		 IFNULL(ROUND(s.low_alarm_values,1),"-") low_alarm_values ,
+		 IFNULL(ROUND(s.high_warning_values,1),"-") high_warning_values ,
+		 IFNULL(ROUND(s.low_warning_values,1),"-") low_warning_values ,
+		 s.super_high_alarm_values ,
+		 s.super_low_alarm_values ,
+		 s.memo ,
+		 s.alarm_operation ,
+		 s.approve_status ,
+		 u.user_real_name as modify_person ,
+		 s.modify_date ,
+		 max(s.modify_time) modify_time,
+		 DATE_FORMAT(s.start_time,'%H:%i:%s') start_time ,
+		 DATE_FORMAT(s.end_time,'%H:%i:%s') end_time
+        FROM s_b_dayage_setting_sub_his s
+        left join
+        s_d_user u
+        on u.id = s.modify_person
+        WHERE 1=1
+        <if test="farmId != null and farmId != ''"> 
+        and s.farm_id = #{farmId} 
+        </if> 
+        <if test="houseId != null and houseId != ''"> 
+        and s.house_id = #{houseId}
+        </if>
+        <if test="id != null and id != ''"> 
+        and u.id = #{id}
+        </if>
+        and s.alarm_type = #{alarm_type}
+        and DATEDIFF(DATE_FORMAT(s.modify_time,'%Y-%m-%d'),str_to_date(#{start_date},'%Y-%m-%d'))>=0
+        and DATEDIFF(str_to_date(#{end_date},'%Y-%m-%d'),DATE_FORMAT(s.modify_time,'%Y-%m-%d'))>=0
+        group by s.farm_id,s.house_id,s.alarm_type,s.day_age) y
+        ORDER BY y.modify_time desc,y.farm_id,y.house_id,y.day_age 
+    </select>
+    <!-- 查询日龄目标温度历史设置明细 -->
+    <select id="selectAlarmHisDetailByCondition" resultType="pd" useCache="false">
+        SELECT  s.uid_num ,
+		 s.farm_id ,
+		 s.house_id ,
+		 s.day_age ,
+		 s.alarm_type,
+		 IFNULL(ROUND(s.set_values,1),"-") set_values ,
+		 IFNULL(ROUND(s.high_alarm_values,1),"-") high_alarm_values ,
+		 IFNULL(ROUND(s.low_alarm_values,1),"-") low_alarm_values ,
+		 IFNULL(ROUND(s.high_warning_values,1),"-") high_warning_values ,
+		 IFNULL(ROUND(s.low_warning_values,1),"-") low_warning_values ,
+		 s.super_high_alarm_values ,
+		 s.super_low_alarm_values ,
+		 s.memo ,
+		 s.alarm_operation ,
+		 s.approve_status ,
+		 u.user_real_name as modify_person ,
+		 s.modify_date ,
+		 s.modify_time ,
+		 DATE_FORMAT(s.start_time,'%H:%i:%s') start_time ,
+		 DATE_FORMAT(s.end_time,'%H:%i:%s') end_time
+        FROM s_b_dayage_setting_sub_his s
+        left join
+        s_d_user u
+        on u.id = s.modify_person
+        WHERE 1=1
+        and s.farm_id = #{farmId} 
+        and s.house_id = #{houseId}
+        and s.alarm_type = #{alarm_type}
+        and s.day_age = #{day_age}
+        and DATEDIFF(DATE_FORMAT(s.modify_time,'%Y-%m-%d'),str_to_date(#{start_date},'%Y-%m-%d'))>=0
+        and DATEDIFF(str_to_date(#{end_date},'%Y-%m-%d'),DATE_FORMAT(s.modify_time,'%Y-%m-%d'))>=0
+        ORDER BY s.modify_time desc,s.farm_id,s.house_id,s.day_age 
+    </select>
+    <!-- 查询栋舍报警设置历史 -->
+    <select id="selectHouseAlarmHisByCondition" resultType="pd" useCache="false">
+        SELECT
+		 s.farm_id ,
+		 s.house_id ,
+		 s.alarm_type,
+		 s.alarm_delay ,
+		 s.temp_cpsation ,
+		 s.temp_cordon ,
+		 s.alarm_way ,
+		 c.code_name as alarm_probe ,
+		 s.alarm_sensor_no,
+		 s.point_alarm ,
+		 u.user_real_name as modify_person ,
+		 s.modify_date ,
+		 s.modify_time
+        FROM s_b_house_alarm_his s
+        left join
+        s_d_user u
+        on u.id = s.modify_person
+        left join 
+        s_d_code c
+        on c.biz_code = s.alarm_probe and
+        c.code_type = 'alarm_probe'
+        WHERE 1=1
+        and s.farm_id = #{farmId}
+        and s.house_id = #{houseId}
+        and DATEDIFF(DATE_FORMAT(s.modify_time,'%Y-%m-%d'),str_to_date(#{start_date},'%Y-%m-%d'))>=0
+        and DATEDIFF(str_to_date(#{end_date},'%Y-%m-%d'),DATE_FORMAT(s.modify_time,'%Y-%m-%d'))>=0
+        ORDER BY s.modify_time desc,s.farm_id,s.house_id
+    </select>
+    <!-- 查询栋舍报警设置历史明细 -->
+    <select id="selectHouseAlarmHisDetailByCondition" resultType="pd" useCache="false">
+        SELECT
+		 s.farm_id ,
+		 s.house_id ,
+		 s.alarm_type,
+		 alarm_delay ,
+		 temp_cpsation ,
+		 temp_cordon ,
+		 alarm_way ,
+		 alarm_probe ,
+		 point_alarm ,
+		 u.user_real_name as modify_person ,
+		 s.modify_date ,
+		 s.modify_time
+        FROM s_b_house_alarm_his s
+        left join
+        s_d_user u
+        on u.id = s.modify_person
+        WHERE 1=1
+        and s.farm_id = #{farmId}
+        and s.house_id = #{houseId}
+        and DATEDIFF(DATE_FORMAT(s.modify_time,'%Y-%m-%d'),str_to_date(#{start_date},'%Y-%m-%d'))>=0
+        and DATEDIFF(str_to_date(#{end_date},'%Y-%m-%d'),DATE_FORMAT(s.modify_time,'%Y-%m-%d'))>=0
+        ORDER BY s.modify_time desc,s.farm_id,s.house_id
+    </select>
+</mapper>

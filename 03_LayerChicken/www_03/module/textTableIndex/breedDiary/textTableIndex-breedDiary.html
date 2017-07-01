@@ -1,0 +1,64 @@
+<ion-view view-title="breedDiary">
+    <div id="mainContent" style="background: #FFF; position: absolute; width: 100%;">
+        <div style="position: relative;  
+                        top:0rem;  
+                        left:0rem; 
+                        height:8%; 
+                        width:80%;">
+              <div style="position: relative;  
+                          top:0rem;  
+                          left:0rem; 
+                          height:100%; 
+                          width:100%;
+                          font-size:12px;">
+                <span style="position: relative;top:0.3rem;left:1rem;font-weight: bold;color: #888888;">今天：{{brDiaryData.DateInfos}}</span>
+              </div>
+            </div>
+
+
+        <div style="position: absolute;  
+                    top:0rem;  
+                    right:0rem; 
+                    height:8%; 
+                    width:20%;">
+            <div style="height:100%;width:50%;">
+              <span style="position: relative;top:0.3rem;left:0rem; font-weight: bold;">显示：</span>
+            </div>
+            <div style="position: absolute;top:0rem;right:0rem;height:100%;width:50%;">
+              <select ng-model="brDiaryData.selectWeek"
+                      ng-change="judgeWeek()"
+                      style="position: absolute;  
+                             top:2px;  
+                             right:0.5rem; 
+                             height:100%; 
+                             width:130%;
+                             font-size: 12px;
+                             background:transparent url(img/newFolder/public/clear_image.png)no-repeat;
+                             border:solid 0px #FFF;"> 
+                  <option value        =  "{{key}}" 
+                          ng-repeat    =  "(key,val) in myConfig.WeekList"
+                          ng-selected  =  "key==brDiaryData.selectWeek">
+                          {{val}}
+                  </option> 
+              </select>
+            </div>
+        </div>
+
+      	<div style="position: relative;  
+                          top:0rem;  
+                          left:0rem; 
+                          height:75%; 
+                          width:100%;" id="dailyDayTable">
+	      <div ui-grid="gridOptions" style="position: relative;height:100%;width:100%;" ui-grid-pinning></div>
+	    </div>
+
+	    <table style="position: relative; top: 0%; width: 100%;height: 30px;" id="houseTable">
+          <tr>
+            <td  ng-repeat="item in sparraw_user_temp.houseinfos" id="IDis{{item.id}}" ng-click="chooseHouse(item.id)" >
+              <p style="position: relative; top: 2px; color: #FFF;" align="center">{{item.houseName}}栋</p>
+            </td>
+          </tr>
+        </table>
+
+    </div>
+</ion-view>

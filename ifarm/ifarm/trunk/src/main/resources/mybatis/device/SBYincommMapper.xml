@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SBYincommMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="pd" flushCache="false">
+        INSERT into s_b_yincomm(make_time, ytdata_time, frame_type, mm_sn, frame_sn, receive_data, confirm_data, proterty, power_status, voltage, run_time, hardware_version, software_version, signal_strength, device_info, sim_iccid, bak_1, bak_2, bak_3, bak_4, bak_5, temp_1, temp_2, temp_3, temp_4, temp_5, temp_6, temp_7, temp_8, temp_9, temp_10, humi_1, humi_2, humi_3, CO2_1, CO2_2, CO2_3, lux_1, lux_2, lux_3)
+        VALUES (
+        #{make_time},#{ytdata_time},#{frame_type},#{mm_sn},#{frame_sn},#{receive_data},#{confirm_data},#{proterty},#{power_status},#{voltage},#{run_time},#{hardware_version},#{software_version},#{signal_strength},#{device_info},#{sim_iccid},#{bak_1},#{bak_2},#{bak_3},#{bak_4},#{bak_5},#{temp_1},#{temp_2},#{temp_3},#{temp_4},#{temp_5},#{temp_6},#{temp_7},#{temp_8},#{temp_9},#{temp_10},#{humi_1},#{humi_2},#{humi_3},#{CO2_1},#{CO2_2},#{CO2_3},#{lux_1},#{lux_2},#{lux_3}
+        )
+    </insert>
+
+</mapper>

@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SDRoleMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+	<select id="getCheckIsnull" resultType="pd" useCache="false">
+		select rights_id, count(*) num from s_d_rights where obj_id = ${obj_id} and obj_type = 2
+	</select>
+
+    <select id="getRoleList" resultType="pd" useCache="false">
+    SELECT a.role_temp_id role_id,
+			a.role_temp_name role_name,
+			a.role_level,
+			a.create_person,
+			a.create_date,
+			a.create_time,
+			a.modify_person,
+			a.modify_date,
+			a.modify_time
+	FROM   s_d_role_temp a
+	  JOIN (SELECT t1.role_temp_id, t2.role_level
+				FROM s_d_user_role_temp t1 ,s_d_role_temp t2
+				WHERE t1.role_temp_id = t2.role_temp_id
+						AND user_id = #{user_id} ) b
+	  ON a.role_level >= b.role_level
+	  WHERE a.role_temp_id >= (CASE WHEN b.role_temp_id = 1 THEN 1
+                                WHEN b.role_temp_id = 2 THEN 2 ELSE b.role_temp_id END)
+	ORDER BY a.role_level, a.role_temp_id
+    </select>
+     <!-- 通过用户id查询所属角色 -->
+    <select id="getRoleByUserId" resultType="pd" useCache="false">
+      SELECT id, 
+             user_id, 
+             role_temp_id role_id,
+             is_main_rela,
+             create_person, 
+             create_date, 
+             create_time, 
+             modify_person, 
+             modify_date, 
+             modify_time 
+	  FROM   s_d_user_role_temp
+	  where user_id= #{user_id}
+    </select>
+    <!-- 新增用户所属角色模板 -->
+	<insert id="saveUserRoleTemp" parameterType="pd" flushCache="false">
+		INSERT INTO s_d_user_role_temp(
+		  user_id,
+		  role_temp_id,
+		  is_main_rela,
+		  create_person,
+		  create_date,
+		  create_time
+		) VALUES(
+		  #{user_id},
+		  #{role_id},
+		  #{is_main_rela},
+		  #{create_person},
+		  CURRENT_DATE,
+		  CURRENT_TIME
+		)
+	</insert>
+
+	<!-- 新增用户所属角色 -->
+	<insert id="saveUserRole" parameterType="pd" flushCache="false" useGeneratedKeys="true" keyProperty="role_id">
+		INSERT INTO s_d_role(role_name
+							  ,create_person
+							  ,create_date
+							  ,create_time
+							  ,modify_person
+							  ,modify_date
+							  ,modify_time)
+			SELECT
+				CONCAT(#{user_id},"-", role_temp_name) role_name
+				,#{create_person}
+				,CURRENT_DATE
+				,CURRENT_TIME
+				,#{create_person}
+				,CURRENT_DATE
+				,CURRENT_TIME
+     		 FROM s_d_role_temp
+     		 WHERE role_temp_id = #{role_id}
+	</insert>
+
+
+	<!-- 新增用户所属角色关系 -->
+	<insert id="saveUserRoleRela" parameterType="pd" flushCache="false">
+		INSERT INTO s_d_user_role(user_id
+		,role_id
+		,create_person
+		,create_date
+		,create_time
+		,modify_person
+		,modify_date
+		,modify_time)
+		VALUES (#{user_id}
+				,#{role_id}
+				,#{create_person}
+				,CURRENT_DATE
+				,CURRENT_TIME
+				,#{create_person}
+				,CURRENT_DATE
+				,CURRENT_TIME)
+	</insert>
+
+	<!-- 新增用户所属角色数据权限 -->
+	<insert id="saveUserRoleRightsForOrg" parameterType="pd" flushCache="false">
+		INSERT INTO s_d_role_rights(
+									role_id
+									,rights_id
+									,write_read
+									,create_person
+									,create_date
+									,create_time
+									,modify_person
+									,modify_date
+									,modify_time
+								)
+				SELECT
+					#{role_id}
+					,rights_id
+					,#{write_read}
+					,#{create_person}
+					,CURRENT_DATE
+					,CURRENT_TIME
+					,#{create_person}
+					,CURRENT_DATE
+					,CURRENT_TIME
+				FROM s_d_rights
+				WHERE obj_type = 2
+				AND obj_id in
+				<foreach collection="orgIdList" item="item" index="index"
+						 open="(" separator="," close=")">
+					#{item}
+				</foreach>
+	</insert>
+
+	<!-- 新增用户所属角色功能权限 -->
+	<insert id="saveUserRoleRightsForFunction" parameterType="pd" flushCache="false">
+		INSERT INTO s_d_role_rights(
+									role_id
+									,rights_id
+									,write_read
+									,create_person
+									,create_date
+									,create_time
+									,modify_person
+									,modify_date
+									,modify_time
+									)
+					SELECT
+						#{role_id}
+						,rights_id
+						,write_read
+						,#{create_person}
+						,CURRENT_DATE
+						,CURRENT_TIME
+						,#{create_person}
+						,CURRENT_DATE
+						,CURRENT_TIME
+					FROM s_d_role_temp_rights
+					WHERE role_temp_id = #{role_temp_id}
+	</insert>
+
+	<!-- 修改用户信息 -->
+	<update id="editUserRole" parameterType="pd" flushCache="false">
+		update  s_d_user_role
+			set modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			<if test="role_id != null and role_id != ''">
+				,role_id = #{role_id}
+			</if>
+			where 
+				user_id = #{user_id}
+	</update>
+
+	<!-- 新增权限对象 -->
+	<insert id="insertRightsObj" parameterType="pd" flushCache="false" useGeneratedKeys="true" keyProperty="rights_id">
+		INSERT INTO s_d_rights(obj_id
+								  ,obj_type
+								  ,create_person
+								  ,create_date
+								  ,create_time)
+						VALUES(#{obj_id}
+								  ,#{obj_type}
+								  ,#{create_person}
+								  ,CURRENT_DATE
+								  ,CURRENT_TIMESTAMP
+			)
+	</insert>
+
+	<!-- 新增权限对象 -->
+	<insert id="insertRoleRightsByUserId" parameterType="pd" flushCache="false" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO s_d_role_rights(role_id
+										,rights_id
+										,write_read
+										,create_person
+										,create_date
+										,create_time
+										,modify_person
+										,modify_date
+										,modify_time)
+										select
+										  	  (select distinct role_id from v_user WHERE id = #{user_id})
+											  ,r.rights_id
+											  ,1
+											  ,#{user_id}
+											  ,current_date
+											  ,current_time
+											  ,#{user_id}
+											  ,current_date
+											  ,current_time
+										from s_d_rights r
+										where r.rights_id = #{rights_id}
+	</insert>
+
+	<!-- 删除用户所属角色模板 -->
+	<delete id="delUserRoleTemp" parameterType="pd" flushCache="false">
+		DELETE FROM s_d_user_role_temp
+			WHERE  user_id =#{user_id}
+	</delete>
+
+	<!-- 删除用户所属角色 -->
+	<delete id="delUserRole" parameterType="pd" flushCache="false">
+		DELETE FROM s_d_role
+			WHERE role_id IN (SELECT role_id FROM s_d_user_role sdur WHERE sdur.user_id = #{user_id})
+	</delete>
+
+	<!-- 删除用户所属角色关系 -->
+	<delete id="delUserRoleRela" parameterType="pd" flushCache="false">
+		DELETE FROM s_d_user_role
+			WHERE user_id = #{user_id}
+	</delete>
+
+	<!-- 删除用户所属角色权限 -->
+	<delete id="delUserRoleRights" parameterType="pd" flushCache="false">
+		DELETE FROM s_d_role_rights
+			WHERE role_id IN (SELECT role_id FROM s_d_user_role sdur WHERE sdur.user_id = #{user_id} )
+	</delete>
+
+</mapper>

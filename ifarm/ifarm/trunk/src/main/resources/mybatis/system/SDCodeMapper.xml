@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SDCodeMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+  <select id="getCodeList" resultType="pd" useCache="false">  
+	   SELECT  code_type, 
+		       biz_code,
+		       code_name, 
+		       bak1, 
+		       bak2, 
+		       code_desc 
+		FROM s_d_code
+		where 1=1
+		<if test="code_type != null"> 
+			and code_type = #{code_type}
+		</if>
+		<if test="biz_code != null"> 
+			and biz_code = #{biz_code}
+		</if>
+ 		<if test="code_name != null">  
+			and lower(code_name) LIKE lower(CONCAT(CONCAT('%', #{code_name}),'%'))
+ 		</if> 
+		<if test="bak1 != null"> 
+			and bak1 = #{bak1}
+		</if>
+		<if test="bak2 != null"> 
+			and bak2 = #{bak2}
+		</if>
+		order by biz_code
+    </select>
+
+	<select id="getCodeForFeedType" resultType="pd" useCache="false">
+
+select
+   group_concat(a.bak1 separator ',') feed_type
+  ,group_concat(a.biz_code separator ',') mapping_type
+  ,group_concat(a.goods_name separator ',') tabName
+  ,group_concat(a.L_category separator ',') tabParentId
+from (
+  select DISTINCT d.biz_code, d.bak1, d.bak2, d.goods_name goods_name, d.code_type, d.L_category L_category from(
+    select DISTINCT d.biz_code biz_code, d.bak1 bak1, d.bak2 bak2, d.code_name goods_name, d.code_type code_type, c.L_category L_category
+    from (select * from v_user where obj_type=2 and id = #{user_id}) a
+      join s_d_farm b on a.obj_id = b.id
+      JOIN s_d_goods c on b.feed_type = c.good_code and c.good_type = 1
+      join s_d_code d on c.M_category = d.biz_code and code_type='breed_type'
+    union all
+    select DISTINCT d.biz_code goods_id , d.bak1, d.bak2, d.code_name goods_name, d.code_type, c.L_category L_category
+    from (select * from v_user where obj_type=2 and id = #{user_id}) a
+      join s_b_batch_change b on a.obj_id = b.farm_id
+      JOIN s_d_goods c on b.variety_id = c.good_code and c.good_type = 1
+      join s_d_code d on c.M_category = d.biz_code and code_type='breed_type'
+  ) d order by bak1*1
+
+) a
+where a.code_type='breed_type' and a.bak2=1
+ORDER BY a.bak1*1
+	</select>
+
+	<!-- 根据查询全部的编码类型且去重 -->
+	<select id="getCodeType" parameterType="pd" resultType="pd" useCache="false">
+		select distinct code_type 
+		from s_d_code
+	</select>
+	
+	<!-- 根据查询条件查询编码信息 -->
+	<select id="findCodeInfo" parameterType="pd" resultType="pd" useCache="false">
+		select code_type 
+		,biz_code
+		,code_name
+		,bak1
+		,bak2
+		,code_desc
+		from s_d_code
+		where 1=1
+			AND code_type = #{code_type}
+			and biz_code=#{biz_code}
+	</select>
+
+	<!-- 分页查询编码信息 -->
+	<select id="getCodeList2" parameterType="pd" resultType="pd" useCache="false">
+		select
+		code_type 
+		,biz_code
+		,code_name
+		,bak1
+		,bak2
+		,code_desc
+		from s_d_code
+		where 1 = 1
+		<if test="code_type != null and code_type != ''">
+			and code_type = #{code_type} 
+		</if>
+		<if test="code_name != null and code_name != ''">
+			and (code_name LIKE CONCAT(CONCAT('%', #{code_name}),'%') or biz_code LIKE CONCAT(CONCAT('%', #{code_name}),'%') or bak1 LIKE CONCAT(CONCAT('%', #{code_name}),'%') 
+			or bak2 LIKE CONCAT(CONCAT('%', #{code_name}),'%') or code_desc LIKE CONCAT(CONCAT('%', #{code_name}),'%') )
+		</if>
+		order by code_type desc,biz_code desc
+	</select>
+	
+	<!-- 新增编码 -->
+	<insert id="saveCode" parameterType="pd"  flushCache="false">
+		insert into s_d_code (
+			code_type,
+			biz_code,
+			code_name,
+			bak1,
+			bak2,
+			code_desc
+		) values (
+			#{code_type},
+			#{biz_code},
+			#{code_name},
+			#{bak1},
+			#{bak2},
+			#{code_desc}
+		)
+	</insert>
+	
+	<!-- 修改编码信息 -->
+	<update id="editCode" parameterType="pd" flushCache="false">
+		update  s_d_code
+			set code_name 	= #{code_name},
+                bak1 = #{bak1},
+				bak2 = #{bak2},
+				code_desc = #{code_desc}
+			where 
+				code_type = #{code_type}
+				and biz_code 	= #{biz_code}
+	</update>
+	
+	<!-- 删除编码信息 -->
+	<delete id="delCode" parameterType="pd" flushCache="false">
+		delete from s_d_code
+		where  code_type = #{code_type}
+				and biz_code 	= #{biz_code}
+	</delete>
+    
+</mapper>

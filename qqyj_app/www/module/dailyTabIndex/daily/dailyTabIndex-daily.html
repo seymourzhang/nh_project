@@ -1,0 +1,58 @@
+<ion-view view-title="daily">
+  <div id="mainContent" style="background: #FFF; position: absolute; width: 100%;">
+<div style="position: relative;  
+                        top:0rem;  
+                        left:0rem; 
+                        height:8%; 
+                        width:100%;">
+              <div style="position: relative;  
+                          top:0rem;  
+                          left:0rem; 
+                          height:100%; 
+                          width:80%;
+                          font-size:12px;">
+                <span style="position: relative;top:0rem;left:1rem;font-weight: bold;color: #888888;">今天：{{prodDayData.cur_date}}&#160;&#160;</span>
+                <span style="position: relative;top:0rem;left:1rem;font-weight: bold;color: #888888;">生长日龄：{{prodDayData.growth_age}}&#160;&#160;</span>
+                <span style="position: relative;top:0rem;left:1rem;font-weight: bold;color: #888888;">产蛋日龄：{{prodDayData.layer_age}}&#160;&#160;</span>
+                <span style="position: relative;top:0rem;left:1rem;font-weight: bold;color: #888888;">成活率：{{prodDayData.survival_rate}}%</span>
+                <span style="position: relative;top:0rem;left:1rem;font-weight: bold;color: #888888;">显示：</span>
+                <span style="position: relative;top:0rem;left:1rem;font-weight: bold;color: #888888;">最近100天</span>
+              
+            </div>
+            <div style="position: absolute;  
+                        top:0rem;  
+                        right:0rem; 
+                        height:8%; 
+                        width:10%;
+                        font-size:10px;">
+                <select ng-model="prodDayData.selectHouse"
+				        ng-change="judgeHouse()"
+				        style="position: absolute;  
+				               top:0rem;  
+				               right:1rem; 
+				               height:2rem; 
+				               width:4rem; 
+				               background:transparent url(img/icon/clear_image.png) no-repeat;
+				               border:solid 0px #FFF;
+				               color: #000;
+							   font-size:12px;"> 
+				    <option value        =  "{{item}}" 
+							       style="font-size:12px;"
+				            ng-repeat    =  "item in sparraw_user_temp.houseinfos"
+				            ng-selected  =  "item == prodDayData.selectHouse">
+				            {{item.name}}栋
+				    </option>
+				</select> 
+               
+                </div>
+            </div>
+
+		        <div style="position: relative;  
+                        top:0rem;  
+                        right:0rem; 
+                        height:85%; 
+                        width:100%;">
+              <div ui-grid="gridOptions" style="position: relative;height:100%;width:100%;" ui-grid-pinning></div>
+            </div>
+  </div>
+</ion-view>

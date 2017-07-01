@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="RepMobileMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <select id="getRepMobile" useCache="false" resultType="pd">
+        select * from s_b_app_report;
+    </select>
+
+
+    <select id="getWeekDate" useCache="false" resultType="pd">
+        SELECT
+        DISTINCT(concat(week_date,'(',curr_week,')')) as week_name,
+        week_date as week_code
+        FROM rpt_all_pregnant_capacity_c
+        where farm_id = ${farmId}
+    </select>
+
+    <select id="getItemData" useCache="false" resultType="pd">
+        /*当周值--配种*/
+        select * from rpt_all_pregnant_capacity_p where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getDeliveryData" useCache="false" resultType="pd">
+        /*当周值--分娩*/
+        select * from rpt_all_pregnant_capacity_f where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getCutFeedData" useCache="false" resultType="pd">
+        /*当周值--断奶*/
+        select * from rpt_all_pregnant_capacity_d where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getBreedData" useCache="false" resultType="pd">
+        /*当周值--存栏*/
+        select * from rpt_all_pregnant_capacity_c where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+
+    <select id="getItemDataTotal" useCache="false" resultType="pd">
+        /*累计值--配种*/
+        select * from rpt_all_pregnant_capacity_total_p where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getDeliveryDataTotal" useCache="false" resultType="pd">
+        /*累计值--分娩*/
+        select * from rpt_all_pregnant_capacity_total_f where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getCutFeedDataTotal" useCache="false" resultType="pd">
+        /*累计值--断奶*/
+        select * from rpt_all_pregnant_capacity_total_d where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getBreedDataTotal" useCache="false" resultType="pd">
+        /*累计值--存栏*/
+        select * from rpt_all_pregnant_capacity_total_c where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+
+    <select id="getItemDataAvg" useCache="false" resultType="pd">
+        /*平均值--配种*/
+        select avg(total_count) total_count, avg(first_count) first_count, avg(repeat_count) repeat_count, avg(repeat_rate) repeat_rate,
+                avg(more_count) more_count, avg(more_rate) more_rate, avg(insemination_num) insemination_num, avg(artificial_insemination_count) artificial_insemination_count,
+                avg(artificial_insemination_rate) artificial_insemination_rate, avg(natural_insemination_rate) natural_insemination_rate,
+                avg(other_insemination_count) other_insemination_count, avg(other_insemination_rate) other_insemination_rate, avg(same_semen_count) same_semen_count,
+                avg(same_semen_rate) same_semen_rate, avg(in_farm_dayage) in_farm_dayage, avg(in_group_dayage) in_group_dayage, avg(first_dayage) first_dayage, avg(first_female_count) first_female_count,
+                avg(first_time_interval) first_time_interval, avg(weaning_to_breeding) weaning_to_breeding, avg(seven_day_rate) seven_day_rate, avg(after_weaning_female_count) after_weaning_female_count
+        from rpt_all_pregnant_capacity_p where farm_id = ${farmId} and curr_week BETWEEN ${weekAge} - 8 AND ${weekAge}
+    </select>
+
+    <select id="getDeliveryDataAvg" useCache="false" resultType="pd">
+        /*平均值--分娩*/
+        select avg(childbirth_count) childbirth_count,  avg(life_less_seven_rate) life_less_seven_rate,  avg(avg_pregnant_no) avg_pregnant_no,
+        avg(avg_childbirth_count) avg_childbirth_count,  avg(total_childbirth_count) total_childbirth_count,  avg(avg_health_count) avg_health_count,
+        avg(toal_health_count) toal_health_count,  avg(avg_dead_count) avg_dead_count,  avg(dead_rate) dead_rate,  avg(avg_mummy_count) avg_mummy_count,
+        avg(mummy_rate) mummy_rate,  avg(childbirth_rate) childbirth_rate,  avg(adjust_childbirth_rate) adjust_childbirth_rate,  avg(avg_pregnant_day) avg_pregnant_day,
+        avg(avg_life_weight) avg_life_weight,  avg(pregnant_interval) pregnant_interval,  avg(no_pregnant_count) no_pregnant_count,  avg(bef_weaning_dead_rate) bef_weaning_dead_rate,
+        avg(childbirth_weaning_female) childbirth_weaning_female,  avg(childbirth_year_count) childbirth_year_count,  avg(female_year_count) female_year_count,  avg(health_year_count) health_year_count
+        from rpt_all_pregnant_capacity_f where farm_id = ${farmId} and curr_week BETWEEN ${weekAge} - 8 AND ${weekAge}
+    </select>
+
+    <select id="getCutFeedDataAvg" useCache="false" resultType="pd">
+        /*平均值--断奶*/
+        select avg(weaning_female_count) weaning_female_count, avg(weaning_piglet_count) weaning_piglet_count, avg(avg_weaning_piglet) avg_weaning_piglet,
+        avg(leave_nest_female) leave_nest_female, avg(female_weaned_piglet) female_weaned_piglet, avg(repeat_seven_days_rate) repeat_seven_days_rate,
+        avg(net_foster_count) net_foster_count, avg(avg_weaning_rate) avg_weaning_rate, avg(avg_weaning_weiht) avg_weaning_weiht, avg(bef_weaned_dead_count) bef_weaned_dead_count,
+        avg(bef_weaned_dead_rate) bef_weaned_dead_rate, avg(weaned_childbirth) weaned_childbirth, avg( weaned_female) weaned_female
+        from rpt_all_pregnant_capacity_d where farm_id = ${farmId} and curr_week BETWEEN ${weekAge} - 8 AND ${weekAge}
+    </select>
+
+    <select id="getBreedDataAvg" useCache="false" resultType="pd">
+        /*平均值--存栏*/
+        select avg(female_count) female_count, avg(no_breeding_female_count) no_breeding_female_count, avg(breeding_female_count) breeding_female_count, avg(male_count) male_count,
+                avg(avg_female_count) avg_female_count, avg(avg_no_breeding_female_count) avg_no_breeding_female_count, avg(avg_breeding_female_count) avg_breeding_female_count,
+                avg(avg_pregnant_no) avg_pregnant_no, avg(in_farm_female_count) in_farm_female_count, avg(head_female_count) head_female_count, avg(total_add_female_count) total_add_female_count,
+                avg(eliminate_female_count) eliminate_female_count, avg(dead_female_count) dead_female_count, avg(out_female_count) out_female_count, avg(sale_female_count) sale_female_count,
+                avg(update_rate) update_rate, avg(total_lessen_female_count) total_lessen_female_count, avg(dead_rate) dead_rate, avg(eliminate_rate) eliminate_rate,
+                avg(eliminate_female_avg_pregnant_no) eliminate_female_avg_pregnant_no, avg(avg_procreate_day) avg_procreate_day, avg(eliminate_procreate_life_count) eliminate_procreate_life_count,
+                avg(eliminate_procreate_breeding_count) eliminate_procreate_breeding_count, avg(bak_female_count) bak_female_count, avg(bak_procreate_female_count) bak_procreate_female_count,
+                avg(bak_in_group_female_count) bak_in_group_female_count, avg(bh_female_count) bh_female_count, avg(bh_procreate_female_count) bh_procreate_female_count,
+                avg(bh_in_group_female_count) bh_in_group_female_count, avg(ch_piglet_count) ch_piglet_count, avg(gh_piglet_count) gh_piglet_count, avg(fh_piglet_count) fh_piglet_count,
+                avg(sh_piglet_count) sh_piglet_count, avg(gestation_female_count) gestation_female_count, avg(childbirth_female_count) childbirth_female_count, avg(weaning_female_count) weaning_female_count,
+                avg(no_gestation_female_count) no_gestation_female_count, avg(out_piglet_count) out_piglet_count
+        from rpt_all_pregnant_capacity_c where farm_id = ${farmId} and curr_week BETWEEN ${weekAge} - 8 AND ${weekAge}
+    </select>
+
+
+    <select id="getItemDataTarget" useCache="false" resultType="pd">
+        /*目标值--配种*/
+        select * from rpt_all_pregnant_capacity_target_p where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getDeliveryDataTarget" useCache="false" resultType="pd">
+        /*目标值--分娩*/
+        select * from rpt_all_pregnant_capacity_target_f where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getCutFeedDataTarget" useCache="false" resultType="pd">
+        /*目标值--断奶*/
+        select * from rpt_all_pregnant_capacity_target_d where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+
+    <select id="getBreedDataTarget" useCache="false" resultType="pd">
+        /*目标值--存栏*/
+        select * from rpt_all_pregnant_capacity_target_c where farm_id = ${farmId} and week_date = #{weekDate}
+    </select>
+</mapper>

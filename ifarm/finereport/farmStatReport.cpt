@@ -1,0 +1,2192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WorkBook xmlVersion="20151125" releaseVersion="8.0.0">
+<TableDataMap>
+<TableData name="地区" class="com.fr.data.impl.DBTableData">
+<Parameters/>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select
+  va.area_id
+  ,va.area_name
+  ,va.parent_id area_parent_id
+  ,IFNULL(va.parent_name,'${area_parent_name_default}') area_parent_name
+  ,count(DISTINCT vfh.farm_id) farm_count
+  ,count(DISTINCT vfh.house_id) house_count
+from v_area va
+  left join (select
+               farm_id
+               ,farm_name
+               ,house_id
+               ,house_name
+               ,area_id1 area_id
+             from v_farm_house
+             union all
+             select
+               farm_id
+               ,farm_name
+               ,house_id
+               ,house_name
+               ,area_id2 area_id
+             from v_farm_house
+             union all
+             select
+               farm_id
+               ,farm_name
+               ,house_id
+               ,house_name
+               ,area_id3 area_id
+             from v_farm_house
+            ) vfh
+    on va.area_id = vfh.area_id
+       and vfh.farm_id is not null
+        and exists(select 1 from v_user where 1 = 1
+        ${if(len(user_id)==0,"and 1=2","and id='"+user_id+"'")} 
+        and obj_type=2 and (obj_id = vfh.house_id or obj_id = vfh.farm_id))
+where va.status = 1
+      and (vfh.farm_id is not null or vfh.house_id is not null)
+group by va.area_id
+  ,va.area_name
+  ,va.parent_id
+  ,IFNULL(va.parent_name,'${area_parent_name_default}');]]></Query>
+</TableData>
+<TableData name="农场地区饼图" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name_default"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="null"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[
+select
+  a.area_id
+  ,a.area_name
+  ,a.area_parent_id
+  ,a.area_parent_name
+  ,a.farm_count
+  ,a.house_count
+from (
+  SELECT
+    va.area_id,
+    va.area_name,
+    va.parent_id                     area_parent_id,
+    IFNULL(va.parent_name, '${area_parent_name_default}') area_parent_name,
+    count(DISTINCT vfh.farm_id)      farm_count,
+    count(DISTINCT vfh.house_id)     house_count
+  FROM v_area va
+    LEFT JOIN (SELECT
+                 farm_id,
+                 farm_name,
+                 house_id,
+                 house_name,
+                 area_id1 area_id
+               FROM v_farm_house
+               UNION ALL
+               SELECT
+                 farm_id,
+                 farm_name,
+                 house_id,
+                 house_name,
+                 area_id2 area_id
+               FROM v_farm_house
+               UNION ALL
+               SELECT
+                 farm_id,
+                 farm_name,
+                 house_id,
+                 house_name,
+                 area_id3 area_id
+               FROM v_farm_house
+              ) vfh
+      ON va.area_id = vfh.area_id
+         AND vfh.farm_id IS NOT NULL
+         and exists(select 1 from v_user where 1 = 1
+            ${if(len(user_id)==0,"and 1=2","and id='"+user_id+"'")} 
+            and obj_type=2 and (obj_id = vfh.house_id or obj_id = vfh.farm_id))
+  WHERE va.status = 1
+        AND (vfh.farm_id IS NOT NULL OR vfh.house_id IS NOT NULL)
+        AND va.area_name <> IFNULL(va.parent_name, '${area_parent_name_default}')
+  ${if(area_parent_name==null,"and va.parent_id=0","and IFNULL(va.parent_name,'" + '中国(省级)' + "')='"+ area_parent_name +"'")}
+    GROUP BY va.area_id
+  , va.area_name
+  , va.parent_id
+  , IFNULL(va.parent_name, '${area_parent_name_default}')
+) a
+order by area_parent_name,area_name,farm_count desc LIMIT 5
+;]]></Query>
+</TableData>
+<TableData name="栋舍地区饼图" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name_default"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="null"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[
+select
+  a.area_id
+  ,a.area_name
+  ,a.area_parent_id
+  ,a.area_parent_name
+  ,a.farm_count
+  ,a.house_count
+from (
+  SELECT
+    va.area_id,
+    va.area_name,
+    va.parent_id                     area_parent_id,
+    IFNULL(va.parent_name, '${area_parent_name_default}') area_parent_name,
+    count(DISTINCT vfh.farm_id)      farm_count,
+    count(DISTINCT vfh.house_id)     house_count
+  FROM v_area va
+    LEFT JOIN (SELECT
+                 farm_id,
+                 farm_name,
+                 house_id,
+                 house_name,
+                 area_id1 area_id
+               FROM v_farm_house
+               UNION ALL
+               SELECT
+                 farm_id,
+                 farm_name,
+                 house_id,
+                 house_name,
+                 area_id2 area_id
+               FROM v_farm_house
+               UNION ALL
+               SELECT
+                 farm_id,
+                 farm_name,
+                 house_id,
+                 house_name,
+                 area_id3 area_id
+               FROM v_farm_house
+              ) vfh
+      ON va.area_id = vfh.area_id
+         AND vfh.farm_id IS NOT NULL
+         and exists(select 1 from v_user where 1 = 1
+            ${if(len(user_id)==0,"and 1=2","and id='"+user_id+"'")} 
+            and obj_type=2 and (obj_id = vfh.house_id or obj_id = vfh.farm_id))
+  WHERE va.status = 1
+        AND (vfh.farm_id IS NOT NULL OR vfh.house_id IS NOT NULL)
+        AND va.area_name <> IFNULL(va.parent_name, '${area_parent_name_default}')
+  ${if(area_parent_name==null,"and va.parent_id=0","and IFNULL(va.parent_name,'中国(省级)')='"+ area_parent_name +"'")}
+    GROUP BY va.area_id
+  , va.area_name
+  , va.parent_id
+  , IFNULL(va.parent_name, '${area_parent_name_default}')
+) a
+order by area_parent_name,area_name,house_count desc LIMIT 5
+;  ]]></Query>
+</TableData>
+<TableData name="统计数量雷达图" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="area_parent_name_default"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="null"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[
+select
+  tmp3.index_name
+  ,(case index_name when '农场数' then count(DISTINCT tmp1.farm_id)
+                    when '栋舍数' then count(DISTINCT tmp1.house_id)
+                    when '设备数' then sum(tmp1.device_count)
+                    when '报警数(次／日)' then round(avg(ifnull(tmp4.alarm_count,0)))
+                    when '报警时长(分钟/日)' then round(avg(ifnull(tmp4.diff_time,0)))
+                    else 0 end) index_value
+from v_farm_house tmp1
+  join (select '农场数' index_name
+        union all
+        select '栋舍数' index_name
+        union all
+        select '设备数' index_name
+        union all
+        select '报警数(次／日)' index_name
+        union all
+        select '报警时长(分钟/日)' index_name
+          ) tmp3
+    on 1=1
+  join
+  (select
+     va.area_id
+   from v_area va
+     left join (select
+                  farm_id
+                  ,farm_name
+                  ,house_id
+                  ,house_name
+                  ,area_id1 area_id
+                from v_farm_house
+                union all
+                select
+                  farm_id
+                  ,farm_name
+                  ,house_id
+                  ,house_name
+                  ,area_id2 area_id
+                from v_farm_house
+                union all
+                select
+                  farm_id
+                  ,farm_name
+                  ,house_id
+                  ,house_name
+                  ,area_id3 area_id
+                from v_farm_house
+               ) vfh
+       on va.area_id = vfh.area_id
+          and vfh.farm_id is not null
+          and exists(select 1 from v_user where 1 = 1
+            ${if(len(user_id)==0,"and 1=2","and id='"+user_id+"'")} 
+            and obj_type=2 and (obj_id = vfh.house_id or obj_id = vfh.farm_id))
+   where va.status = 1
+         and (vfh.farm_id is not null or vfh.house_id is not null)
+       ${if(area_parent_name==null,"and va.parent_id=0","and IFNULL(va.parent_name,'中国(省级)')='"+ area_parent_name +"'")}
+   group by va.area_id
+     ,va.area_name
+     ,va.parent_id
+     ,IFNULL(va.parent_name,'${area_parent_name_default}')) tmp2
+    on tmp1.area_id1 = tmp2.area_id
+       or tmp1.area_id2 = tmp2.area_id
+       or tmp1.area_id3 = tmp2.area_id
+  left join (select
+               tmp1.farm_id
+               ,tmp1.house_id
+               ,round(avg(alarm_count)) alarm_count
+               ,round(avg(diff_time)) diff_time
+             from (
+                    select
+                      farm_id
+                      ,house_id
+                      ,date_format(alarm_time,'%Y%m%d') alarm_date
+                      ,count(alarm_code) alarm_count
+                      ,sum((UNIX_TIMESTAMP(remove_time) - UNIX_TIMESTAMP(alarm_time))/60) diff_time
+                    from s_b_alarm_done
+                    group by farm_id, house_id, date_format(alarm_time,'%Y%m%d')
+                  ) tmp1
+             group by  tmp1.farm_id
+               ,tmp1.house_id) tmp4
+  on tmp4.farm_id = tmp1.farm_id
+    and tmp4.house_id = tmp1.house_id
+group by tmp3.index_name;
+]]></Query>
+</TableData>
+</TableDataMap>
+<ReportWebAttr>
+<ServerPrinter/>
+<WebPageContent>
+<Listener event="afterload">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var reportFrame = document.getElementById('content-container'); 
+reportFrame.style.backgroundColor = "#ffffff";
+reportFrame.style.left = "3px";]]></Content>
+</JavaScript>
+</Listener>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons appletPrint="false" flashPrint="false"/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<WebPage isPage="false" isShowAsImage="false" isAutoScale="false" isTDHeavy="false"/>
+</WebPageContent>
+<WebViewContent>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<SortFuncCheck check="true"/>
+<ConditionFuncCheck check="true"/>
+<ListFuncCheck check="true"/>
+</WebViewContent>
+</ReportWebAttr>
+<ReportFitAttr fitStateInPC="2" fitFont="false"/>
+<Report class="com.fr.report.worksheet.WorkSheet" name="统计">
+<ReportPageAttr>
+<HR/>
+<FR/>
+<HC/>
+<FC/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0" cs="10" rs="33" s="0">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-1"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.75"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[新建图表标题]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Microsoft YaHei" style="0" size="128" foreground="-13421773"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="false" position="0"/>
+</Title>
+<Attr4VanChart useHtml="false" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.drillmap.VanChartDrillMapPlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="4" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrBorderWithAlpha">
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1"/>
+</AttrBorder>
+<AlphaAttr alpha="1.0"/>
+</Attr>
+<Attr class="com.fr.chart.base.AttrAlpha">
+<AttrAlpha>
+<Attr alpha="0.75"/>
+</AttrAlpha>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrEffect">
+<AttrEffect>
+<attr enabled="false" period="3.2"/>
+</AttrEffect>
+</Attr>
+<Attr class="com.fr.plugin.chart.map.line.condition.AttrCurve">
+<AttrCurve>
+<attr lineWidth="0.5" bending="30.0" alpha="100.0"/>
+</AttrCurve>
+</Attr>
+<Attr class="com.fr.plugin.chart.map.line.condition.AttrLineEffect">
+<AttrEffect>
+<attr enabled="true" period="30.0"/>
+<lineEffectAttr animationType="default"/>
+<marker>
+<VanAttrMarker>
+<Attr isCommon="true" markerType="NullMarker" radius="4.5" width="30.0" height="30.0"/>
+<Background name="NullBackground"/>
+</VanAttrMarker>
+</marker>
+</AttrEffect>
+</Attr>
+<Attr class="com.fr.plugin.chart.map.attr.AttrMapTooltip">
+<AttrMapTooltip>
+<areaTooltip class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="false" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipMapValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipAreaNameFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</areaTooltip>
+<pointTooltip class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="false" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipMapValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipAreaNameFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</pointTooltip>
+<lineTooltip class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="false" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipStartAndEndNameFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</lineTooltip>
+</AttrMapTooltip>
+</Attr>
+<Attr class="com.fr.plugin.chart.map.attr.AttrMapLabel">
+<AttrMapLabel>
+<areaLabel class="com.fr.plugin.chart.base.AttrLabel">
+<AttrLabel>
+<labelAttr enable="true"/>
+<labelDetail class="com.fr.plugin.chart.base.AttrLabelDetail">
+<Attr showLine="false" autoAdjust="false" position="5" isCustom="true"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Microsoft YaHei UI" style="0" size="72" foreground="-8355712"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipMapValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="false"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipAreaNameFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+</labelDetail>
+</AttrLabel>
+</areaLabel>
+<pointLabel class="com.fr.plugin.chart.base.AttrLabel">
+<AttrLabel>
+<labelAttr enable="false"/>
+<labelDetail class="com.fr.plugin.chart.base.AttrLabelDetail">
+<Attr showLine="false" autoAdjust="false" position="5" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipMapValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="false"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipAreaNameFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+</labelDetail>
+</AttrLabel>
+</pointLabel>
+</AttrMapLabel>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-1"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="SimSun" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="true"/>
+<Attr4VanChartScatter>
+<Type rangeLegendType="2"/>
+<SectionLegend>
+<MapHotAreaColor>
+<MC_Attr minValue="100.0" maxValue="200.0" useType="1" areaNumber="5" mainColor="-430080"/>
+<ColorList>
+<AreaColor>
+<AC_Attr minValue="=80" maxValue="=40" color="-430080"/>
+</AreaColor>
+<AreaColor>
+<AC_Attr minValue="=40" maxValue="=20" color="-357326"/>
+</AreaColor>
+<AreaColor>
+<AC_Attr minValue="=20" maxValue="=10" color="-284571"/>
+</AreaColor>
+<AreaColor>
+<AC_Attr minValue="=10" maxValue="=5" color="-146024"/>
+</AreaColor>
+<AreaColor>
+<AC_Attr minValue="=5" maxValue="=1" color="-73013"/>
+</AreaColor>
+</ColorList>
+</MapHotAreaColor>
+<LegendLabelFormat>
+<IsCommon commonValueFormat="true"/>
+</LegendLabelFormat>
+</SectionLegend>
+</Attr4VanChartScatter>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+</DataSheet>
+<NameJavaScriptGroup>
+<NameJavaScript name="联动各地区统计指标">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AREA_NAME]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_blank]]></TargetFrame>
+<Features width="500" height="270"/>
+<realateName realateValue="K1"/>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+<NameJavaScript name="联动各地区农场占比">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AREA_NAME]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_blank]]></TargetFrame>
+<Features width="500" height="270"/>
+<realateName realateValue="K10"/>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+<NameJavaScript name="联动各地区栋舍占比">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AREA_NAME]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_blank]]></TargetFrame>
+<Features width="500" height="270"/>
+<realateName realateValue="K22"/>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName="新特性"/>
+<isCustomFillStyle isCustomFillStyle="false"/>
+<ColorList>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartMapPlotAttr mapType="area" geourl="resources/geojson/area/中国(省级).json" zoomlevel="5" mapmarkertype="0" nullvaluecolor="-3355444"/>
+<lineMapDataProcessor>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+</lineMapDataProcessor>
+<GisLayer>
+<Attr gislayer="fresh"/>
+</GisLayer>
+<ViewCenter auto="false" longitude="106.258754" latitude="37.0"/>
+<pointConditionCollection>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</pointConditionCollection>
+<lineConditionCollection>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</lineConditionCollection>
+<layerMapTypeList>
+<single type="area"/>
+<single type="area"/>
+</layerMapTypeList>
+<layerLevelList>
+<single level="0"/>
+<single level="0"/>
+</layerLevelList>
+<drillUpHyperLink>
+<NameJavaScriptGroup>
+<NameJavaScript name="联动各地区统计指标">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AREA_NAME]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_blank]]></TargetFrame>
+<Features width="500" height="270"/>
+<realateName realateValue="K1"/>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+<NameJavaScript name="联动各地区农场占比">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AREA_NAME]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_blank]]></TargetFrame>
+<Features width="500" height="270"/>
+<realateName realateValue="K10"/>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+<NameJavaScript name="联动各地区栋舍占比">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<JavaScript class="com.fr.chart.web.ChartHyperRelateCellLink">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AREA_NAME]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_blank]]></TargetFrame>
+<Features width="500" height="270"/>
+<realateName realateValue="K22"/>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+</drillUpHyperLink>
+<DrillMapTools>
+<drillAttr enable="true"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="96" foreground="-5066062"/>
+</Attr>
+</TextAttr>
+<backgroundinfo>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+</backgroundinfo>
+<selectbackgroundinfo>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+</selectbackgroundinfo>
+</DrillMapTools>
+</Plot>
+<ChartDefinition>
+<DillMapDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<Attr fromBottomData="true"/>
+<bottomDataDefinition class="com.fr.plugin.chart.map.data.VanMapMoreNameCDDefinition">
+<MoreNameCDDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[地区]]></Name>
+</TableData>
+<CategoryName value="area_name"/>
+<ChartSummaryColumn name="farm_count" function="com.fr.data.util.function.NoneFunction" customName="农场数"/>
+<ChartSummaryColumn name="house_count" function="com.fr.data.util.function.NoneFunction" customName="栋舍数"/>
+</MoreNameCDDefinition>
+<attr longitude="" latitude="" endLongitude="" endLatitude="" useAreaName="true" endAreaName=""/>
+</bottomDataDefinition>
+<eachLayerDataDefinitionList>
+<SingleLayerDataDefinition class="com.fr.plugin.chart.map.data.VanMapMoreNameCDDefinition">
+<MoreNameCDDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+</MoreNameCDDefinition>
+<attr longitude="" latitude="" endLongitude="" endLatitude="" useAreaName="true" endAreaName=""/>
+</SingleLayerDataDefinition>
+<SingleLayerDataDefinition class="com.fr.plugin.chart.map.data.VanMapMoreNameCDDefinition">
+<MoreNameCDDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+</MoreNameCDDefinition>
+<attr longitude="" latitude="" endLongitude="" endLatitude="" useAreaName="true" endAreaName=""/>
+</SingleLayerDataDefinition>
+</eachLayerDataDefinitionList>
+</DillMapDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="false"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomGesture="true" zoomResize="true" zoomType="xy"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="0" cs="5" rs="9" s="0">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[新建图表标题]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="128" foreground="-13421773"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="false" position="0"/>
+</Title>
+<Attr4VanChart useHtml="false" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.radar.VanChartRadarPlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="0" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="false" showMutiSeries="false" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="function(){ return this.value;}" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrLine">
+<VanAttrLine>
+<Attr lineWidth="2" lineStyle="0" nullValueBreak="true"/>
+</VanAttrLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrMarker">
+<VanAttrMarker>
+<Attr isCommon="true" markerType="NullMarker" radius="4.5" width="30.0" height="30.0"/>
+<Background name="NullBackground"/>
+</VanAttrMarker>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrAreaSeriesFillColorBackground">
+<AttrAreaSeriesFillColorBackground>
+<Attr alpha="0.15000000596046448"/>
+</AttrAreaSeriesFillColorBackground>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrLabel">
+<AttrLabel>
+<labelAttr enable="true"/>
+<labelDetail class="com.fr.plugin.chart.base.AttrLabelDetail">
+<Attr showLine="false" autoAdjust="false" position="1" isCustom="true"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="72" foreground="-6737152"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="function(){ return this.value;}" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+</labelDetail>
+</AttrLabel>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="false"/>
+<FRFont name="Al Bayan" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="true"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+</DataSheet>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName="新特性"/>
+<isCustomFillStyle isCustomFillStyle="false"/>
+<ColorList>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartRectanglePlotAttr vanChartPlotType="normal" isDefaultIntervalBackground="true"/>
+<XAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="verdana" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor lineColor="-5197648"/>
+<AxisPosition value="3"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Verdana" style="1" size="72" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+</VanChartAxis>
+</XAxisList>
+<YAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="verdana" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="false"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-5197648"/>
+<AxisPosition value="2"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Verdana" style="0" size="72" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" valueStyle="false" baseLog="=10"/>
+<ds>
+<RadarYAxisTableDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<attr/>
+</RadarYAxisTableDefinition>
+</ds>
+</VanChartAxis>
+</YAxisList>
+<stackAndAxisCondition>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</stackAndAxisCondition>
+<VanChartRadarPlotAttr radarType="circle"/>
+</Plot>
+<ChartDefinition>
+<MoreNameCDDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[统计数量雷达图]]></Name>
+</TableData>
+<CategoryName value="index_name"/>
+<ChartSummaryColumn name="index_value" function="com.fr.data.util.function.NoneFunction" customName="指标值"/>
+</MoreNameCDDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="true"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomGesture="true" zoomResize="true" zoomType="xy"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="9" cs="5" rs="12" s="0">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=concatenate("<a href='javascript:void(0)' onclick=\"parent.window.goToFarmList('",$area_parent_name ,"','",$user_id,"')\">", $area_parent_name, "</a>" , " 农场占比（前5名）")]]></Attributes>
+</O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="1" size="80" foreground="-13421671"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="2"/>
+</Title>
+<Attr4VanChart useHtml="true" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.PiePlot4VanChart">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="4" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.chart.base.AttrBorder">
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1"/>
+</AttrBorder>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrLabel">
+<AttrLabel>
+<labelAttr enable="true"/>
+<labelDetail class="com.fr.plugin.chart.base.AttrLabelDetail">
+<Attr showLine="false" autoAdjust="false" position="5" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="SimSun" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="false"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="true"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+</labelDetail>
+</AttrLabel>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="true" showMutiSeries="false" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="SimSun" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="Microsoft YaHei UI" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="true"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+</DataSheet>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName="新特性"/>
+<isCustomFillStyle isCustomFillStyle="false"/>
+<ColorList>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<PieAttr4VanChart roseType="normal" startAngle="0.0" endAngle="360.0" innerRadius="0.0" supportRotation="false"/>
+<VanChartRadius radiusType="auto" radius="100"/>
+</Plot>
+<ChartDefinition>
+<OneValueCDDefinition seriesName="area_name" valueName="farm_count" function="com.fr.data.util.function.NoneFunction">
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场地区饼图]]></Name>
+</TableData>
+<CategoryName value=""/>
+</OneValueCDDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="true"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomGesture="true" zoomResize="true" zoomType="xy"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="21" cs="5" rs="12" s="0">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=concatenate("<a href='javascript:void(0)' onclick=\"parent.window.goToHouseList('",$area_parent_name ,"','",$user_id,"')\">", $area_parent_name, "</a>" , " 栋舍占比（前5名）")]]></Attributes>
+</O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="1" size="80" foreground="-6737050"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="2"/>
+</Title>
+<Attr4VanChart useHtml="true" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.PiePlot4VanChart">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="4" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.chart.base.AttrBorder">
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1"/>
+</AttrBorder>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrLabel">
+<AttrLabel>
+<labelAttr enable="true"/>
+<labelDetail class="com.fr.plugin.chart.base.AttrLabelDetail">
+<Attr showLine="false" autoAdjust="false" position="5" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="SimSun" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="false"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="true"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+</labelDetail>
+</AttrLabel>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="true" showMutiSeries="false" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="SimSun" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="Microsoft YaHei UI" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="true"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+</DataSheet>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName="新特性"/>
+<isCustomFillStyle isCustomFillStyle="false"/>
+<ColorList>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<PieAttr4VanChart roseType="normal" startAngle="0.0" endAngle="360.0" innerRadius="0.0" supportRotation="false"/>
+<VanChartRadius radiusType="auto" radius="100"/>
+</Plot>
+<ChartDefinition>
+<OneValueCDDefinition seriesName="area_name" valueName="house_count" function="com.fr.data.util.function.NoneFunction">
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[栋舍地区饼图]]></Name>
+</TableData>
+<CategoryName value=""/>
+</OneValueCDDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="true"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomGesture="true" zoomResize="true" zoomType="xy"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Al Bayan" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+</CellElementList>
+<ReportAttrSet>
+<ReportSettings headerHeight="0" footerHeight="0">
+<PaperSetting>
+<PaperSize width="43200000" height="17280000"/>
+<Margin top="0" left="0" bottom="0" right="0"/>
+</PaperSetting>
+</ReportSettings>
+<Header reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Header>
+<Footer reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Footer>
+</ReportAttrSet>
+<WorkSheetAttr/>
+<PrivilegeControl/>
+</Report>
+<ReportParameterAttr>
+<Attributes showWindow="true" delayPlaying="false" windowPosition="1" align="0"/>
+<PWTitle>
+<![CDATA[参数]]></PWTitle>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O>
+<![CDATA[中国(省级)]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="area_parent_name_default"/>
+<O>
+<![CDATA[中国(省级)]]></O>
+</Parameter>
+</ReportParameterAttr>
+<StyleList>
+<Style imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+</StyleList>
+<DesignerVersion DesignerVersion="IAA"/>
+<PreviewType PreviewType="0"/>
+<TemplateID TemplateID="c276dd8f-467c-457e-bac7-9ce95faf033f"/>
+</WorkBook>

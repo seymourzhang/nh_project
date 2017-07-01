@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProcedureMapper">
+ <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>  
+
+	<select id="SP_MONITOR_DAILY" parameterType="pd" resultType="pd" useCache="false">
+		CALL SP_MONITOR_DAILY(#{beginDateTime},#{endDateTime})
+	</select>
+
+	<select id="SP_ALARM_DAILY" parameterType="pd"  resultType="pd" useCache="false">
+		CALL SP_ALARM_DAILY(#{beginDateTime},#{endDateTime})
+	</select>
+
+	<select id="SP_MONITOR_MONTH" parameterType="pd"  resultType="pd" useCache="false">
+		CALL SP_MONITOR_MONTH(#{beginDate},#{endDate})
+	</select>
+
+	<select id="SP_ALARM_MONTH" parameterType="pd"  resultType="pd" useCache="false">
+		CALL SP_ALARM_MONTH(#{beginDate},#{endDate})
+	</select>
+
+	<select id="SP_LUX" parameterType="pd"  resultType="pd" useCache="false">
+		CALL SP_LUX(#{lastDate})
+	</select>
+
+</mapper>

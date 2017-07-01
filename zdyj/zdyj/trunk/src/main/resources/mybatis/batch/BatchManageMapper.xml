@@ -1,0 +1,1853 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BatchManageMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <!-- 查询可调数量 -->
+    <select id="selectBatchDataCount" parameterType="pd" resultType="pd" useCache="false">
+        SELECT batch_id,
+            COALESCE(male_count,0) male_count
+            ,COALESCE(female_count,0) female_count
+        FROM s_b_batch_curr
+        WHERE 1=1
+        <if test="farm_id != null and farm_id != ''">
+         AND farm_id = #{farm_id}
+        </if>
+                AND house_code = #{house_code}
+                AND status = 1
+                AND is_enable = 1
+    </select>
+    
+    <!-- 查询发雏数据 -->
+    <select id="selectFaChuData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT sc.child_batch_no
+        ,sc.farm_id
+        ,(select org.name_cn from s_d_organization org where sc.farm_id = org.organization_id) as farm_name
+        ,date_format(sc.operation_date, '%Y-%m-%d') operation_date
+        ,sc.src_batch_no
+        ,sc.variety_id
+        ,sc.variety
+        ,sc.corporation_id
+        ,sc.corporation
+        ,sc.send_female_num
+        ,sc.check_female_num
+        ,sc.send_male_num
+        ,sc.check_male_num
+        ,date_format(sc.check_date, '%Y-%m-%d') check_date
+        ,sc.is_enable
+        ,sc.bak
+        ,sc.create_person
+        ,sc.create_time
+        FROM s_b_send_child sc
+        left join
+        s_d_organization org
+        on sc.farm_id = org.id
+        WHERE 1=1
+        <if test="user_id != null and user_id !=''">
+			and EXISTS(SELECT DISTINCT a.obj_id FROM v_user a WHERE a.id =#{user_id} AND a.obj_type=2 AND a.obj_id=sc.farm_id)
+		</if>
+		<if test="company_id != null and company_id !=''">
+		and org.parent_id = #{company_id}
+		</if>
+		<if test="farm_id != null and farm_id !=''">
+		and sc.farm_id = #{farm_id}
+		</if>
+		<if test="child_batch_no != null and child_batch_no !=''">
+		and sc.child_batch_no = #{child_batch_no}
+		</if>
+<!-- 		and sc.send_female_num > (SELECT IFNULL(sum(female_count+male_count),0) FROM s_b_batch_change WHERE batch_id like CONCAT('%',sc.child_batch_no)  -->
+<!-- 		and farm_id = sc.farm_id and operation_type = 2) -->
+		<if test="jinjiFlag != null and jinjiFlag !=''">
+		and (sc.is_enable =1 or (date_format(sc.modify_date,'%y-%m-%d') = CURDATE())) 
+		</if>
+		<if test="jinjiFlag == null or jinjiFlag ==''">
+		and not exists(select 1 from s_b_batch_change where s_b_batch_change.operation_type =1 and s_b_batch_change.farm_id = #{farm_id} 
+		               and sc.child_batch_no = substring_index(s_b_batch_change.batch_id,'-',-1))
+		</if>
+        <if test="mobileFlag == 'app1'">
+            AND sc.check_female_num is null and sc.check_date is null
+        </if>
+        <if test="mobileFlag == 'app2'">
+            and sc.check_female_num is not null and sc.check_date is not null
+        </if>
+		order by sc.operation_date desc
+        <if test="mobileFlag == 'app2'">
+            limit 1
+        </if>
+    </select>
+    
+    <!-- 查询发料数据 -->
+    <select id="selectFaLiaoData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT send_ID
+        ,sg.send_batch_no
+        ,sg.farm_id
+        ,(select org.name_cn from s_d_organization org where sg.farm_id = org.organization_id) as farm_name
+        ,sg.good_type
+        ,date_format(sg.operation_date, '%Y-%m-%d') operation_date
+        ,sg.src_batch_no
+        ,sg.goods_id
+        ,(select g.good_name from s_d_goods g where g.good_id = sg.goods_id) as goods_name
+        ,sg.factory_id
+        ,sg.factory
+        ,sg.corporation_id
+        ,sg.corporation
+        ,sg.send_num
+        ,sg.check_num
+        ,date_format(sg.check_date, '%Y-%m-%d') check_date
+        ,sg.is_enable
+        ,sg.bak
+        ,sg.create_person
+        ,sg.create_time
+        FROM s_b_send_goods sg
+        left join
+        s_d_organization org
+        on sg.farm_id = org.id
+        WHERE 1=1
+        <if test="user_id != null and user_id !=''">
+			and EXISTS(SELECT DISTINCT a.obj_id FROM v_user a WHERE a.id =#{user_id} AND a.obj_type=2 AND a.obj_id=sg.farm_id)
+		</if>
+		<if test="company_id != null and company_id !=''">
+		and org.parent_id = #{company_id}
+		</if>
+		<if test="farm_id != null and farm_id !=''">
+		and sg.farm_id = #{farm_id}
+		</if>
+		<if test="send_batch_no != null and send_batch_no !=''">
+		and sg.send_batch_no = #{send_batch_no}
+		</if>
+		and sg.good_type =6
+        <if test="mobileFlag == 'app1'">
+            and sg.check_num is null and sg.check_date is null
+        </if>
+        <if test="mobileFlag == 'app2'">
+            and sg.check_num is not null and sg.check_date is not null
+        </if>
+        order by sg.operation_date desc
+        <if test="mobileFlag == 'app2'">
+            limit 1
+        </if>
+    </select>
+    
+    <!-- 查询发药数据 -->
+    <select id="selectFaYaoData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT send_ID
+        ,sg.send_batch_no
+        ,sg.farm_id
+        ,(select org.name_cn from s_d_organization org where sg.farm_id = org.organization_id) as farm_name
+        ,sg.good_type
+        ,date_format(sg.operation_date, '%Y-%m-%d') operation_date
+        ,sg.src_batch_no
+        ,sg.goods_id
+        ,(select g.good_name from s_d_goods g where g.good_id = sg.goods_id) as goods_name
+        ,sg.factory_id
+        ,sg.factory
+        ,sg.corporation_id
+        ,sg.corporation
+        ,sg.send_num
+        ,sg.check_num
+        ,date_format(sg.check_date, '%Y-%m-%d') check_date
+        ,sg.is_enable
+        ,sg.bak
+        ,sg.create_person
+        ,sg.create_time
+        FROM s_b_send_goods sg
+        left join
+        s_d_organization org
+        on sg.farm_id = org.id
+        WHERE 1=1
+        <if test="user_id != null and user_id !=''">
+			and EXISTS(SELECT DISTINCT a.obj_id FROM v_user a WHERE a.id =#{user_id} AND a.obj_type=2 AND a.obj_id=sg.farm_id)
+		</if>
+		<if test="company_id != null and company_id !=''">
+		and org.parent_id = #{company_id}
+		</if>
+		<if test="farm_id != null and farm_id !=''">
+		and sg.farm_id = #{farm_id}
+		</if>
+		<if test="send_batch_no != null and send_batch_no !=''">
+		and sg.send_batch_no = #{send_batch_no}
+		</if>
+		<if test="good_type != null and good_type !=''">
+		and sg.good_type = #{good_type}
+		</if>
+		and sg.good_type in(2,3)
+        <if test="mobileFlag == 'app1'">
+            and sg.check_num is null and sg.check_date is null
+        </if>
+        <if test="mobileFlag == 'app2'">
+            and sg.check_num is not null and sg.check_date is not null
+        </if>
+        order by sg.operation_date desc
+        <if test="mobileFlag == 'app2'">
+            limit 1
+        </if>
+    </select>
+
+    <!-- 查询创建批次数据 -->
+    <select id="selectCreateBatchData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT sbbc.batch_id batchId
+        ,sbbc.batch_no batchNo
+        ,org.id houseId
+        ,org.name_cn house
+        ,house.house_type
+        ,org.farm_id farmId
+        ,#{farm_name} farmName
+        ,date_format(sbbc.operation_date, '%Y-%m-%d') operation_date
+        ,sbbc.grow_age
+        ,sbbc.male_weight
+        ,IFNULL(sbbc.male_count,0) male_count
+        ,sbbc.female_weight
+        ,IFNULL(sbbc.female_count,0) female_count
+        ,sbbc.weed_out_total_weight
+        ,sbbc.weed_out_total_count
+        ,sbbc.weed_out_avg_price
+        ,sbbc.weed_out_total_price
+        ,sbbc.weed_out_male_total_weight
+        ,sbbc.weed_out_male_total_count
+        ,sbbc.weed_out_male_avg_price
+        ,sbbc.weed_out_male_total_price
+        ,sbbc.breed_days
+        ,sbbc.market_date
+        ,sbbc.variety_id
+        ,sbbc.variety
+        ,sbbc.corporation_id
+        ,sbbc.corporation
+        ,sbbc.bak
+        ,sbbc.create_person
+        ,sbbc.create_time
+        ,devi.device_code
+        ,round((sbbc.male_count/sbbc.female_count)*100,2) as rate
+        ,sbbc.is_mix
+        FROM (SELECT a.operation_date,a.grow_age,a.male_weight,a.male_count,a.female_weight,a.female_count,a.weed_out_total_weight,a.weed_out_total_count,
+        a.weed_out_avg_price,a.weed_out_total_price,a.weed_out_male_total_weight,a.weed_out_male_total_count,
+        a.weed_out_male_avg_price,a.weed_out_male_total_price,a.breed_days,a.market_date,a.variety_id,a.variety,a.corporation_id,a.corporation,a.bak,a.create_person,a.create_time,
+        b.is_mix,a.house_code,a.farm_id,b.batch_no,b.batch_id FROM s_b_batch_change a
+        JOIN (SELECT is_mix,batch_no,batch_id FROM s_b_batch_curr
+        WHERE status = 1 AND is_enable = 1) b
+        ON b.batch_id = a.batch_id
+        WHERE a.operation_type = 2
+        ) sbbc,(SELECT id
+        , name_cn
+        , parent_id farm_id
+        FROM s_d_organization
+        WHERE parent_id= #{farm_id}
+        <if test="house_code != null and house_code != ''">
+            and id=#{house_code}
+        </if>
+        ) org
+        LEFT JOIN s_d_house house
+        ON org.id = house.id
+        LEFT JOIN s_b_devi_house devi
+        on devi.house_id = house.id
+        WHERE org.farm_id = sbbc.farm_id
+        AND org.id = sbbc.house_code
+    </select>
+
+    <select id="selectBatchDataForMobile" parameterType="pd" resultType="pd">
+        SELECT
+              bc.status
+              , bc.house_code
+              , bc.batch_id
+              , bc.batch_no
+              , CASE WHEN bc.status = 0
+                THEN (SELECT operation_date
+                  FROM s_b_batch_change
+                  WHERE farm_id = bc.farm_id AND house_code = bc.house_code
+                        AND batch_id = bc.batch_id
+                        AND operation_type = '2'
+                  ORDER BY operation_date DESC LIMIT 1)
+                  ELSE bc.operation_date END                               AS operation_date
+              , CASE WHEN bc.status = 0
+                THEN (SELECT operation_date
+                  FROM s_b_batch_change
+                  WHERE farm_id = bc.farm_id AND house_code = bc.house_code
+                        AND batch_id = bc.batch_id
+                        AND operation_type = '1'
+                  ORDER BY operation_date DESC LIMIT 1)
+                  ELSE bc.operation_date END                               AS market_date
+              , dc.code_name                                                AS house_type
+        FROM s_b_batch_curr bc
+          LEFT JOIN s_d_organization o on o.id = bc.house_code
+          LEFT JOIN s_d_house h ON h.id = o.organization_id
+          LEFT JOIN s_d_code dc ON dc.code_type = 'HOUSE_TYPE' AND dc.biz_code = h.house_type
+        WHERE bc.farm_id = ${farm_id}
+        <if test="house_code != null and house_code != ''">
+            AND bc.house_code = ${house_code}
+        </if>
+        LIMIT 1;
+    </select>
+
+    <!-- 查询重复批次号 -->
+    <select id="selectBatchId" parameterType="pd" resultType="pd" useCache="false">
+        SELECT COUNT(1) num FROM s_b_batch_change WHERE batch_id = #{batch_id}
+    </select>
+    <!-- 保存发雏 -->
+    <insert id="insertFaChuData" parameterType="pd"  flushCache="false">
+		insert into s_b_send_child (child_batch_no,
+		    farm_id,
+			operation_date,
+			src_batch_no,
+			variety_id,
+			variety,
+			corporation_id,
+			corporation,
+			send_female_num,
+			bak,
+			is_enable,
+			modify_person,
+            modify_date,
+            modify_time,
+			create_person,
+			create_date,
+			create_time
+		) values (#{child_batch_no},
+		    #{farm_id},
+			#{operation_date},
+			#{src_batch_no},
+			#{variety_id},
+			#{variety},
+			#{corporation_id},
+			#{corporation},
+			#{send_female_num},
+			#{bak},
+			#{is_enable},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time},
+			#{create_person},
+			#{create_date},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 保存发料/发药 -->
+    <insert id="insertFaLiaoData" parameterType="pd"  flushCache="false">
+		insert into s_b_send_goods (farm_id,
+		    good_type,
+			operation_date,
+			src_batch_no,
+			goods_id,
+			corporation_id,
+			corporation,
+			factory_id,
+			factory,
+			send_num,
+			bak,
+			is_enable,
+			modify_person,
+            modify_date,
+            modify_time,
+			create_person,
+			create_date,
+			create_time
+		) values (#{farm_id},
+		    #{good_type},
+			#{operation_date},
+			#{src_batch_no},
+			#{goods_id},
+			#{corporation_id},
+			#{corporation},
+			#{factory_id},
+			#{factory},
+			#{send_num},
+			#{bak},
+			#{is_enable},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time},
+			#{create_person},
+			#{create_date},
+			#{create_time}
+		)
+	</insert>
+	
+    <!-- 保存创建批次数据到当前表 -->
+    <insert id="insertCreateBatchDataToCurr" parameterType="pd"  flushCache="false">
+        INSERT INTO s_b_batch_curr(batch_id
+                    , batch_no
+                    , house_code
+                    , house_name
+                    , farm_id
+                    , operation_date
+                    , grow_age
+                    , male_weight
+                    , male_count
+                    , female_weight
+                    , female_count
+                    , weed_out_total_count
+                    , weed_out_total_weight
+                    , weed_out_avg_price
+                    , weed_out_total_price
+                    , weed_out_male_total_count
+                    , weed_out_male_total_weight
+                    , weed_out_male_avg_price
+                    , weed_out_male_total_price
+                    , breed_days
+                    , market_date
+                    , variety_id
+                    , variety
+                    , corporation_id
+                    , corporation
+                    , bak
+                    , is_enable
+                    , status
+                    , create_person
+                    , create_date
+                    , create_time
+                    , modify_person
+                    , modify_date
+                    , modify_time
+                    , is_mix)
+            VALUES(#{batch_id}
+                    , #{batch_no}
+                    , #{house_code}
+                    , #{house_name}
+                    , #{farm_id}
+                    , date_format(#{operation_date}, '%Y-%m-%d')
+                    , #{grow_age}
+                    , null
+                    , #{male_count}
+                    , null
+                    , #{female_count}
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , #{breed_days}
+                    , DATE_ADD(#{operation_date}, INTERVAL #{breed_days} DAY)
+                    , #{variety_id}
+                    , #{variety}
+                    , #{corporation_id}
+                    , #{corporation}
+                    , #{bak}
+                    , 1
+                    , 1
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , null
+                    , CURDATE()
+                    , null
+                    , #{is_mix}
+            )
+    </insert>
+    <!-- 保存创建批次数据到历史表 -->
+    <insert id="insertCreateBatchDataToHis" parameterType="pd"  flushCache="false">
+          INSERT INTO s_b_batch_change(service_id
+                    , batch_id
+                    , house_code
+                    , house_name
+                    , farm_id
+                    , operation_date
+                    , grow_age
+                    , male_weight
+                    , male_count
+                    , female_weight
+                    , female_count
+                    , weed_out_total_count
+                    , weed_out_total_weight
+                    , weed_out_avg_price
+                    , weed_out_total_price
+                    , weed_out_male_total_count
+                    , weed_out_male_total_weight
+                    , weed_out_male_avg_price
+                    , weed_out_male_total_price
+                    , breed_days
+                    , market_date
+                    , variety_id
+                    , variety
+                    , corporation_id
+                    , corporation
+                    , bak
+                    , operation_type
+                    , create_person
+                    , create_date
+                    , create_time
+                    , modify_person
+                    , modify_date
+                    , modify_time
+                    , is_mix)
+            VALUES(#{service_id}
+                    , #{batch_id}
+                    , #{house_code}
+                    , #{house_name}
+                    , #{farm_id}
+                    , date_format(#{operation_date}, '%Y-%m-%d')
+                    , #{grow_age}
+                    , null
+                    , #{male_count}
+                    , null
+                    , #{female_count}
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , #{breed_days}
+                    , DATE_ADD(#{operation_date}, INTERVAL #{breed_days} DAY)
+                    , #{variety_id}
+                    , #{variety}
+                    , #{corporation_id}
+                    , #{corporation}
+                    , #{bak}
+                    , #{operation_type}
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , null
+                    , CURDATE()
+                    , null
+                    , #{is_mix}
+            )
+    </insert>
+    <!-- 初始化批次日报数据 -->
+    <select id="exec_SP_INIT_DAILY_REPORT" parameterType="pd" statementType="CALLABLE">
+        {
+          call SP_INIT_DAILY_REPORT (#{batch_id,mode=IN,jdbcType=VARCHAR})
+        }
+    </select>
+    <!-- 删除过期批次数据 -->
+    <delete id="deleteCreateBatchDataFromCurr" parameterType="pd"  flushCache="false">
+      DELETE FROM s_b_batch_curr WHERE farm_id = #{farm_id} AND house_code = #{house_code} AND status = 0 AND is_enable = 1
+    </delete>
+
+    <!-- 查询修改批次数据 -->
+    <select id="selectEditBatchData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+            a.service_id
+            ,org.id orgId
+            ,COALESCE(a.farm_id,org.farm_id) farmId
+            ,#{farm_name} farmName
+            ,a.farmIdTarget
+            ,(SELECT n.name_cn FROM s_d_organization n where n.id = a.farmIdTarget) farmTarget
+            ,a.operation_date
+            ,COALESCE(a.houseId,org.id) houseId
+            ,COALESCE(a.house,org.name_cn) house
+            ,a.houseIdTarget
+            ,a.houseTarget
+            ,a.female_count
+            ,a.male_count
+            ,a.female_count_target
+            ,a.male_count_target
+            ,a.bak
+            ,(0-a.female_count_target) as female_count_target1
+            ,(a.female_count_target) as female_count_target2
+            ,(0-a.male_count_target) as male_count_target1
+            ,(a.male_count_target) as male_count_target2
+            ,a.is_mix
+        FROM (SELECT MAX(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN '' ELSE farm_id END) farm_id
+                     ,MAX(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN farm_id ELSE '' END) farmIdTarget
+                                    ,service_id
+                                    ,date_format(operation_date, '%Y-%m-%d') operation_date
+                                    ,MAX(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN '' ELSE house_code END) houseId
+                                    ,MAX(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN '' ELSE house_name END) house
+                                    ,MAX(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN house_code ELSE '' END) houseIdTarget
+                                    ,MAX(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN house_name ELSE '' END) houseTarget
+                                    ,SUM(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN 0 ELSE female_count END) female_count
+                                    ,SUM(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN 0 ELSE male_count END) male_count
+                                    ,SUM(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN female_count ELSE 0 END) female_count_target
+                                    ,SUM(CASE WHEN (COALESCE(female_count,0) > 0 or COALESCE(male_count,0) > 0) THEN male_count ELSE 0 END) male_count_target
+                                    ,MAX(bak) bak
+                                    ,batch_id
+                                    ,MAX(is_mix) is_mix
+                            FROM s_b_batch_change
+                            WHERE operation_type = 3
+                                    and service_id in(SELECT service_id FROM s_b_batch_change a
+                                                    inner join (select * from (select farm_id,batch_id,is_enable from s_b_batch_curr order by create_time desc) dd where dd.farm_id= #{farm_id}  group by dd.farm_id ) b
+                                                    WHERE b.farm_id = #{farm_id} AND substring_index(b.batch_id,'-',-1)=substring_index(a.batch_id,'-',-1) AND b.is_enable = 1
+                                                    and a.operation_type = 3)
+                            GROUP BY service_id, date_format(operation_date, '%Y-%m-%d')  
+                ) a,(SELECT id
+                        , name_cn
+                        , parent_id farm_id
+                FROM s_d_organization
+                WHERE parent_id= #{farm_id}) org
+        WHERE org.farm_id = a.farm_id
+        AND org.id = a.houseId
+        ORDER BY a.operation_date DESC
+    </select>
+    <!-- 保存修改批次数据到历史表 -->
+    <insert id="insertEditBatchDataToHis" parameterType="pd"  flushCache="false">
+        INSERT INTO s_b_batch_change(service_id
+                                        , batch_id
+                                        , house_code
+                                        , house_name
+                                        , farm_id
+                                        , operation_date
+                                        , grow_age
+                                        , male_weight
+                                        , male_count
+                                        , female_weight
+                                        , female_count
+                                        , weed_out_total_count
+                                        , weed_out_total_weight
+                                        , weed_out_avg_price
+                                        , weed_out_total_price
+                                        , weed_out_male_total_count
+                                        , weed_out_male_total_weight
+                                        , weed_out_male_avg_price
+                                        , weed_out_male_total_price
+                                        , breed_days
+                                        , market_date
+                                        , variety_id
+                                        , variety
+                                        , corporation_id
+                                        , corporation
+                                        , bak
+                                        , operation_type
+                                        , create_person
+                                        , create_date
+                                        , create_time
+                                        , modify_date
+                                        , is_mix)
+            VALUES(#{service_id}
+                    , #{batchId}
+                    , #{house_code}
+                    , #{house_name}
+                    , #{farm_id}
+                    , date_format(#{operation_date}, '%Y-%m-%d')
+                    , 0
+                    , 0
+                    , #{male_count}*-1
+                    , 0
+                    , #{female_count}*-1
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , #{market_date}
+                    , #{variety_id}
+                    , #{variety}
+                    , #{corporation_id}
+                    , #{corporation}
+                    , #{bak}
+                    , 3
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , CURDATE()
+                    , #{is_mix}
+            ),(#{service_id}
+                    , #{batchId_target}
+                    , #{house_code_target}
+                    , #{house_name_target}
+                    , #{inFarm_id}
+                    , date_format(#{operation_date}, '%Y-%m-%d')
+                    , 0
+                    , 0
+                    , #{male_count}
+                    , 0
+                    , #{female_count}
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , #{market_date}
+                    , #{variety_id}
+                    , #{variety}
+                    , #{corporation_id}
+                    , #{corporation}
+                    , #{bak}
+                    , 3
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , CURDATE()
+                    , #{is_mix}
+              )
+
+    </insert>
+    <!-- 保存修改发雏数据 -->
+    <update id="updateFaChuData" parameterType="pd"  flushCache="false">
+        UPDATE s_b_send_child sc SET
+        sc.modify_date = CURDATE()
+        <if test="mobileCheckFlag == null and mobileCheckFlag == ''">
+            ,sc.child_batch_no = #{child_batch_no}
+            ,sc.farm_id = #{farm_id}
+            ,sc.operation_date = #{operation_date}
+            ,sc.src_batch_no = #{src_batch_no}
+            ,sc.variety_id = #{variety_id}
+            ,sc.variety = #{variety}
+            ,sc.corporation_id = #{corporation_id}
+            ,sc.corporation = #{corporation}
+            ,sc.send_female_num = #{send_female_num}
+            ,sc.bak = #{bak}
+            ,sc.modify_person = #{user_id}
+        </if>
+        <if test="mobileCheckFlag != null and mobileCheckFlag != ''">
+            ,sc.check_female_num = #{check_female_num}
+            ,sc.check_date = #{check_date}
+        </if>
+        ,sc.modify_time = CURTIME()
+        WHERE sc.farm_id = #{farm_id}
+                AND sc.child_batch_no = #{child_batch_no}
+    </update>
+    <!-- 删除发雏数据  -->
+    <delete id="deleteFaChuData" flushCache="false">
+	delete from s_b_send_child 
+	where farm_id = #{farm_id} and child_batch_no =  #{child_batch_no}
+	</delete>
+	<!-- 保存修改发料/发药数据 -->
+    <update id="updateFaLiaoData" parameterType="pd"  flushCache="false">
+        UPDATE s_b_send_goods sg SET
+        sg.modify_date = CURDATE()
+        <if test="mobileCheckFlag == null and mobileCheckFlag == ''">
+            ,sg.farm_id = #{farm_id}
+            ,sg.good_type = #{good_type}
+            ,sg.operation_date = #{operation_date}
+            ,sg.src_batch_no = #{src_batch_no}
+            ,sg.goods_id = #{goods_id}
+            ,sg.factory_id = #{factory_id}
+            ,sg.factory = #{factory}
+            ,sg.corporation_id = #{corporation_id}
+            ,sg.corporation = #{corporation}
+            ,sg.send_num = #{send_num}
+            ,sg.bak = #{bak}
+            ,sg.modify_person = #{user_id}
+        </if>
+        <if test="mobileCheckFlag != null and mobileCheckFlag != ''">
+            ,sg.send_batch_no = (select batch_no from s_b_batch_curr where farm_id = ${farm_id} and status = 1)
+            ,sg.check_num = #{check_num}
+            ,sg.check_date = #{check_date}
+        </if>
+        ,sg.modify_time = CURTIME()
+        WHERE sg.send_ID = #{send_ID}
+    </update>
+    <!-- 删除发料/发药数据  -->
+    <delete id="deleteFaLiaoData" flushCache="false">
+	delete from s_b_send_goods 
+	where send_ID = #{send_ID}
+	</delete>
+    <!-- 保存修改批次数据到当前表 -->
+    <update id="updateEditBatchDataToCurr" parameterType="pd"  flushCache="false">
+        UPDATE s_b_batch_curr sbbc SET
+            sbbc.male_count = (CASE sbbc.house_code WHEN #{house_code_target} THEN sbbc.male_count + #{male_count} WHEN #{house_code} THEN sbbc.male_count - #{male_count} ELSE sbbc.male_count END)
+            ,sbbc.female_count =  (CASE sbbc.house_code WHEN #{house_code_target} THEN sbbc.female_count+ #{female_count} WHEN #{house_code} THEN sbbc.female_count - #{female_count} ELSE sbbc.female_count END)
+            ,sbbc.modify_person = #{user_id}
+            ,sbbc.modify_date = CURDATE()
+            ,sbbc.modify_time = CURTIME()
+        WHERE sbbc.farm_id IN (#{farm_id}, #{inFarm_id})
+                AND sbbc.house_code IN (#{house_code}, #{house_code_target})
+                AND sbbc.status = 1
+                AND sbbc.is_enable = 1
+    </update>
+    <!-- 查询淘汰数据 -->
+    <select id="selectTaoTaiData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+            a.service_id
+            ,org.id orgId
+            ,org.farm_id farmId
+            ,#{farm_name} farmName
+            ,a.operation_date
+            ,org.name_cn houseName
+            ,a.bak
+            ,a.weed_out_avg_price as weed_out_avg_price
+            ,a.weed_out_total_weight as weed_out_total_weight
+            ,a.weed_out_total_count as weed_out_total_count
+            ,a.weed_out_total_price
+            ,a.weed_out_male_avg_price as weed_out_male_avg_price
+            ,a.weed_out_male_total_weight as weed_out_male_total_weight
+            ,a.weed_out_male_total_count as weed_out_male_total_count
+            ,a.weed_out_male_total_price
+            ,a.batch_id
+            ,a.is_mix
+        FROM (SELECT farm_id
+                                    ,service_id
+                                    ,house_code houseId
+                                    ,date_format(operation_date, '%Y-%m-%d') operation_date
+                                    ,COALESCE(weed_out_avg_price,0) weed_out_avg_price
+                                    ,COALESCE(weed_out_total_weight,0) weed_out_total_weight
+                                    ,COALESCE(weed_out_total_count,0) weed_out_total_count
+                                    ,COALESCE(weed_out_total_price,0) weed_out_total_price
+                                    ,COALESCE(weed_out_male_avg_price,0) weed_out_male_avg_price
+                                    ,COALESCE(weed_out_male_total_weight,0) weed_out_male_total_weight
+                                    ,COALESCE(round(weed_out_male_total_count),0) weed_out_male_total_count
+                                    ,COALESCE(weed_out_male_total_price,0) weed_out_male_total_price
+                                    ,bak
+                                    ,batch_id
+                                    ,is_mix
+                            FROM s_b_batch_change
+                            WHERE operation_type = 4
+                                    AND substring_index(s_b_batch_change.batch_id,'-',-1)=
+                                    substring_index((select batch_id from (select farm_id,batch_id,is_enable from s_b_batch_curr order by operation_date desc) dd where dd.farm_id= #{farm_id} group by dd.farm_id ),'-',-1)
+                                    
+                ) a,(SELECT id
+                        , name_cn
+                        , parent_id farm_id
+                FROM s_d_organization
+                WHERE parent_id= #{farm_id}) org
+        WHERE org.farm_id = a.farm_id
+        AND org.id = a.houseId
+        <if test="batch_id != null and batch_id !=''">
+        AND a.batch_id = #{batch_id}
+        </if>
+        ORDER BY a.operation_date DESC
+    </select>
+    <!-- 保存淘汰批次数据到历史表 -->
+    <insert id="insertTaoTaiDataToHis" parameterType="pd" flushCache="false">
+          INSERT INTO s_b_batch_change(service_id
+                                        , batch_id
+                                        , house_code
+                                        , house_name
+                                        , farm_id
+                                        , operation_date
+                                        , grow_age
+                                        , male_weight
+                                        , male_count
+                                        , female_weight
+                                        , female_count
+                                        , weed_out_total_count
+                                        , weed_out_total_weight
+                                        , weed_out_avg_price
+                                        , weed_out_total_price
+                                        , weed_out_male_total_count
+                                        , weed_out_male_total_weight
+                                        , weed_out_male_avg_price
+                                        , weed_out_male_total_price
+                                        , breed_days
+                                        , operation_type
+                                        , create_person
+                                        , create_date
+                                        , create_time
+                                        , modify_date
+                                        , is_mix)
+            VALUES(#{service_id}
+                    , #{batch_id}
+                    , #{house_code}
+                    , #{house_name}
+                    , #{farm_id}
+                    , date_format(#{operation_date}, '%Y-%m-%d')
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , 0
+                    , #{weed_out_total_count}
+                    , #{weed_out_total_weight}
+                    , #{weed_out_avg_price}
+                    , #{weed_out_avg_price} * #{weed_out_total_weight}
+                    , #{weed_out_male_total_count}
+                    , #{weed_out_male_total_weight}
+                    , #{weed_out_male_avg_price}
+                    , #{weed_out_male_avg_price} * #{weed_out_male_total_weight}
+                    , 0
+                    , 4
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , CURDATE()
+                    , #{is_mix}
+            )
+    </insert>
+    <!-- 淘汰数据更新到到当前表 -->
+    <update id="updateTaoTaiDataToCurr" parameterType="pd"  flushCache="false">              
+        UPDATE s_b_batch_curr sbbc SET
+                sbbc.modify_person = #{user_id}
+                ,sbbc.modify_date = CURDATE()
+                ,sbbc.modify_time = CURTIME()
+                <if test="female_count != null and female_count !=''">
+                ,sbbc.female_count = COALESCE(sbbc.female_count,0) - #{female_count}
+                </if>
+                <if test="male_count != null and male_count !=''">
+                ,sbbc.male_count = COALESCE(sbbc.male_count,0) - #{male_count}
+                </if>
+                ,sbbc.weed_out_total_weight = IFNULL(sbbc.weed_out_total_weight,0) + #{weed_out_total_weight}
+                ,sbbc.weed_out_total_count = IFNULL(sbbc.weed_out_total_count,0) + #{weed_out_total_count}
+                ,sbbc.weed_out_avg_price = round((IFNULL(sbbc.weed_out_total_weight,0) * IFNULL(sbbc.weed_out_avg_price,0))/(IFNULL(sbbc.weed_out_total_weight,0) + #{weed_out_total_weight}),2)
+                ,sbbc.weed_out_total_price = IFNULL(sbbc.weed_out_total_weight,0) * IFNULL(sbbc.weed_out_avg_price,0)
+                ,sbbc.weed_out_male_total_weight = IFNULL(sbbc.weed_out_male_total_weight,0) + #{weed_out_male_total_weight}
+                ,sbbc.weed_out_male_total_count = IFNULL(sbbc.weed_out_male_total_count,0) + #{weed_out_male_total_count}
+                ,sbbc.weed_out_male_avg_price = round((IFNULL(sbbc.weed_out_male_total_weight,0) * IFNULL(sbbc.weed_out_male_avg_price,0))/(IFNULL(sbbc.weed_out_male_total_weight,0) + #{weed_out_male_total_weight}),2)
+                ,sbbc.weed_out_male_total_price = IFNULL(sbbc.weed_out_male_total_weight,0) * IFNULL(sbbc.weed_out_male_avg_price,0)
+        WHERE sbbc.batch_id = #{batch_id}
+                AND sbbc.status = 1
+                AND sbbc.is_enable = 1
+    </update>
+    <!-- 查询出栏批次数据 -->
+    <select id="selectOverBatchData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT sbbc.batch_id batchId
+                ,sbbc.batch_no
+                ,(SELECT DISTINCT batch_no FROM s_b_batch_curr
+                    WHERE farm_id = org.farm_id
+                            AND house_code = org.id
+                            AND status = 1 AND is_enable = 1) batchNo
+                ,(SELECT DISTINCT batch_no FROM s_b_batch_curr
+                    WHERE farm_id = org.farm_id
+                            AND house_code = org.id
+                            AND status = 0 AND is_enable = 1) batchNo2
+                ,org.id houseId
+                ,org.name_cn house
+                ,sbbc.house_code
+                ,house.house_type
+                ,org.farm_id farmId
+                ,#{farm_name} farmName
+                ,date_format(sbbc.operation_date, '%Y-%m-%d') operation_date
+                ,CASE WHEN sbbc.status = 0 THEN sbbc.operation_date ELSE NULL END market_operation_date
+                ,sbbc.grow_age
+                ,IFNULL(sbbc.male_weight,0) male_weight
+                ,IFNULL(sbbc.male_count,0) male_count
+                ,IFNULL(sbbc.female_weight,0) female_weight
+                ,IFNULL(sbbc.female_count,0) female_count
+                ,IFNULL(sbbc.weed_out_total_weight,0) weed_out_total_weight
+                ,IFNULL(sbbc.weed_out_total_count,0) weed_out_total_count
+                ,IFNULL(sbbc.weed_out_avg_price,0) weed_out_avg_price
+                ,IFNULL(sbbc.weed_out_total_price,0) weed_out_total_price
+                ,IFNULL(sbbc.weed_out_male_total_weight,0) weed_out_male_total_weight
+                ,IFNULL(round(sbbc.weed_out_male_total_count,0),0) weed_out_male_total_count
+                ,IFNULL(sbbc.weed_out_male_avg_price,0) weed_out_male_avg_price
+                ,IFNULL(sbbc.weed_out_male_total_price,0) weed_out_male_total_price
+                ,sbbc.status
+                ,sbbc.breed_days
+                ,sbbc.market_date
+                ,sbbc.variety_id
+                ,sbbc.variety
+                ,sbbc.corporation_id
+                ,sbbc.corporation
+                ,sbbc.bak
+                ,sbbc.create_person
+                ,sbbc.create_time
+                ,(sbbc.male_count + sbbc.female_count) as over_batch_count
+                ,sbbc.is_mix
+        FROM (SELECT * FROM s_b_batch_curr
+                        WHERE farm_id = #{farm_id}
+                            <if test="mobileFlag == null and mobileFlag == ''">
+                                AND status = 0
+                            </if>
+                            AND is_enable = 1
+                    ) sbbc,(SELECT id
+                    , name_cn
+                    , parent_id farm_id
+                FROM s_d_organization
+                WHERE parent_id= #{farm_id}
+                    <if test="house_code != null and house_code != ''">
+                        and id=#{house_code}
+                    </if>
+                ) org
+                LEFT JOIN s_d_house house
+                ON org.id = house.id
+        WHERE org.farm_id = sbbc.farm_id
+        AND org.id = sbbc.house_code
+        AND sbbc.batch_no = (SELECT batch_no FROM s_b_batch_curr
+                        WHERE farm_id = #{farm_id}
+                            AND is_enable = 1
+                            order by operation_date desc
+                            limit 1
+                    )
+        
+    </select>
+    <!-- 保存出栏批次数据到历史表 -->
+    <insert id="insertOverBatchDataToHis" parameterType="pd" flushCache="false">
+          INSERT INTO s_b_batch_change(service_id
+                                        , batch_id
+                                        , house_code
+                                        , house_name
+                                        , farm_id
+                                        , operation_date
+                                        , grow_age
+                                        , male_weight
+                                        , male_count
+                                        , female_weight
+                                        , female_count
+                                        , breed_days
+                                        , market_date
+                                        , variety_id
+                                        , variety
+                                        , corporation_id
+                                        , corporation
+                                        , bak
+                                        , operation_type
+                                        , create_person
+                                        , create_date
+                                        , create_time
+                                        , modify_date
+                                        , is_mix)
+            VALUES(#{service_id}
+                    , #{batch_id}
+                    , #{house_code}
+                    , #{house_name}
+                    , #{farm_id}
+                    , date_format(#{operation_date}, '%Y-%m-%d')
+                    , 0
+                    , #{male_weight}*-1
+                    , #{male_count}*-1
+                    , #{female_weight}*-1
+                    , #{female_count}*-1
+                    , 0
+                    , #{market_date}
+                    , #{variety_id}
+                    , #{variety}
+                    , #{corporation_id}
+                    , #{corporation}
+                    , #{bak}
+                    , 1
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , CURDATE()
+                    , #{is_mix}
+            )
+    </insert>
+    <!-- 保存出栏批次数据到当前表 -->
+    <update id="updateOverBatchDataToCurr" parameterType="pd"  flushCache="false">
+        UPDATE s_b_batch_curr sbbc SET
+                sbbc.male_weight = #{male_weight}
+                ,sbbc.female_weight = #{female_weight}
+                ,sbbc.modify_person = #{user_id}
+                ,sbbc.modify_date = CURDATE()
+                ,sbbc.modify_time = CURTIME()
+                ,sbbc.operation_date = date_add(date_add(date_add(#{operation_date}, interval 23 hour), interval 59 minute),interval 59 second)
+                ,sbbc.grow_age = #{grow_age}
+                ,sbbc.status = 0
+                ,sbbc.bak = #{bak}
+        WHERE sbbc.batch_id = #{batch_id}
+                AND sbbc.status = 1
+                AND sbbc.is_enable = 1
+    </update>
+    
+    <!-- 查询结算数据 -->
+    <select id="selectSettleData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT sbfs.id
+                ,sbfs.farm_id
+                ,org.name_cn farmName
+                ,sbfs.batch_no
+                ,sbfs.gross_chicken_amount
+                ,sbfs.chicken_amount
+                ,sbfs.feed_amount
+                ,sbfs.drug_amount
+                ,sbfs.gross_chicken_number
+                ,sbfs.gross_chicken_weight
+                ,sbfs.gross_male_chicken_number
+                ,sbfs.gross_male_chicken_weight
+                ,date_format(sbfs.out_datetime, '%Y-%m-%d') out_datetime
+                ,sbfs.settle_status
+        FROM (SELECT * FROM s_b_farm_settle
+                    ) sbfs,(SELECT id farm_id
+                    , name_cn 
+                    , parent_id
+                FROM s_d_organization
+                ) org
+        WHERE org.farm_id = sbfs.farm_id
+        AND (sbfs.settle_status =0 or (sbfs.settle_status =1 and date_format(sbfs.modify_date,'%y-%m-%d') = CURDATE()))
+        <if test="company_id != null and company_id !=''">
+        AND org.parent_id = #{company_id}
+        </if>
+        order by sbfs.out_datetime desc
+    </select>
+    <select id="selectSettleData2" parameterType="pd" resultType="pd" useCache="false">
+        SELECT sbfs.id
+                ,sbfs.farm_id
+                ,sbfs.batch_no
+                ,sbfs.gross_chicken_amount
+                ,sbfs.chicken_amount
+                ,sbfs.feed_amount
+                ,sbfs.drug_amount
+                ,sbfs.gross_chicken_number
+                ,sbfs.gross_chicken_weight
+                ,sbfs.gross_male_chicken_number
+                ,sbfs.gross_male_chicken_weight
+                ,date_format(sbfs.out_datetime, '%Y-%m-%d') out_datetime
+                ,sbfs.settle_status
+        FROM s_b_farm_settle  sbfs
+        WHERE sbfs.farm_id = #{farm_id}
+        and sbfs.batch_no = #{batch_no}
+        
+    </select>
+    <!-- 保存结算数据 -->
+    <insert id="insertSettleData" parameterType="pd" flushCache="false" useGeneratedKeys="true" keyProperty="id">
+          INSERT INTO s_b_farm_settle(farm_id
+                                        , batch_no
+                                        , out_datetime
+                                        , gross_chicken_number
+                                        , gross_chicken_weight
+                                        , gross_male_chicken_number
+                                        , gross_male_chicken_weight
+                                        , settle_status
+                                        , create_person
+                                        , create_date
+                                        , create_time
+                                        , modify_person
+                                        , modify_date
+                                        , modify_time)
+            VALUES(#{farm_id}
+                    , #{batch_no}
+                    , #{out_datetime}
+                    , #{gross_chicken_number}
+                    , #{gross_chicken_weight}
+                    , #{gross_male_chicken_number}
+                    , #{gross_male_chicken_weight}
+                    , 0
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+            )
+    </insert>
+    <!-- 修改结算数据 -->
+    <update id="updateSettleData" parameterType="pd"  flushCache="false">
+        UPDATE s_b_farm_settle sbfs SET
+                sbfs.modify_person = #{user_id}
+                ,sbfs.modify_date = CURDATE()
+                ,sbfs.modify_time = CURTIME()
+                <if test="gross_chicken_amount != null and gross_chicken_amount !=''">
+                ,sbfs.gross_chicken_amount = #{gross_chicken_amount}
+                </if>
+                <if test="chicken_amount != null and chicken_amount !=''">
+                ,sbfs.chicken_amount = #{chicken_amount}
+                </if>
+                <if test="feed_amount != null and feed_amount !=''">
+                ,sbfs.feed_amount = #{feed_amount}
+                </if>
+                <if test="drug_amount != null and drug_amount !=''">
+                ,sbfs.drug_amount = #{drug_amount}
+                </if>
+<!--                 <if test="gross_chicken_number != null and gross_chicken_number !=''"> -->
+<!--                 ,sbfs.gross_chicken_number = #{gross_chicken_number} -->
+<!--                 </if> -->
+<!--                 <if test="gross_chicken_weight != null and gross_chicken_weight !=''"> -->
+<!--                 ,sbfs.gross_chicken_weight = #{gross_chicken_weight} -->
+<!--                 </if> -->
+                ,sbfs.settle_status = 1
+        WHERE sbfs.id = #{id}
+    </update>
+    
+    <!-- 查询结算子数据 -->
+    <select id="selectSettleSubData" parameterType="pd" resultType="pd" useCache="false">
+        SELECT sfss.id
+                ,sfss.settle_id
+                ,sfss.farm_id
+                ,sfss.settle_type
+                ,c.code_name settle_type_name
+                ,sfss.good_id
+                ,sfss.good_name
+                ,sfss.good_munber
+                ,sfss.good_unit
+                ,(select d.code_name from s_d_code d where d.code_type = 'unit' and sfss.good_unit = d.biz_code) unit_name
+                ,sfss.good_price
+                ,sfss.good_weight
+                ,round(sfss.good_total_price,2) good_total_price
+                ,sfss.spec
+                ,(select d.code_name from s_d_code d where d.code_type = 'spec' and sfss.spec = d.biz_code) spec_name
+                ,round((sfss.good_weight/sfss.good_munber),2) avg_weight
+                ,sfss.f_m_flag
+        FROM s_b_farm_settle_sub sfss
+                left join 
+                s_d_code c
+                on c.code_type = 'settle_type'
+                and c.biz_code = sfss.settle_type
+        WHERE 1=1
+        <if test="settle_id != null and settle_id !=''">
+        and sfss.settle_id = #{settle_id}
+        </if>
+        <if test="settle_type != null and settle_type !=''">
+        and sfss.settle_type = 1
+        </if>
+        <if test="settle_type == null or settle_type ==''">
+        and sfss.settle_type > 1
+        </if>
+        order by sfss.settle_type
+    </select>
+    
+    <select id="priceCount" parameterType="pd" resultType="pd" useCache="false">
+        SELECT round(sum(sfss.good_total_price),2) priceCount
+        FROM s_b_farm_settle_sub sfss
+        WHERE 1=1
+        <if test="settle_id != null and settle_id !=''">
+        and sfss.settle_id = #{settle_id}
+        </if>
+        and sfss.settle_type > 1
+    </select>
+    
+    <select id="dataSum" parameterType="pd" resultType="pd" useCache="false">
+        SELECT round(sum(sfss.good_weight),2) weightCount,
+        round(sum(sfss.good_munber),2) munberCount
+        FROM s_b_farm_settle_sub sfss
+        WHERE 1=1
+        <if test="settle_id != null and settle_id !=''">
+        and sfss.settle_id = #{settle_id}
+        </if>
+        and sfss.settle_type = 1
+    </select>
+    
+    <select id="priceCount2" parameterType="pd" resultType="pd" useCache="false">
+        SELECT IFNULL(round(sum(sfss.good_total_price),2),0) priceCount,
+        IFNULL(round(sum(sfss.good_weight),2),0) weightCount,
+        IFNULL(round(sum(sfss.good_munber),2),0) munberCount,
+        max(sfss.settle_type) settle_type
+        FROM s_b_farm_settle_sub sfss
+        WHERE 1=1
+        <if test="settle_id != null and settle_id !=''">
+        and sfss.settle_id = #{settle_id}
+        </if>
+        group by sfss.settle_type
+        order by sfss.settle_type
+    </select>
+    
+    <!-- 保存结算子数据 -->
+    <insert id="insertSettleSubData" parameterType="pd" flushCache="false">
+          INSERT INTO s_b_farm_settle_sub(settle_id
+                                        , farm_id
+                                        , settle_type
+                                        <if test="good_id != null and good_id !=''">
+                                        , good_id
+                                        , good_name
+                                        </if>
+                                        , good_munber
+                                        <if test="good_unit != null and good_unit !=''">
+                                        , good_unit
+                                        </if>
+                                        , good_price
+                                        , good_weight
+                                        , good_total_price
+                                        <if test="spec != null and spec !=''">
+                                        , spec
+                                        </if>
+                                        , f_m_flag
+                                        , create_person
+                                        , create_date
+                                        , create_time
+                                        , modify_person
+                                        , modify_date
+                                        , modify_time)
+            VALUES(#{settle_id}
+                    , #{farm_id}
+                    , #{settle_type}
+                    <if test="good_id != null and good_id !=''">
+                    , #{good_id}
+                    , #{good_name}
+                    </if>
+                    , #{good_munber}
+                    <if test="good_unit != null and good_unit !=''">
+                    , #{good_unit}
+                    </if>
+                    , #{good_price}
+                    , #{good_weight}
+                    , #{good_total_price}
+                    <if test="spec != null and spec !=''">
+                    , #{spec}
+                    </if>
+                    , #{f_m_flag}
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+                    , #{user_id}
+                    , CURDATE()
+                    , CURTIME()
+            )
+    </insert>
+    <!-- 修改结算子数据 -->
+    <update id="updateSettleSubData" parameterType="pd"  flushCache="false">
+        UPDATE s_b_farm_settle_sub sfss SET
+                sfss.modify_person = #{user_id}
+                ,sfss.modify_date = CURDATE()
+                ,sfss.modify_time = CURTIME()
+                <if test="settle_type != null and settle_type !=''">
+                ,sfss.settle_type = #{settle_type}
+                </if>
+                <if test="good_id != null and good_id !=''">
+                ,sfss.good_id = #{good_id}
+                </if>
+                <if test="good_name != null and good_name !=''">
+                ,sfss.good_name = #{good_name}
+                </if>
+                <if test="good_munber != null and good_munber !=''">
+                ,sfss.good_munber = #{good_munber}
+                </if>
+                <if test="good_unit != null and good_unit !=''">
+                ,sfss.good_unit = #{good_unit}
+                </if>
+                <if test="good_price != null and good_price !=''">
+                ,sfss.good_price = #{good_price}
+                </if>
+                <if test="good_weight != null and good_weight !=''">
+                ,sfss.good_weight = #{good_weight}
+                </if>
+                 <if test="good_total_price != null and good_total_price !=''">
+                ,sfss.good_total_price = #{good_total_price}
+                </if>
+                <if test="spec != null and spec !=''">
+                ,sfss.spec = #{spec}
+                </if>
+                ,sfss.f_m_flag = #{f_m_flag}
+        WHERE sfss.id = #{id}
+    </update>
+    <!-- 删除结算子数据  -->
+    <delete id="deleteSettleSubData" flushCache="false">
+	delete from s_b_farm_settle_sub 
+	where id = #{id}
+	</delete>
+    <!-- 查询出栏日龄 -->
+    <select id="selectOverBatchAge" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+            d.age
+        FROM s_b_breed_detail d
+             LEFT JOIN
+             s_b_batch_curr c
+             on c.batch_id = d.batch_id
+        WHERE 1=1
+        <if test="operation_date != null and operation_date != ''">
+           and d.growth_date = #{operation_date}
+        </if>
+              AND c.house_code = #{house_code}
+              AND d.batch_id = #{batch_id}
+              AND c.status = 1
+              AND c.is_enable = 1
+    </select>
+
+    <!-- 保存出栏批次数据到当前表 -->
+    <update id="updateOverBatchDataToDetail" parameterType="pd"  flushCache="false">
+        UPDATE s_b_breed_detail SET
+            modify_date=CURRENT_DATE
+            ,modify_time=CURRENT_TIME
+            <if test="male_weight != null and male_weight != ''">
+              ,male_cur_weight = #{male_weight}
+            </if>
+            <if test="female_weight != null and female_weight != ''">
+              ,female_cur_weight=#{female_weight}
+            </if>
+            <if test="user_id != null and user_id != ''">
+              ,modify_person=#{user_id}
+            </if>
+          WHERE 1=1
+            AND batch_id=#{batch_id}
+            AND growth_date = #{operation_date}
+    </update>
+    
+    <select id="selectSBCode" resultType="pd" useCache="false">
+    SELECT code_type,
+			biz_code,
+			code_name,
+			bak1,
+			bak2,
+			code_desc
+    FROM s_d_code WHERE code_type = #{code_type} 
+    and biz_code = #{biz_code}
+    ORDER BY CAST(biz_code AS SIGNED)
+    </select>
+    
+    <select id="getGoodsList" resultType="pd" useCache="false">  
+	   SELECT  t.good_id,
+		       t.good_code, 
+		       t.good_name, 
+		       t.good_type, 
+		       t.bak, 
+		       t.create_person, 
+		       t.create_date, 
+		       t.create_time, 
+		       t.modify_person, 
+		       t.modify_date, 
+		       t.modify_time 
+		FROM (SELECT  good_id,
+		       good_code, 
+		       good_name, 
+		       good_type, 
+		       bak, 
+		       create_person, 
+		       create_date, 
+		       create_time, 
+		       modify_person, 
+		       modify_date, 
+		       modify_time 
+		FROM   s_d_goods
+		where 1=1 
+		<if test="good_id != null and good_id != ''"> 
+			and good_id = #{good_id}
+		</if>
+		<if test="good_code != null and good_code != ''"> 
+			and good_code = #{good_code}
+		</if>
+		<if test="good_name != null and good_name != ''"> 
+			and good_name = #{good_name}
+		</if>
+		<if test="good_type != null and good_type != ''"> 
+			and #{good_type} like CONCAT(CONCAT('%', good_type),'%')
+		</if>
+		limit 0,5000) t
+		order by t.modify_time desc, t.create_time desc
+    </select> 
+    <select id="selectGoodId" parameterType="pd" resultType="pd" useCache="false">
+    SELECT 
+        cg.chicken_price
+        FROM (select * from s_b_batch_change where operation_type =2 
+              <if test="child_batch_no != null and child_batch_no !=''">
+		and substring_index(batch_id,'-',-1) = #{child_batch_no}
+		</if>
+		 limit 1) sc
+        left join
+        s_b_farm_settle fs
+        on fs.batch_no = substring_index(sc.batch_id,'-',-1)
+        left join s_b_corporation_good cg
+        on cg.good_id=sc.variety_id
+        WHERE 1=1
+        <if test="child_batch_no != null and child_batch_no !=''">
+		and substring_index(sc.batch_id,'-',-1) = #{child_batch_no}
+		</if>
+		order by sc.operation_date desc
+    </select>
+    <select id="selectSumjimiao" parameterType="pd" resultType="pd" useCache="false">
+    SELECT sum(ifnull(s.check_female_num,0)) sumCount,s.variety_id,s.variety FROM s_b_send_child s
+        WHERE s.is_enable = 0
+        and s.farm_id = #{farm_id}
+        and s.child_batch_no = #{child_batch_no}
+    </select>
+    
+    <select id="selectSumByGoodId" parameterType="pd" resultType="pd" useCache="false">
+    SELECT sum(ifnull(s.check_num,0)) sumCount,s.goods_id,max(s.good_type) good_type FROM s_b_send_goods s
+        WHERE s.is_enable = 0
+        and s.farm_id = #{farm_id}
+        and s.send_batch_no = #{send_batch_no}
+        group by s.goods_id 
+    </select>
+    
+    <select id="selectSumsiliao" parameterType="pd" resultType="pd" useCache="false">
+    SELECT sum(ifnull(s.check_num,0)) sumCount FROM s_b_send_goods s
+        WHERE s.is_enable = 0
+        and s.farm_id = #{farm_id}
+        and s.send_batch_no = #{send_batch_no}
+        and s.goods_id = #{goods_id}
+    </select>
+    
+    <select id="selectSummiaoyao" parameterType="pd" resultType="pd" useCache="false">
+    SELECT sum(ifnull(s.check_num,0)) sumCount FROM s_b_send_goods s
+        WHERE s.is_enable = 0
+        and s.farm_id = #{farm_id}
+        and s.send_batch_no = #{send_batch_no}
+        and s.goods_id = #{goods_id}
+    </select>
+    
+    <!--                                              养殖主数据                                                                                                                                                                                  -->
+    <!-- 养殖主数据鸡品种查询 -->
+    <select id="getGoodsList2" resultType="pd" useCache="false">  
+	  SELECT  t.good_id,
+		       t.good_code, 
+		       t.good_name, 
+		       t.good_type, 
+		       t.bak, 
+		       t.create_person, 
+		       t.create_date, 
+		       t.create_time, 
+		       t.modify_person, 
+		       t.modify_date, 
+		       t.modify_time 
+		       from (SELECT  g.good_id,
+		       g.good_code, 
+		       g.good_name, 
+		       c.code_name good_type, 
+		       g.bak, 
+		       g.create_person, 
+		       g.create_date, 
+		       g.create_time, 
+		       g.modify_person, 
+		       g.modify_date, 
+		       g.modify_time 
+		FROM   s_d_goods g
+		left join 
+		s_d_code c
+		on c.biz_code = g.good_type
+		where 1=1
+		and c.code_type = 'good_type'
+		and g.good_type =1
+		<if test="good_name != null and good_name != ''"> 
+			and (g.good_name LIKE CONCAT(CONCAT('%', #{good_name}),'%') or g.good_code LIKE CONCAT(CONCAT('%', #{good_name}),'%'))
+		</if>
+        limit 0,5000) t
+        order by t.modify_time desc, t.create_time desc
+    </select> 
+    <!-- 保存物资 -->
+    <insert id="saveGoods" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_goods (good_code,
+		    good_name,
+			good_type,
+			bak,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (#{good_code},
+		    #{good_name},
+			#{good_type},
+			#{bak},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	<!-- 修改物资 -->
+	<update id="editGoods" parameterType="pd" flushCache="false">
+		update  s_d_goods
+			set good_code     = #{good_code},
+			    good_name     = #{good_name},
+			    bak=#{bak},
+			    modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			where 
+				good_id = #{good_id}
+	</update>
+	
+	<select id="getCorporationGood" resultType="pd" useCache="false">  
+	   SELECT  t.id,
+	           t.corporation_id,
+	           t.corporation,
+	           t.spec,
+	           t.unit,
+	           t.spec_name,
+	           t.unit_name,
+	           t.price,
+	           t.chicken_price,
+	           t.good_id,
+		       t.good_name, 
+		       t.good_type,
+		       t.factory_id,
+		       t.factory_name, 
+		       t.bak, 
+		       t.create_person, 
+		       t.create_date, 
+		       t.create_time, 
+		       t.modify_person, 
+		       t.modify_date, 
+		       t.modify_time 
+		       from (SELECT  g.id,
+	           g.corporation_id,
+	           g.corporation,
+	           g.spec,
+	           g.unit,
+	           (select code_name from s_d_code c where c.biz_code = g.spec and code_type = 'spec') as spec_name,
+	           (select code_name from s_d_code c where c.biz_code = g.unit and code_type = 'unit') as unit_name,
+	           g.price,
+	           g.chicken_price,
+	           g.good_id,
+		       g.good_name, 
+		       (select code_name from s_d_code c where c.biz_code = g.good_type and code_type = 'good_type') as good_type,
+		       g.factory_id,
+		       g.factory_name, 
+		       g.bak, 
+		       g.create_person, 
+		       g.create_date, 
+		       g.create_time, 
+		       g.modify_person, 
+		       g.modify_date, 
+		       g.modify_time 
+		FROM   s_b_corporation_good g
+		where 1=1
+		and g.good_type =1
+		<if test="good_name != null and good_name != ''"> 
+			and g.good_name LIKE CONCAT(CONCAT('%', #{good_name}),'%')
+		</if>
+		<if test="good_id != null and good_id != ''"> 
+			and g.good_id = #{good_id}
+		</if>
+		<if test="corporation != null and corporation != ''"> 
+			and lower(g.corporation) LIKE lower(CONCAT(CONCAT('%', #{corporation}),'%'))
+		</if>
+		<if test="corporation_id != null and corporation_id != ''"> 
+			and g.corporation_id = #{corporation_id}
+		</if>
+		<if test="factory_name != null and factory_name != ''"> 
+			and lower(g.factory_name) LIKE lower(CONCAT(CONCAT('%', #{factory_name}),'%'))
+		</if>
+		<if test="factory_id != null and factory_id != ''"> 
+			and g.factory_id = #{factory_id}
+		</if>
+		<if test="spec != null and spec != ''"> 
+			and g.spec = #{spec}
+		</if>
+		<if test="unit != null and unit != ''"> 
+			and g.unit = #{unit}
+		</if>
+		limit 0,5000) t
+		order by t.id 
+    </select> 
+    <!-- 保存供应商物资关系 -->
+    <insert id="saveCorporationGoods" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_b_corporation_good (corporation_id,
+		    corporation,
+			good_id,
+			good_name,
+			factory_id,
+			factory_name,
+			good_type,
+			<if test="price != null and price != ''">
+			price,
+			</if>
+			<if test="chicken_price != null and chicken_price != ''">
+			chicken_price,
+			</if>
+			spec,
+			unit,
+			bak,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (#{corporation_id},
+		    #{corporation_name},
+			#{good_id},
+			#{good_name},
+			#{factory_id},
+			#{factory_name},
+			#{good_type},
+			<if test="price != null and price != ''">
+			#{price},
+			</if>
+			<if test="chicken_price != null and chicken_price != ''">
+			#{chicken_price},
+			</if>
+			#{spec},
+			#{unit},
+			#{bak},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+    <!-- 修改供应商物资关系 -->
+	<update id="editCorporationGood" parameterType="pd" flushCache="false">
+		update  s_b_corporation_good
+			set <if test="corporation_id != null and corporation_id != ''">
+			    corporation     = #{corporation},
+			    </if>
+			    <if test="good_id != null and good_id != ''">
+                good_name     = #{good_name},
+                </if>
+                <if test="factory_id != null and factory_id != ''">
+                factory_name     = #{factory_name},
+                </if>
+			    modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			where 1=1
+			    <if test="id != null and id != ''">
+				and id = #{id}
+				</if>
+				<if test="corporation_id != null and corporation_id != ''">
+				and corporation_id = #{corporation_id}
+				</if>
+				<if test="good_id != null and good_id != ''">
+				and good_id = #{good_id}
+				</if>
+				<if test="factory_id != null and factory_id != ''">
+				and factory_id = #{factory_id}
+				</if>
+	</update>
+	<!-- 删除供应商物资关系 -->
+    <delete id="deleteCorporationGoods" flushCache="false">
+	delete from s_b_corporation_good 
+	where id = #{id}
+	</delete>
+	<!-- 查询规格 -->
+    <select id="getSpec" resultType="pd" useCache="false">  
+		SELECT  t.code_type, 
+		       t.biz_code,
+		       t.code_name, 
+		       t.bak1, 
+		       t.bak2, 
+		       t.code_desc 
+		FROM (SELECT  c.code_type, 
+		       c.biz_code,
+		       c.code_name, 
+		       c.bak1, 
+		       c.bak2, 
+		       c.code_desc 
+		FROM  s_d_code c
+		, s_b_corporation_good cg 
+		where 1=1 and cg.spec=c.biz_code
+		and c.code_type = 'spec'
+		
+		<if test="good_id != null and good_id != ''">
+			and cg.good_id = #{good_id}
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and cg.good_type = #{good_type}
+		</if>
+		group by c.biz_code	
+		limit 0,100) t
+		order by t.biz_code	
+    </select> 
+    
+    <!-- 查询单位 -->
+    <select id="getUnit" resultType="pd" useCache="false">  
+		SELECT  c.code_type, 
+		       c.biz_code,
+		       c.code_name, 
+		       c.bak1, 
+		       c.bak2, 
+		       c.code_desc 
+		FROM  s_d_code c
+		, s_b_corporation_good  cg where cg.unit=c.biz_code
+		and c.code_type = 'unit'
+		<if test="good_id != null and good_id != ''">
+			and cg.good_id = #{good_id}
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and cg.good_type = #{good_type}
+		</if>
+		group by c.code_name
+		order by c.biz_code		
+    </select> 
+    
+    <!-- 查询供应商 -->
+    <select id="getCorporation" resultType="pd" useCache="false">  
+		SELECT  c.corporation_id, 
+		        max(c.corporation) corporation, 
+		        IFNULL(c.corporation_person,'') corporation_person, 
+		        IFNULL(c.corporation_address,'') corporation_address, 
+		        IFNULL(c.telphone,'') telphone, 
+		        IFNULL(c.bak,'') bak, 
+		        c.create_person, 
+		        c.create_date, 
+		        c.create_time, 
+		        c.modify_person, 
+		        c.modify_date, 
+		        c.modify_time 
+		FROM  s_d_corporation c
+		left join s_b_corporation_good  cg on cg.corporation_id=c.corporation_id
+		where 1=1
+		<if test="corporation_id != null and corporation_id != ''">
+			and c.corporation_id = #{corporation_id}
+		</if>
+		<if test="good_id != null and good_id != ''">
+			and cg.good_id = #{good_id}
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and cg.good_type = #{good_type}
+		</if>
+		group by c.corporation
+		order by c.corporation_id		
+    </select> 
+    
+    <!-- 查询供应商主数据 -->
+    <select id="getCorporation2" resultType="pd" useCache="false">  
+		SELECT  c.corporation_id, 
+		        IFNULL(c.corporation,'') corporation, 
+		        IFNULL(c.corporation_person,'') corporation_person, 
+		        IFNULL(c.corporation_address,'') corporation_address, 
+		        IFNULL(c.telphone,'') telphone, 
+		        IFNULL(c.bak,'') bak, 
+		        c.create_person, 
+		        c.create_date, 
+		        c.create_time, 
+		        c.modify_person, 
+		        c.modify_date, 
+		        c.modify_time 
+		FROM  s_d_corporation c
+		where 1=1
+		<if test="corporation_id != null and corporation_id != ''">
+			and c.corporation_id = #{corporation_id}
+		</if>
+		<if test="corporation != null and corporation != ''">
+			and lower(c.corporation) LIKE lower(CONCAT(CONCAT('%', #{corporation}),'%'))
+		</if>
+		order by c.corporation_id
+    </select>
+    
+    <select id="getCorporation3" resultType="pd" useCache="false">  
+		SELECT  c.corporation_id, 
+		        c.corporation,
+		        c.create_date
+		FROM  s_d_corporation c
+		order by c.corporation_id
+    </select>
+    
+     <!-- 查询厂家 -->
+    <select id="getFactory" resultType="pd" useCache="false">  
+		SELECT  f.factory_id, 
+			    IFNULL(f.factory_name,'') factory_name, 
+				IFNULL(f.factory_person,'') factory_person, 
+				IFNULL(f.factory_address,'') factory_address, 
+				IFNULL(f.telphone,'') telphone, 
+				IFNULL(f.bak,'') bak, 
+				f.create_person, 
+				f.create_date, 
+				f.create_time, 
+				f.modify_person, 
+				f.modify_date, 
+				f.modify_time 
+		FROM s_d_factory f
+		where 1=1
+		<if test="factory_id != null and factory_id != ''">
+			and f.factory_id = #{factory_id}
+		</if>
+		order by f.factory_id
+    </select> 
+    
+    <!-- 查询供应商主数据 -->
+    <select id="getFactory2" resultType="pd" useCache="false">  
+		SELECT  f.factory_id, 
+			    IFNULL(f.factory_name,'') factory_name, 
+				IFNULL(f.factory_person,'') factory_person, 
+				IFNULL(f.factory_address,'') factory_address, 
+				IFNULL(f.telphone,'') telphone, 
+				IFNULL(f.bak,'') bak, 
+				f.create_person, 
+				f.create_date, 
+				f.create_time, 
+				f.modify_person, 
+				f.modify_date, 
+				f.modify_time 
+		FROM s_d_factory f
+		where 1=1
+		<if test="factory_name != null and factory_name != ''">
+			and lower(f.factory_name) LIKE lower(CONCAT(CONCAT('%', #{factory_name}),'%'))
+		</if>
+		order by f.factory_id
+    </select>
+    
+    <select id="getFactory3" resultType="pd" useCache="false">  
+		SELECT  f.factory_id, 
+			    f.factory_name,
+			    f.create_date
+		FROM s_d_factory f
+		order by f.factory_id
+    </select>
+
+    <update id="reUpdateBreedDetail" parameterType="pd" flushCache="false">
+        UPDATE s_b_breed_detail b SET
+                b.male_cur_amount = b.male_cur_amount + #{male_cur_amount}
+                ,b.female_cur_amount = b.female_cur_amount + #{female_cur_amount}
+                ,b.male_ytd_amount = (CASE #{operation_date} WHEN date_format(b.growth_date, '%Y-%m-%d') THEN b.male_ytd_amount ELSE (b.male_ytd_amount + #{male_cur_amount}) END)
+                ,b.female_ytd_amount = (CASE #{operation_date} WHEN date_format(b.growth_date, '%Y-%m-%d') THEN b.female_ytd_amount ELSE (b.female_ytd_amount + #{female_cur_amount}) END)
+                ,b.modify_date = (CASE b.create_time WHEN b.modify_time THEN IF(date_format(b.growth_date, '%Y-%m-%d') = #{operation_date}, CURRENT_DATE , b.modify_date) ELSE CURRENT_DATE END)
+                ,b.modify_time = (CASE b.create_time WHEN b.modify_time THEN IF(date_format(b.growth_date, '%Y-%m-%d') = #{operation_date}, CURRENT_TIME , b.modify_time) ELSE CURRENT_TIME END)
+          WHERE EXISTS (SELECT 1 FROM s_b_batch_curr a WHERE a.farm_id = #{farm_id} AND a.house_code = #{house_id} AND a.batch_id = b.batch_id)
+            AND date_format(b.growth_date, '%Y-%m-%d') >= #{operation_date}
+    </update>
+
+    <select id="exec_SP_BREED_DETAIL" parameterType="pd" statementType="CALLABLE">
+        {
+          call SP_BREED_DETAIL (#{begin_date,mode=IN,jdbcType=VARCHAR}, #{end_date,mode=IN,jdbcType=VARCHAR})
+        }
+    </select>
+
+    <select id="exec_SP_BREED_DETAIL_WEEK" parameterType="pd" statementType="CALLABLE">
+        {
+        call SP_BREED_DETAIL_WEEK ()
+        }
+    </select>
+
+</mapper>

@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="MonitorCurrMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <select id="selectAll" resultType="pd" useCache="false">
+        SELECT mc.id
+                , o.parent_id corporation_id
+                , mc.farm_id
+                , mc.house_id
+                , DATE_FORMAT(mc.collect_datetime,'%H:%i:%s') collect_datetime
+                , mc.deal_status
+                , (select code_name from s_d_code g where g.code_type = 'ALARM_CODE' and mc.alarm_code = g.biz_code) alarm_code
+                , ifnull(if(truncate(mc.date_age, 1)=-99, '-', truncate(mc.date_age, 1)),"-") date_age
+                , mc.week_age
+                ,ifnull(if(truncate(mc.inside_temp1, 1)=-99, '-', truncate(mc.inside_temp1, 1)),"-") inside_temp1
+                ,ifnull(if(truncate(mc.inside_temp2, 1)=-99, '-', truncate(mc.inside_temp2, 1)),"-") inside_temp2
+                ,ifnull(if(truncate(mc.inside_temp3, 1)=-99, '-', truncate(mc.inside_temp3, 1)),"-") inside_temp3
+                ,ifnull(if(truncate(mc.inside_temp4, 1)=-99, '-', truncate(mc.inside_temp4, 1)),"-") inside_temp4
+                ,ifnull(if(truncate(mc.inside_temp5, 1)=-99, '-', truncate(mc.inside_temp5, 1)),"-") inside_temp5
+                ,ifnull(if(truncate(mc.inside_temp6, 1)=-99, '-', truncate(mc.inside_temp6, 1)),"-") inside_temp6
+                ,ifnull(if(truncate(mc.inside_temp7, 1)=-99, '-', truncate(mc.inside_temp7, 1)),"-") inside_temp7
+                ,ifnull(if(truncate(mc.inside_temp8, 1)=-99, '-', truncate(mc.inside_temp8, 1)),"-") inside_temp8
+                ,ifnull(if(truncate(mc.inside_temp9, 1)=-99, '-', truncate(mc.inside_temp9, 1)),"-") inside_temp9
+                ,ifnull(if(truncate(mc.inside_temp10, 1)=-99, '-', truncate(mc.inside_temp10, 1)),"-") inside_temp10
+                ,ifnull(if(truncate(mc.inside_temp11, 1)=-99, '-', truncate(mc.inside_temp11, 1)),"-") inside_temp11
+                ,ifnull(if(truncate(mc.inside_temp12, 1)=-99, '-', truncate(mc.inside_temp12, 1)),"-") inside_temp12
+                ,ifnull(if(truncate(mc.inside_temp13, 1)=-99, '-', truncate(mc.inside_temp13, 1)),"-") inside_temp13
+                ,ifnull(if(truncate(mc.inside_temp14, 1)=-99, '-', truncate(mc.inside_temp14, 1)),"-") inside_temp14
+                ,ifnull(if(truncate(mc.inside_temp15, 1)=-99, '-', truncate(mc.inside_temp15, 1)),"-") inside_temp15
+                ,ifnull(if(truncate(mc.inside_temp16, 1)=-99, '-', truncate(mc.inside_temp16, 1)),"-") inside_temp16
+                ,ifnull(if(truncate(mc.inside_temp17, 1)=-99, '-', truncate(mc.inside_temp17, 1)),"-") inside_temp17
+                ,ifnull(if(truncate(mc.inside_temp18, 1)=-99, '-', truncate(mc.inside_temp18, 1)),"-") inside_temp18
+                ,ifnull(if(truncate(mc.inside_temp19, 1)=-99, '-', truncate(mc.inside_temp19, 1)),"-") inside_temp19
+                ,ifnull(if(truncate(mc.inside_temp20, 1)=-99, '-', truncate(mc.inside_temp20, 1)),"-") inside_temp20
+                ,ifnull(if(truncate(mc.inside_temp21, 1)=-99, '-', truncate(mc.inside_temp21, 1)),"-") inside_temp21
+                ,ifnull(if(truncate(mc.inside_temp22, 1)=-99, '-', truncate(mc.inside_temp22, 1)),"-") inside_temp22
+                ,ifnull(if(truncate(mc.inside_temp23, 1)=-99, '-', truncate(mc.inside_temp23, 1)),"-") inside_temp23
+                ,ifnull(if(truncate(mc.inside_temp24, 1)=-99, '-', truncate(mc.inside_temp24, 1)),"-") inside_temp24
+                ,ifnull(if(truncate(mc.inside_temp25, 1)=-99, '-', truncate(mc.inside_temp25, 1)),"-") inside_temp25
+                ,ifnull(if(truncate(mc.inside_temp26, 1)=-99, '-', truncate(mc.inside_temp26, 1)),"-") inside_temp26
+                ,ifnull(if(truncate(mc.inside_temp27, 1)=-99, '-', truncate(mc.inside_temp27, 1)),"-") inside_temp27
+                , ifnull(if(truncate(mc.inside_avg_temp, 1)=-99, '-', truncate(mc.inside_avg_temp, 1)),"-") inside_avg_temp
+                , ifnull(if(truncate(mc.inside_set_temp, 1)=-99, '-', truncate(mc.inside_set_temp, 1)),"-") inside_set_temp
+                , ifnull(if(truncate(mc.high_alarm_temp, 1)=-99, '-', truncate(mc.high_alarm_temp, 1)),"-") high_alarm_temp
+                , ifnull(if(truncate(mc.low_alarm_temp, 1)=-99, '-', truncate(mc.low_alarm_temp, 1)),"-") low_alarm_temp
+                , ifnull(ifnull(if(truncate(mc.outside_temp, 1)=-99, null, truncate(mc.outside_temp, 1)),null), ifnull(truncate(sbmcf.outside_temp,1), ifnull(truncate(sbmc.outside_temp,1),'-') )) outside_temp
+                , mc.outside_temp outside_temp_house
+                , ifnull(if(truncate(mc.inside_humidity, 1)=-99, '-', truncate(mc.inside_humidity, 1)),"-") inside_humidity
+                , ifnull(if(truncate(mc.point_temp_diff, 1)=-99, '-', truncate(mc.point_temp_diff, 1)),"-") point_temp_diff
+                , ifnull(if(truncate(mc.target_humidity, 1)=-99, '-', truncate(mc.target_humidity, 1)),"-") target_humidity
+                , ifnull(if(truncate(mc.co2, 1)=-99, '-', truncate(mc.co2, 1)),"-") co2
+                , ifnull(if(truncate(mc.high_alarm_co2, 1)=-99, '-', truncate(mc.high_alarm_co2, 1)),"-") high_alarm_co2
+                , ifnull(if(truncate(mc.lux, 1)=-99, '-', truncate(mc.lux, 1)),"-") lux
+                , ifnull(if(truncate(mc.high_lux, 1)=-99, '-', truncate(mc.high_lux, 1)),"-") high_lux
+                , ifnull(if(truncate(mc.low_lux, 1)=-99, '-', truncate(mc.low_lux, 1)),"-") low_lux
+                , ifnull(if(truncate(mc.is_lux, 0)=-99, '-', truncate(mc.is_lux, 0)),"-") is_lux
+                , mc.power_status
+                , mc.update_datetime
+                , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") small_fan
+                , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") fl
+                , ifnull(if(truncate(mc.larger_fan, 0)=-99, '-', truncate(mc.larger_fan, 0)),"-") larger_fan
+                , ifnull(if(truncate(mc.refrigeration, 0)=-99, '-', truncate(mc.refrigeration, 0)),"-") refrigeration
+                , ifnull(if(truncate(mc.heating, 0)=-99, '-', truncate(mc.heating, 0)),"-") heating
+                , ifnull(if(truncate(mc.fenestella, 0)=-99, '-', truncate(mc.fenestella, 0)),"-") fenestella
+                , ifnull(if(truncate(mc.Tunnel, 0)=-99, '-', truncate(mc.Tunnel, 0)),"-") Tunnel
+                , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)),"-") water_consumption
+                , ifnull(if(truncate(mc.negative_pressure, 1)=-99, '-', truncate(mc.negative_pressure, 1)),"-") negative_pressure
+                , c.code_name refrigeration_name
+                , d.code_name heating_name
+                , e.code_name fenestella_name
+                , f.farm_name_chs farm_name
+                , h.house_name house_name
+                ,  CONCAT(mc.farm_id,"-",mc.house_id,"-",mc.batch_no) batch_no
+                , ifnull(if(truncate(p.point_alarm, 1)=-99, '-', truncate(p.point_alarm, 1)),"-") point_alarm
+                , ifnull(if(truncate(mc.high_temp_warning, 1)=-99, '-', truncate(mc.high_temp_warning, 1)),"-") high_temp_warning
+                , ifnull(if(truncate(mc.low_temp_warning, 1)=-99, '-', truncate(mc.low_temp_warning, 1)),"-") low_temp_warning
+                , ifnull(if(truncate(mc.high_lux_warning, 1)=-99, '-', truncate(mc.high_lux_warning, 1)),"-") high_lux_warning
+                , ifnull(if(truncate(mc.low_lux_warning, 1)=-99, '-', truncate(mc.low_lux_warning, 1)),"-") low_lux_warning
+                , ifnull(if(truncate(mc.high_co2_warning, 1)=-99, '-', truncate(mc.high_co2_warning, 1)),"-") high_co2_warning
+                , ifnull(if(truncate(mc.feed, 1)=-99, '-', truncate(mc.feed, 1)),"-") feed
+                , ifnull(if(truncate(mc.high_humidity_warning, 1)=-99, '-', truncate(mc.high_humidity_warning, 1)),"-") high_humidity_warning
+                , ifnull(if(truncate(mc.low_humidity_warning, 1)=-99, '-', truncate(mc.low_humidity_warning, 1)),"-") low_humidity_warning
+                , ifnull(if(truncate(mc.high_negative_pressure_warning, 1)=-99, '-', truncate(mc.high_negative_pressure_warning, 1)),"-") high_negative_pressure_warning
+                , ifnull(if(truncate(mc.low_negative_pressure_warning, 1)=-99, '-', truncate(mc.low_negative_pressure_warning, 1)),"-") low_negative_pressure_warning
+                , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)),"-") ammonia_1
+                , ifnull(if(truncate(mc.ammonia_2, 1)=-99, '-', truncate(mc.ammonia_2, 1)),"-") ammonia_2
+                , ifnull(if(truncate(mc.ammonia_3, 1)=-99, '-', truncate(mc.ammonia_3, 1)),"-") ammonia_3
+                , ifnull(if(truncate(mc.ammonia_4, 1)=-99, '-', truncate(mc.ammonia_4, 1)),"-") ammonia_4
+                , DATE_FORMAT(mc.collect_datetime,'%Y/%m/%d') collect_date
+        FROM s_b_monitor_curr mc
+        LEFT JOIN s_d_code c
+        ON mc.refrigeration= c.biz_code and c.code_type = 'KGZT'
+        LEFT JOIN s_d_code d
+        ON mc.heating= d.biz_code and d.code_type = 'KGZT'
+        LEFT JOIN s_d_code e
+        ON mc.fenestella= e.biz_code and e.code_type = 'KGZT'
+        LEFT JOIN s_d_farm f
+        ON mc.farm_id= f.id
+        LEFT JOIN s_d_house h
+        ON mc.house_id= h.id
+        LEFT JOIN (select farm_id,house_id,max(point_alarm) point_alarm from s_b_house_alarm group by farm_id,house_id) p
+        ON mc.farm_id = p.farm_id
+        and mc.house_id = p.house_id
+        LEFT JOIN s_d_organization o
+        ON f.id = o.organization_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_id from s_b_monitor_curr where show_flag=1 group by farm_id) sbmcf
+        ON sbmcf.farm_id = mc.farm_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_add3 from s_b_monitor_curr LEFT JOIN s_d_farm sdf ON  farm_id= sdf.id where show_flag=1 group by farm_add3) sbmc
+        ON sbmc.farm_add3 = f.farm_add3
+        WHERE mc.show_flag=1
+            <if test="user_id != null and user_id !=''">
+              AND EXISTS (select DISTINCT obj_id from v_user vu where vu.id=#{user_id} and vu.obj_type=2 and (vu.obj_id = mc.farm_id or vu.obj_id = mc.house_id))
+            </if>
+            <if test="isShowEmptyHouse != null and isShowEmptyHouse == 'false'">
+                and mc.batch_no is not null
+            </if>
+            <if test="isShowEmptyHouse = null">
+                and mc.batch_no is not null
+            </if>
+        ORDER BY f.farm_name_chs,h.house_name
+    </select>
+
+    <select id="selectAllForMobile" resultType="pd" useCache="false">
+        SELECT f.farm_name_chs FarmName
+                , o.parent_id corporation_id
+        	    , f.id FarmId
+                , h.house_name houseName
+                , h.id HouseId
+                , mc.date_age dayAge
+                , (case when mc.alarm_code=9 then 1 else 0 end) isAlarm
+                , (select code_name from s_d_code g where g.code_type = 'ALARM_CODE' and mc.alarm_code = g.biz_code) alarmName
+                , concat('{"tar_temp":"',format(ifnull(mc.inside_set_temp,0),1),'",'
+                            ,'"out_temp":"',format(ifnull(mc.outside_temp,0),1),'",'
+                            ,'"avg_temp":"',format(ifnull(mc.inside_avg_temp,0),1),'",'
+                            ,'"temp_diff":"',format(ifnull(mc.inside_avg_temp,0)-ifnull(mc.inside_set_temp,0),1),'",'
+                            ,'"in_temp1":"',format(ifnull(mc.inside_temp1,0),1),'",'
+                            ,'"in_temp2":"',format(ifnull(mc.inside_temp2,0),1),'",'
+                            ,'"in_temp3":"',format(ifnull(mc.inside_temp3,0),1),'",'
+                            ,'"in_temp4":"',format(ifnull(mc.inside_temp4,0),1),'"}'
+                            ) tempInfo
+                , format(mc.inside_humidity,0) inside_humidity
+                , mc.water_consumption
+                , format(mc.co2,1) co2
+                , format(mc.negative_pressure,1) negative_pressure
+                , mc.small_fan
+                , mc.larger_fan
+                , e.code_name fenestella_name
+                , d.code_name heating_name
+                , c.code_name refrigeration_name
+                , DATE_FORMAT(mc.update_datetime,'%H:%i:%s') collect_datetime
+        FROM s_b_monitor_curr mc
+        LEFT JOIN s_d_code c
+        ON mc.refrigeration= c.biz_code and c.code_type = 'KGZT'
+        LEFT JOIN s_d_code d
+        ON mc.heating= d.biz_code and d.code_type = 'KGZT'
+        LEFT JOIN s_d_code e
+        ON mc.fenestella= e.biz_code and e.code_type = 'KGZT'
+        LEFT JOIN s_d_farm f
+        ON mc.farm_id= f.id
+        LEFT JOIN s_d_house h
+        ON mc.house_id= h.id
+        LEFT JOIN s_d_organization o
+        ON f.id = o.organization_id
+        WHERE mc.show_flag=1
+        ORDER BY f.farm_name_chs,h.house_name
+    </select>
+
+    <select id="selectByCondition" resultType="pd" useCache="false">
+        SELECT mc.id
+                , o.parent_id corporation_id
+                , mc.farm_id
+                , mc.house_id
+                , DATE_FORMAT(mc.collect_datetime,'%H:%i:%s') collect_datetime
+                , DATE_FORMAT(mc.collect_datetime,'%Y-%m-%d %H:%i:%s') collect_datetime2
+                , mc.deal_status
+                , mc.alarm_code biz_code
+                , g.code_name alarm_code
+                , ifnull(if(truncate(mc.date_age, 1)=-99, '-', truncate(mc.date_age, 1)),"-") date_age
+                , mc.week_age
+                , mc.show_flag
+                ,ifnull(if(truncate(mc.inside_temp1, 1)=-99, '-', truncate(mc.inside_temp1, 1)),"-") inside_temp1
+                ,ifnull(if(truncate(mc.inside_temp2, 1)=-99, '-', truncate(mc.inside_temp2, 1)),"-") inside_temp2
+                ,ifnull(if(truncate(mc.inside_temp3, 1)=-99, '-', truncate(mc.inside_temp3, 1)),"-") inside_temp3
+                ,ifnull(if(truncate(mc.inside_temp4, 1)=-99, '-', truncate(mc.inside_temp4, 1)),"-") inside_temp4
+                ,ifnull(if(truncate(mc.inside_temp5, 1)=-99, '-', truncate(mc.inside_temp5, 1)),"-") inside_temp5
+                ,ifnull(if(truncate(mc.inside_temp6, 1)=-99, '-', truncate(mc.inside_temp6, 1)),"-") inside_temp6
+                ,ifnull(if(truncate(mc.inside_temp7, 1)=-99, '-', truncate(mc.inside_temp7, 1)),"-") inside_temp7
+                ,ifnull(if(truncate(mc.inside_temp8, 1)=-99, '-', truncate(mc.inside_temp8, 1)),"-") inside_temp8
+                ,ifnull(if(truncate(mc.inside_temp9, 1)=-99, '-', truncate(mc.inside_temp9, 1)),"-") inside_temp9
+                ,ifnull(if(truncate(mc.inside_temp10, 1)=-99, '-', truncate(mc.inside_temp10, 1)),"-") inside_temp10
+                ,ifnull(if(truncate(mc.inside_temp11, 1)=-99, '-', truncate(mc.inside_temp11, 1)),"-") inside_temp11
+                ,ifnull(if(truncate(mc.inside_temp12, 1)=-99, '-', truncate(mc.inside_temp12, 1)),"-") inside_temp12
+                ,ifnull(if(truncate(mc.inside_temp13, 1)=-99, '-', truncate(mc.inside_temp13, 1)),"-") inside_temp13
+                ,ifnull(if(truncate(mc.inside_temp14, 1)=-99, '-', truncate(mc.inside_temp14, 1)),"-") inside_temp14
+                ,ifnull(if(truncate(mc.inside_temp15, 1)=-99, '-', truncate(mc.inside_temp15, 1)),"-") inside_temp15
+                ,ifnull(if(truncate(mc.inside_temp16, 1)=-99, '-', truncate(mc.inside_temp16, 1)),"-") inside_temp16
+                ,ifnull(if(truncate(mc.inside_temp17, 1)=-99, '-', truncate(mc.inside_temp17, 1)),"-") inside_temp17
+                ,ifnull(if(truncate(mc.inside_temp18, 1)=-99, '-', truncate(mc.inside_temp18, 1)),"-") inside_temp18
+                ,ifnull(if(truncate(mc.inside_temp19, 1)=-99, '-', truncate(mc.inside_temp19, 1)),"-") inside_temp19
+                ,ifnull(if(truncate(mc.inside_temp20, 1)=-99, '-', truncate(mc.inside_temp20, 1)),"-") inside_temp20
+                ,ifnull(if(truncate(mc.inside_temp21, 1)=-99, '-', truncate(mc.inside_temp21, 1)),"-") inside_temp21
+                ,ifnull(if(truncate(mc.inside_temp22, 1)=-99, '-', truncate(mc.inside_temp22, 1)),"-") inside_temp22
+                ,ifnull(if(truncate(mc.inside_temp23, 1)=-99, '-', truncate(mc.inside_temp23, 1)),"-") inside_temp23
+                ,ifnull(if(truncate(mc.inside_temp24, 1)=-99, '-', truncate(mc.inside_temp24, 1)),"-") inside_temp24
+                ,ifnull(if(truncate(mc.inside_temp25, 1)=-99, '-', truncate(mc.inside_temp25, 1)),"-") inside_temp25
+                ,ifnull(if(truncate(mc.inside_temp26, 1)=-99, '-', truncate(mc.inside_temp26, 1)),"-") inside_temp26
+                ,ifnull(if(truncate(mc.inside_temp27, 1)=-99, '-', truncate(mc.inside_temp27, 1)),"-") inside_temp27
+                , ifnull(if(truncate(mc.inside_avg_temp, 1)=-99, '-', truncate(mc.inside_avg_temp, 1)),"-") inside_avg_temp
+                , ifnull(if(truncate(mc.inside_set_temp, 1)=-99, '-', truncate(mc.inside_set_temp, 1)),"-") inside_set_temp
+                , ifnull(if(truncate(mc.high_alarm_temp, 1)=-99, '-', truncate(mc.high_alarm_temp, 1)),"-") high_alarm_temp
+                , ifnull(if(truncate(mc.low_alarm_temp, 1)=-99, '-', truncate(mc.low_alarm_temp, 1)),"-") low_alarm_temp
+                , ifnull(ifnull(if(truncate(mc.outside_temp, 1)=-99, null, truncate(mc.outside_temp, 1)),null), ifnull(truncate(sbmcf.outside_temp,1), ifnull(truncate(sbmc.outside_temp,1),'-') )) outside_temp
+                , mc.outside_temp outside_temp_house
+                , ifnull(if(truncate(mc.inside_humidity, 1)=-99, '-', truncate(mc.inside_humidity, 1)),"-") inside_humidity
+                , ifnull(if(truncate(mc.point_temp_diff, 1)=-99, '-', truncate(mc.point_temp_diff, 1)),"-") point_temp_diff
+                , ifnull(if(truncate(mc.target_humidity, 1)=-99, '-', truncate(mc.target_humidity, 1)),"-") target_humidity
+                , ifnull(if(truncate(mc.co2, 1)=-99, '-', truncate(mc.co2, 1)),"-") co2
+                , ifnull(if(truncate(mc.high_alarm_co2, 1)=-99, '-', truncate(mc.high_alarm_co2, 1)),"-") high_alarm_co2
+                , ifnull(if(truncate(mc.lux, 1)=-99, '-', truncate(mc.lux, 1)),"-") lux
+                , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)), '-') water_consumption
+                , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)), '-') ammonia_1
+                , ifnull(if(truncate(mc.high_lux, 1)=-99, '-', truncate(mc.high_lux, 1)),"-") high_lux
+                , ifnull(if(truncate(mc.low_lux, 1)=-99, '-', truncate(mc.low_lux, 1)),"-") low_lux
+                , ifnull(if(truncate(mc.is_lux, 1)=-99, '-', truncate(mc.is_lux, 1)),"-") is_lux
+                , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)), '-') water_consumption
+                , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)), '-') ammonia_1
+                , ifnull(mc.power_status, "-") power_status
+                , mc.update_datetime
+                , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") small_fan
+                , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") fl
+                , ifnull(if(truncate(mc.larger_fan, 0)=-99, '-', truncate(mc.larger_fan, 0)),"-") larger_fan
+                , ifnull(if(truncate(mc.refrigeration, 0)=-99, '-', truncate(mc.refrigeration, 0)),"-") refrigeration
+                , ifnull(if(truncate(mc.heating, 0)=-99, '-', truncate(mc.heating, 0)),"-") heating
+                , ifnull(if(truncate(mc.fenestella, 0)=-99, '-', truncate(mc.fenestella, 0)),"-") fenestella
+                , ifnull(if(truncate(mc.Tunnel, 0)=-99, '-', truncate(mc.Tunnel, 0)),"-") Tunnel
+                , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)),"-") water_consumption
+                , ifnull(if(truncate(mc.negative_pressure, 1)=-99, '-', truncate(mc.negative_pressure, 1)),"-") negative_pressure
+                , c.code_name refrigeration_name
+                , d.code_name heating_name
+                , e.code_name fenestella_name
+                , f.farm_name_chs farm_name
+                , h.house_name house_name
+                , IFNULL((SELECT (CASE WHEN alarm_code like 'QH%' THEN 'H' WHEN alarm_code like 'QL%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('QH1','QL1','QH2','QL2') LIMIT 1),'N') AS temp_in1_alarm
+                , IFNULL((SELECT (CASE WHEN alarm_code like 'ZH%' THEN 'H' WHEN alarm_code like 'ZL%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('ZH1','ZL1','ZH2','ZL2') LIMIT 1),'N') AS temp_in2_alarm
+                , IFNULL((SELECT (CASE WHEN alarm_code like 'HH%' THEN 'H' WHEN alarm_code like 'HL%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('HH1','HL1','HH2','HL2') LIMIT 1),'N') AS temp_in3_alarm
+                , IFNULL((SELECT (CASE WHEN alarm_code like '%H' THEN 'H' WHEN alarm_code like '%L%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('PH','PL') LIMIT 1),'N') AS temp_avg_alarm
+                , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code = '6' LIMIT 1) AS point_temp_alarm
+                , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code = '2' LIMIT 1) AS power_status_alarm
+                , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code in ('3','4') LIMIT 1) AS co2_alarm
+                , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code = '5' LIMIT 1) AS lux_alarm
+                ,  CONCAT(mc.farm_id,"-",mc.house_id,"-",mc.batch_no) batch_no
+                , ifnull(if(truncate(p.point_alarm, 1)=-99, '-', truncate(p.point_alarm, 1)),"-") point_alarm
+                , ifnull(if(truncate(mc.high_temp_warning, 1)=-99, '-', truncate(mc.high_temp_warning, 1)),"-") high_temp_warning
+                , ifnull(if(truncate(mc.low_temp_warning, 1)=-99, '-', truncate(mc.low_temp_warning, 1)),"-") low_temp_warning
+                , ifnull(if(truncate(mc.high_lux_warning, 1)=-99, '-', truncate(mc.high_lux_warning, 1)),"-") high_lux_warning
+                , ifnull(if(truncate(mc.low_lux_warning, 1)=-99, '-', truncate(mc.low_lux_warning, 1)),"-") low_lux_warning
+                , ifnull(if(truncate(mc.high_co2_warning, 1)=-99, '-', truncate(mc.high_co2_warning, 1)),"-") high_co2_warning
+                , ifnull(if(truncate(mc.feed, 1)=-99, '-', truncate(mc.feed, 1)),"-") feed
+                , ifnull(if(truncate(mc.high_humidity_warning, 1)=-99, '-', truncate(mc.high_humidity_warning, 1)),"-") high_humidity_warning
+                , ifnull(if(truncate(mc.low_humidity_warning, 1)=-99, '-', truncate(mc.low_humidity_warning, 1)),"-") low_humidity_warning
+                , ifnull(if(truncate(mc.high_negative_pressure_warning, 1)=-99, '-', truncate(mc.high_negative_pressure_warning, 1)),"-") high_negative_pressure_warning
+                , ifnull(if(truncate(mc.low_negative_pressure_warning, 1)=-99, '-', truncate(mc.low_negative_pressure_warning, 1)),"-") low_negative_pressure_warning
+                , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)),"-") ammonia_1
+                , ifnull(if(truncate(mc.ammonia_2, 1)=-99, '-', truncate(mc.ammonia_2, 1)),"-") ammonia_2
+                , ifnull(if(truncate(mc.ammonia_3, 1)=-99, '-', truncate(mc.ammonia_3, 1)),"-") ammonia_3
+                , ifnull(if(truncate(mc.ammonia_4, 1)=-99, '-', truncate(mc.ammonia_4, 1)),"-") ammonia_4
+                , DATE_FORMAT(mc.collect_datetime,'%Y/%m/%d') collect_date
+        FROM s_b_monitor_curr mc
+        LEFT JOIN s_d_code c
+        ON mc.refrigeration= c.biz_code and c.code_type = 'KGZT'
+        LEFT JOIN s_d_code d
+        ON mc.heating= d.biz_code and d.code_type = 'KGZT'
+        LEFT JOIN s_d_code e
+        ON mc.fenestella= e.biz_code and e.code_type = 'KGZT'
+        LEFT JOIN s_d_code g
+        ON mc.alarm_code = g.biz_code and g.code_type = 'ALARM_CODE'
+        LEFT JOIN s_d_farm f
+        ON mc.farm_id= f.id
+        LEFT JOIN s_d_house h
+        ON mc.house_id= h.id
+        LEFT JOIN (select farm_id,house_id,max(point_alarm) point_alarm from s_b_house_alarm group by farm_id,house_id) p
+        ON mc.farm_id = p.farm_id
+        and mc.house_id = p.house_id
+        LEFT JOIN s_d_organization o
+        ON f.id = o.organization_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_id from s_b_monitor_curr where show_flag=1 group by farm_id) sbmcf
+        ON sbmcf.farm_id = mc.farm_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_add3 from s_b_monitor_curr LEFT JOIN s_d_farm sdf ON  farm_id= sdf.id where show_flag=1 group by farm_add3) sbmc
+        ON sbmc.farm_add3 = f.farm_add3
+        WHERE mc.show_flag=1
+        <if test="farmId != null">
+        AND mc.farm_id IN (
+        <foreach collection="farmId" item="item" index="index" separator=",">
+            #{item}
+        </foreach>
+        )
+       </if>
+        <if test="houseId != null">
+            AND mc.house_id in (
+            <foreach collection="houseId" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="isShowEmptyHouse != null and isShowEmptyHouse == 'false'">
+            and mc.batch_no is not null
+        </if>
+        <if test="isShowEmptyHouse = null">
+            and mc.batch_no is not null
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id=#{org_id}
+        </if>
+        <if test="appFlag != null and appFlag != ''">
+            AND date_add(mc.collect_datetime,INTERVAL 30 MINUTE) > now()
+        </if>
+        ORDER BY f.farm_name_chs,h.house_name
+    </select>
+
+    <select id="selectAlarmCounts" resultType="pd" useCache="false">
+      select count(*) as num
+      from s_b_alarm_inco
+      where farm_id = ${farmId}
+      and house_id in (${houseId})
+      <if test="deal_status != null and deal_status != ''">
+        and deal_status = #{deal_status}
+      </if>
+    </select>
+
+    <select id="SP_MONITOR" useCache="false">
+        CALL SP_MONITOR()
+    </select>
+
+</mapper>

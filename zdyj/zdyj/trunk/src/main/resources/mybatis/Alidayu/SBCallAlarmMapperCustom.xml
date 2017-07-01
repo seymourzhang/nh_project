@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nh.ifarm.Alidayu.entity.mapper.SBCallAlarmMapperCustom">
+  <resultMap id="BaseResultMap" type="com.nh.ifarm.Alidayu.entity.SBCallAlarm">
+    <id column="main_code" jdbcType="VARCHAR" property="mainCode" />
+    <id column="alarm_id" jdbcType="INTEGER" property="alarmId" />
+    <result column="alarm_code" jdbcType="VARCHAR" property="alarmCode" />
+    <result column="alarm_name" jdbcType="VARCHAR" property="alarmName" />
+    <result column="alarm_status" jdbcType="VARCHAR" property="alarmStatus" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+  </resultMap>
+
+  <insert id="insertCallAlarmBatch" parameterType="com.nh.ifarm.Alidayu.entity.SBCallAlarm">
+    insert into s_b_call_alarm (main_code, alarm_id, alarm_code,
+        alarm_name, alarm_status, create_time,
+        modify_time)
+      values
+      <foreach collection="list" item="item" index="index" separator=",">
+       (#{item.mainCode,jdbcType=VARCHAR}, #{item.alarmId,jdbcType=INTEGER}, #{item.alarmCode,jdbcType=VARCHAR},
+        #{item.alarmName,jdbcType=VARCHAR}, #{item.alarmStatus,jdbcType=VARCHAR}, #{item.createTime,jdbcType=TIMESTAMP},
+        #{item.modifyTime,jdbcType=TIMESTAMP})
+      </foreach>
+  </insert>
+</mapper>

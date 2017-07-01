@@ -1,0 +1,22 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+<a class="button icon ion-chevron-left button-clear" ui-sref="home"></a>
+    <h1 class="title">
+      环境分析
+    </h1>
+</div>
+    <ion-content class="has-header" style="background-color: rgba(239, 239, 244, 1);">
+      <div>
+            <ion-list>
+                <ion-item class="item-icon-right" ng-click="goTempChart()">
+                      温湿度曲线图
+                   <i class="icon ion-chevron-right icon-accessory"></i>
+                </ion-item>
+                <ion-item class="item-icon-right" ng-click="goCo2AndLightChart()">
+                      光照CO2曲线图
+                   <i class="icon ion-chevron-right icon-accessory"></i>
+                </ion-item>
+            </ion-list>
+        </div>    
+    </ion-content>
+</ion-view>

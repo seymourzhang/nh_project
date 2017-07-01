@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="AlarmCurrMapper">
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+	<select id="selectAll" resultType="pd" useCache="false">
+		SELECT ac.farm_id
+				, ac.house_id
+				, ac.alarm_name
+				, round(ac.actual_value,2) as actual_value
+				, round(ac.set_value,2) as set_value
+				, ac.value_unit
+				, ac.deal_status
+				, ac.alarm_time
+				, ac.deal_time
+				, ac.response_person
+				, c.code_name deal_status_name
+				, f.farm_name_chs farm_name
+				, h.house_name house_name
+				, u.user_real_name user_name
+				,(TIMESTAMPDIFF(MINUTE,ac.alarm_time,current_timestamp)) continue_time
+		FROM s_b_alarm_inco ac
+				LEFT JOIN s_d_code c
+				ON ac.deal_status= c.biz_code AND c.code_type = 'DEAL_STATUS'
+				LEFT JOIN s_d_farm f
+				ON ac.farm_id= f.id
+				LEFT JOIN s_d_house h
+				ON ac.house_id= h.id
+				LEFT JOIN s_d_user u
+				ON ac.response_person = u.id
+		WHERE 1=1
+			AND EXISTS (select DISTINCT obj_id from v_user vu where vu.id=#{user_id} and vu.obj_type=2 and (vu.obj_id = ac.farm_id or vu.obj_id = ac.house_id))
+		ORDER BY ac.alarm_time DESC
+		<!-- ORDER BY ac.alarm_time DESC -->
+	</select>
+
+	<select id="selectByCondition" resultType="pd" useCache="false">
+		SELECT ac.id
+				, ac.alarm_code
+				, ac.farm_id
+				, ac.house_id
+				, ac.alarm_name
+				, round(ac.actual_value,2)  as actual_value
+				, round(ac.set_value,2) as set_value
+				, ac.value_unit
+				, ac.deal_status
+				, ac.alarm_time
+				, ac.deal_time
+				, ac.response_person
+				, c.code_name deal_status_name
+				, f.farm_name_chs farm_name
+				, h.house_name house_name
+				, u.user_real_name user_name
+				, (to_days(curdate()) - to_days(bc.operation_date) + bc.grow_age) day_age
+				, (TIMESTAMPDIFF(MINUTE,ac.alarm_time,current_timestamp)) continue_time
+		FROM s_b_alarm_inco ac
+				LEFT JOIN s_d_code c
+				ON ac.deal_status= c.biz_code AND c.code_type = 'DEAL_STATUS'
+				LEFT JOIN s_d_farm f
+				ON ac.farm_id= f.id
+				LEFT JOIN s_d_house h
+				ON ac.house_id= h.id
+				LEFT JOIN s_d_user u
+				ON ac.response_person = u.id
+				LEFT JOIN s_b_batch_curr bc
+				ON bc.house_code = ac.house_id
+		WHERE 1=1
+		and ac.is_notice = 1
+		<if test="farmId != null and farmId !=''">
+			and ac.farm_id = #{farmId}
+		</if>
+		<if test="houseId != null and houseId !=''">
+			and ac.house_id = #{houseId}
+		</if>
+		<!-- varro  判断未处理的警报信息 -->
+ 		<if test="deal_status != null and deal_status !=''"> 
+			and ac.deal_status = #{deal_status}
+ 		</if>
+		<if test="user_id != null and user_id !=''">
+			and EXISTS(SELECT DISTINCT a.obj_id FROM v_user a WHERE a.id =#{user_id} AND a.obj_type=2 AND (a.obj_id=ac.farm_id OR a.obj_id=ac.house_id ))
+		</if>
+		ORDER BY ac.alarm_time DESC
+	</select>
+
+	<select id="SP_MONITOR" useCache="false">
+		CALL SP_MONITOR()
+	</select>
+	<!-- varro  修改处理状态 -->
+	<update id="updateAlarm" parameterType="pd" flushCache="false">
+		update  s_b_alarm_inco
+			set deal_status	= #{deal_status}
+			<if test="deal_delay != null and deal_delay != ''">
+				,deal_delay				= #{deal_delay}
+			</if>
+			<if test="deal_time != null and deal_time != ''">
+				,deal_time				= #{deal_time}
+			</if>
+			<if test="response_person != null and response_person != ''">
+				,response_person			 = #{response_person}
+			</if>
+			<if test="is_notice != null and is_notice != ''">
+				,is_notice			 = #{is_notice}
+			</if>
+			where 1=1
+				house_id = #{house_id}
+			<if test="id != null and id != ''">
+				AND id = ${id}
+			</if>
+	</update>
+	<update id="updateAlarm2" parameterType="pd" flushCache="false">
+		update  s_b_alarm_inco
+			set 
+				is_notice			 = #{is_notice}
+			where 1=1
+			<if test="id != null and id != ''">
+				AND id = ${id}
+			</if>
+	</update>
+	<update id="updateStockChangeRemind" parameterType="pd" flushCache="false">
+		update  s_d_stock_change_remind
+			set 
+				is_notice			 = #{is_notice}
+			where 1=1
+			<if test="id != null and id != ''">
+				AND id = ${id}
+			</if>
+	</update>
+	<select id="SP_ALARM" useCache="false">
+        CALL SP_ALARM()
+    </select>
+
+
+	<!-- gx  根据栋舍Id，查找可以听到报警的用户的手机Imei信息 -->
+	<select id="selectImeiByHouseId" resultType="pd" useCache="false">
+			SELECT b.imei_no as imei_no from s_b_user_imei b where 1=1 and exists(
+					SELECT 1 FROM v_user a WHERE a.id = b.user_id AND a.obj_type=2 AND a.obj_id=#{house_id}
+						)
+				and exists(
+					SELECT 1 from s_b_app_authority saa,s_d_user_role_temp sdr where saa.app_menu_code = 'AlarmVoice' and saa.authority_value = 'all'
+						  and saa.role_temp_id = sdr.role_temp_id and sdr.user_id = b.user_id
+				)
+				and (b.bak1 is null or b.bak1 = 1)
+	</select>
+
+	<!-- 新增推送日志 -->
+
+	<insert id="insertPushLog" parameterType="pd" >
+		INSERT into s_l_jpush_log(
+		tag_name,
+		house_id,
+		alarm_id,
+		content,
+		jg_push_time,
+		jg_res,
+		jg_message,
+		mi_push_time,
+		mi_res,
+		mi_message,
+		make_date,
+		modify_date)
+		values (
+		#{tag_name_array},
+		#{house_id},
+		#{alarm_id},
+		#{content},
+		#{jg_push_time},
+		#{jg_res},
+		#{jg_message},
+		#{mi_push_time},
+		#{mi_res},
+		#{mi_message},
+		now(),
+		now()
+		)
+	</insert>
+</mapper>

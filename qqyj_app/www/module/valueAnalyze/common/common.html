@@ -1,0 +1,33 @@
+
+<ion-tabs class="tabs-icon-only tabs-positive tabs-top AndroidgreenTab" id="tabView">
+    <div style="width: 10%;height: 100%;background: #3DCB64;">
+      <a ui-sref="valueAnalyze" id="backBtn" class="AndroidbackBtn" style="position: absolute;left: 0%; width: 60px; background: #3DCB64;text-align:center;">
+        <img src="img/newFolder/public/BackArrow.png" style="position: relative; left: 0%; top:0%;height: 100%;width: 50%;">
+      </a>
+    </div>
+    
+    
+      <ion-tab title="累计死淘率"  href="#/common/dayCullDeath">
+        <ion-nav-view name="common-dayCullDeath"  id="dayCullDeathView"></ion-nav-view>
+      </ion-tab>
+      <ion-tab title="均重"  href="#/common/weekWeight">
+        <ion-nav-view name="common-weekWeight"  id="weekWeightView"></ion-nav-view>
+      </ion-tab>
+      <ion-tab title="日采食"  href="#/common/dayFoodCurve">
+        <ion-nav-view name="common-dayFoodCurve"  id="dayFoodCurveView"></ion-nav-view>
+      </ion-tab>
+      <ion-tab title="日饮水"  href="#/common/dayWaterCurve">
+        <ion-nav-view name="common-dayWaterCurve"  id="dayWaterCurveView"></ion-nav-view>
+      </ion-tab>
+
+      <ion-tab title="水料比"  href="#/common/waterMaterial">
+        <ion-nav-view name="common-waterMaterial"  id="waterMaterialView"></ion-nav-view>
+      </ion-tab>
+      <ion-tab title="存活率"  href="#/common/survivalRate">
+        <ion-nav-view name="common-survivalRate"  id="survivalRateView"></ion-nav-view>
+      </ion-tab>
+      <ion-tab title="日死淘率"  href="#/common/dayDeath">
+        <ion-nav-view name="common-dayDeath"  id="dayDeathView"></ion-nav-view>
+      </ion-tab>
+      
+</ion-tabs>

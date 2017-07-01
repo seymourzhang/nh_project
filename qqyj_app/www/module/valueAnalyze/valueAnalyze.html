@@ -1,0 +1,20 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+	<a class="button icon ion-chevron-left button-clear" ui-sref="home"></a>
+    <h1 class="title">
+      指标分析列表
+    </h1>
+</div>
+    <ion-content class="has-header">
+    	<ion-list>
+            <ion-item class="item-icon-right" ui-sref="common">
+                  生产指标
+               <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+            <ion-item class="item-icon-right" ui-sref="layerIndex" ng-if="sparraw_user_temp.farminfo.farm_type_id == '2'"  ng-show="'ture'">
+                  产蛋指标
+               <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>

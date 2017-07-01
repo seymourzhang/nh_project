@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SBGrowingStdMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <select id="selectByVarietyId" parameterType="pd" resultType="pd" useCache="false">
+        select
+            les.variety_id,
+            les.variety,
+            les.grow_week_age,
+            les.lay_egg_week_age,
+            ifnull(truncate(les.female_week_avg_weed_out, 2), "-")          AS female_week_avg_weed_out,
+            ifnull(truncate(les.female_week_total_weed_out, 1), "-")        AS female_week_total_weed_out,
+            ifnull(truncate(les.female_life, 1), "-")                       AS female_life,
+            ifnull(truncate(les.male_weight, 0), "-")                       AS male_weight,
+            ifnull(truncate(les.female_weight, 0), "-")                     AS female_weight,
+            ifnull(truncate(les.cl_laying_rate, 1), "-")                    AS cl_laying_rate,
+            ifnull(truncate(les.rs_laying_rate, 1), "-")                    AS rs_laying_rate,
+            ifnull(truncate(les.rs_female_laying_avg_count, 1), "-")        AS rs_female_laying_avg_count,
+            ifnull(truncate(les.rs_female_laying_total_count, 1), "-")      AS rs_female_laying_total_count,
+            ifnull(truncate(les.qualified_egg_rate, 1), "-")                AS qualified_egg_rate,
+            ifnull(truncate(les.rs_female_avg_qualified_count, 1), "-")     AS rs_female_avg_qualified_count,
+            ifnull(truncate(les.rs_female_total_qualified_count, 1), "-")   AS rs_female_total_qualified_count,
+            ifnull(truncate(les.chick_hatching_rate, 1), "-")               AS chick_hatching_rate,
+            ifnull(truncate(les.breeding_chick_hatching, 1), "-")           AS breeding_chick_hatching,
+            ifnull(truncate(les.breeding_chick_avg_count, 1), "-")          AS breeding_chick_avg_count,
+            ifnull(truncate(les.breeding_chick_total_count, 1), "-")        AS breeding_chick_total_count,
+            ifnull(truncate(les.avg_feed_daliy, 0), 1)                AS egg_avg_feed_daliy,
+            ifnull(truncate(les.total_feed, 0), 1)                    AS egg_total_feed
+        from s_b_lay_egg_std les
+        where 1=1
+        <if test="variety_id != null">
+          and les.variety_id = #{variety_id}
+        </if>
+    </select>
+
+    <select id="selectBroilByVarietyId" parameterType="pd" resultType="pd" useCache="false">
+        select
+        gs.variety_id,
+        gs.variety,
+        gs.grow_week_age,
+        truncate(ifnull(gs.female_week_avg_weed_out, 0), 2)      AS female_week_avg_weed_out,
+        truncate(ifnull(gs.female_week_total_weed_out, 0), 1)    AS female_week_total_weed_out,
+        truncate(ifnull(gs.female_life, 0), 1)                   AS female_life,
+        truncate(ifnull(gs.male_weight, 0), 0)                   AS male_weight,
+        truncate(ifnull(gs.female_weight, 0), 0)                 AS female_weight,
+        truncate(ifnull(gs.avg_feed_daliy, 0), 1)                AS avg_feed_daliy,
+        truncate(ifnull(gs.total_feed, 0), 1)                    AS total_feed,
+        truncate(ifnull(gs.evenness, 0), 1)                      AS evenness,
+        truncate(ifnull(gs.female_max_std_weight, 0), 1)         AS female_max_std_weight,
+        truncate(ifnull(gs.female_min_std_weight, 0), 1)         AS female_min_std_weight
+        from s_b_growing_std gs 
+        where 1=1
+        <if test="variety_id != null">
+            and gs.variety_id = #{variety_id}
+        </if>
+    </select>
+
+    <select id="selectCultivateStandardMeatData" parameterType="pd" resultType="pd" useCache="false">
+        select
+        a.variety_id,
+        a.variety,
+        a.grow_age,
+        ifnull(truncate(a.female_avg_weed_out,2),"-")   AS female_avg_weed_out,
+        ifnull(truncate(a.female_total_weed_out,1),"-") AS female_total_weed_out,
+        ifnull(truncate(a.male_avg_weed_out,1),"-")     AS male_avg_weed_out,
+        ifnull(truncate(a.male_total_weed_out,0),"-")   AS male_total_weed_out,
+        ifnull(truncate(a.male_weight,0),"-")           AS male_weight,
+        ifnull(truncate(a.female_weight,1),"-")         AS female_weight,
+        ifnull(truncate(a.male_feed_daliy,1),"-")       AS male_feed_daliy,
+        ifnull(truncate(a.female_feed_daliy,1),"-")     AS female_feed_daliy,
+        ifnull(truncate(a.female_total_feed,1),"-")     AS female_total_feed,
+        ifnull(truncate(a.male_total_feed,1),"-")       AS male_total_feed
+        from s_b_meat_std a
+        where 1=1
+        <if test="variety_id != null">
+            and a.variety_id = #{variety_id}
+        </if>
+    </select>
+
+    <!-- 保存育成标准数据 -->
+    <insert id="insertCultivateStandardGrowData" parameterType="pd"  flushCache="false">
+        insert into s_b_growing_std (
+        variety_id,
+        variety,
+        grow_week_age,
+        female_week_avg_weed_out,
+        female_week_total_weed_out,
+        female_life,
+        female_weight,
+        avg_feed_daliy,
+        total_feed,
+        modify_person,
+        modify_date,
+        modify_time,
+        create_person,
+        create_date,
+        create_time
+        ) values (
+        #{variety_id},
+        #{variety},
+        #{grow_week_age},
+        #{female_week_avg_weed_out},
+        #{female_week_total_weed_out},
+        #{female_life},
+        #{female_weight},
+        #{avg_feed_daliy},
+        #{total_feed},
+        #{modify_person},
+        #{modify_date},
+        #{modify_time},
+        #{create_person},
+        #{create_date},
+        #{create_time}
+        )
+    </insert>
+
+    <!-- 保存产蛋标准数据 -->
+    <insert id="insertCultivateStandardEggData" parameterType="pd"  flushCache="false">
+        insert into s_b_lay_egg_std (
+        variety_id,
+        variety,
+        grow_week_age,
+        lay_egg_week_age,
+        female_week_avg_weed_out,
+        female_week_total_weed_out,
+        female_life,
+        cl_laying_rate,
+        rs_laying_rate,
+        rs_female_laying_avg_count,
+        rs_female_laying_total_count,
+        qualified_egg_rate,
+        rs_female_avg_qualified_count,
+        rs_female_total_qualified_count,
+        chick_hatching_rate,
+        breeding_chick_hatching,
+        breeding_chick_avg_count,
+        breeding_chick_total_count,
+        modify_person,
+        modify_date,
+        modify_time,
+        create_person,
+        create_date,
+        create_time
+        ) values (
+        #{variety_id},
+        #{variety},
+        #{grow_week_age},
+        #{lay_egg_week_age},
+        #{female_week_avg_weed_out},
+        #{female_week_total_weed_out},
+        #{female_life},
+        #{cl_laying_rate},
+        #{rs_laying_rate},
+        #{rs_female_laying_avg_count},
+        #{rs_female_laying_total_count},
+        #{qualified_egg_rate},
+        #{rs_female_avg_qualified_count},
+        #{rs_female_total_qualified_count},
+        #{chick_hatching_rate},
+        #{breeding_chick_hatching},
+        #{breeding_chick_avg_count},
+        #{breeding_chick_total_count},
+        #{modify_person},
+        #{modify_date},
+        #{modify_time},
+        #{create_person},
+        #{create_date},
+        #{create_time}
+        )
+    </insert>
+
+    <update id="updateCultivateStandardEggData" parameterType="pd"  flushCache="false">
+        UPDATE s_b_lay_egg_std a SET
+        a.variety_id = #{variety_id},
+        a.variety = #{variety},
+        a.grow_week_age = #{grow_week_age},
+        a.lay_egg_week_age = #{lay_egg_week_age},
+        a.female_week_avg_weed_out = #{female_week_avg_weed_out},
+        a.female_week_total_weed_out = #{female_week_total_weed_out},
+        a.female_life = #{female_life},
+        a.cl_laying_rate = #{cl_laying_rate},
+        a.rs_laying_rate = #{rs_laying_rate},
+        a.rs_female_laying_avg_count = #{rs_female_laying_avg_count},
+        a.rs_female_laying_total_count = #{rs_female_laying_total_count},
+        a.qualified_egg_rate = #{qualified_egg_rate},
+        a.rs_female_avg_qualified_count = #{rs_female_avg_qualified_count},
+        a.rs_female_total_qualified_count = #{rs_female_total_qualified_count},
+        a.chick_hatching_rate = #{chick_hatching_rate},
+        a.breeding_chick_hatching = #{breeding_chick_hatching},
+        a.breeding_chick_avg_count = #{breeding_chick_avg_count},
+        a.breeding_chick_total_count = #{breeding_chick_total_count},
+        a.modify_person = #{modify_person},
+        a.modify_date = #{modify_date},
+        a.modify_time = #{modify_time},
+        a.create_person = #{create_person},
+        a.create_date = #{create_date},
+        a.create_time = #{create_time}
+        WHERE a.variety = #{variety}
+        AND a.grow_week_age = #{grow_week_age}
+    </update>
+
+    <update id="updateCultivateStandardGrowData" parameterType="pd"  flushCache="false">
+        UPDATE s_b_growing_std a SET
+        a.variety_id = #{variety_id},
+        a.variety = #{variety},
+        a.grow_week_age = #{grow_week_age},
+        a.female_week_avg_weed_out = #{female_week_avg_weed_out},
+        a.female_week_total_weed_out = #{female_week_total_weed_out},
+        a.female_life = #{female_life},
+        a.female_weight = #{female_weight},
+        a.avg_feed_daliy = #{avg_feed_daliy},
+        a.total_feed = #{total_feed},
+        a.modify_person = #{modify_person},
+        a.modify_date = #{modify_date},
+        a.modify_time = #{modify_time},
+        a.create_person = #{create_person},
+        a.create_date = #{create_date},
+        a.create_time = #{create_time}
+        WHERE a.variety = #{variety}
+        AND a.grow_week_age = #{grow_week_age}
+    </update>
+
+    <!-- 保存产蛋标准数据 -->
+    <insert id="insertCultivateStandardMeatData" parameterType="pd"  flushCache="false">
+        insert into s_b_meat_std (
+        variety_id,
+        variety,
+        grow_age,
+        female_avg_weed_out,
+        female_total_weed_out,
+        male_avg_weed_out,
+        male_total_weed_out,
+        male_weight,
+        female_weight,
+        male_feed_daliy,
+        female_feed_daliy,
+        female_total_feed,
+        male_total_feed,
+        modify_person,
+        modify_date,
+        modify_time,
+        create_person,
+        create_date,
+        create_time
+        ) values (
+        #{variety_id},
+        #{variety},
+        #{grow_age},
+        #{female_avg_weed_out},
+        #{female_total_weed_out},
+        #{male_avg_weed_out},
+        #{male_total_weed_out},
+        #{male_weight},
+        #{female_weight},
+        #{male_feed_daliy},
+        #{female_feed_daliy},
+        #{female_total_feed},
+        #{male_total_feed},
+        #{modify_person},
+        #{modify_date},
+        #{modify_time},
+        #{create_person},
+        #{create_date},
+        #{create_time}
+        )
+    </insert>
+
+    <update id="updateCultivateStandardMeatData" parameterType="pd"  flushCache="false">
+        UPDATE s_b_meat_std a SET
+        a.variety_id = #{variety_id},
+        a.variety = #{variety},
+        a.grow_age = #{grow_age},
+        a.female_avg_weed_out = #{female_avg_weed_out},
+        a.female_total_weed_out = #{female_total_weed_out},
+        a.male_avg_weed_out = #{male_avg_weed_out},
+        a.male_total_weed_out = #{male_total_weed_out},
+        a.male_weight = #{male_weight},
+        a.female_weight = #{female_weight},
+        a.male_feed_daliy = #{male_feed_daliy},
+        a.female_feed_daliy = #{female_feed_daliy},
+        a.female_total_feed = #{female_total_feed},
+        a.male_total_feed = #{male_total_feed},
+        a.modify_person = #{modify_person},
+        a.modify_date = #{modify_date},
+        a.modify_time = #{modify_time},
+        a.create_person = #{create_person},
+        a.create_date = #{create_date},
+        a.create_time = #{create_time}
+        WHERE a.variety = #{variety}
+        AND a.grow_age = #{grow_age}
+    </update>
+</mapper>

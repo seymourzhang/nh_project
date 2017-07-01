@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SBGrowingStdMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <select id="selectByVarietyId" parameterType="pd" resultType="pd">
+        select
+            les.variety_id,
+            les.variety,
+            les.grow_week_age,
+            les.lay_egg_week_age,
+            ifnull(truncate(les.female_week_avg_weed_out, 2), "-")          AS female_week_avg_weed_out,
+            ifnull(truncate(les.female_week_total_weed_out, 1), "-")        AS female_week_total_weed_out,
+            ifnull(truncate(les.female_life, 1), "-")                       AS female_life,
+            ifnull(truncate(les.male_weight, 0), "-")                       AS male_weight,
+            ifnull(truncate(les.female_weight, 0), "-")                     AS female_weight,
+            ifnull(truncate(les.cl_laying_rate, 1), "-")                    AS cl_laying_rate,
+            ifnull(truncate(les.rs_laying_rate, 1), "-")                    AS rs_laying_rate,
+            ifnull(truncate(les.rs_female_laying_avg_count, 1), "-")        AS rs_female_laying_avg_count,
+            ifnull(truncate(les.rs_female_laying_total_count, 1), "-")      AS rs_female_laying_total_count,
+            ifnull(truncate(les.qualified_egg_rate, 1), "-")                AS qualified_egg_rate,
+            ifnull(truncate(les.rs_female_avg_qualified_count, 1), "-")     AS rs_female_avg_qualified_count,
+            ifnull(truncate(les.rs_female_total_qualified_count, 1), "-")   AS rs_female_total_qualified_count,
+            ifnull(truncate(les.chick_hatching_rate, 1), "-")               AS chick_hatching_rate,
+            ifnull(truncate(les.breeding_chick_hatching, 1), "-")           AS breeding_chick_hatching,
+            ifnull(truncate(les.breeding_chick_avg_count, 1), "-")          AS breeding_chick_avg_count,
+            ifnull(truncate(les.breeding_chick_total_count, 1), "-")        AS breeding_chick_total_count,
+            ifnull(truncate(les.avg_feed_daliy, 0), 1)                AS egg_avg_feed_daliy,
+            ifnull(truncate(les.total_feed, 0), 1)                    AS egg_total_feed
+        from s_b_lay_egg_std les
+        where 1=1
+        <if test="variety_id != null">
+          and les.variety_id = #{variety_id}
+        </if>
+        <if test="variety_id == null">
+          and les.variety_id = 1
+        </if>
+    </select>
+
+    <select id="selectBroilByVarietyId" parameterType="pd" resultType="pd">
+        select
+        gs.variety_id,
+        gs.variety,
+        gs.grow_week_age,
+        truncate(ifnull(gs.female_week_avg_weed_out, 0), 2)      AS female_week_avg_weed_out,
+        truncate(ifnull(gs.female_week_total_weed_out, 0), 1)    AS female_week_total_weed_out,
+        truncate(ifnull(gs.female_life, 0), 1)                   AS female_life,
+        truncate(ifnull(gs.male_weight, 0), 0)                   AS male_weight,
+        truncate(ifnull(gs.female_weight, 0), 0)                 AS female_weight,
+        truncate(ifnull(gs.avg_feed_daliy, 0), 1)                AS avg_feed_daliy,
+        truncate(ifnull(gs.total_feed, 0), 1)                    AS total_feed,
+        truncate(ifnull(gs.evenness, 0), 1)                      AS evenness,
+        truncate(ifnull(gs.female_max_std_weight, 0), 1)         AS female_max_std_weight,
+        truncate(ifnull(gs.female_min_std_weight, 0), 1)         AS female_min_std_weight
+        from s_b_growing_std gs 
+        where 1=1
+        <if test="variety_id != null">
+            and gs.variety_id = #{variety_id}
+        </if>
+        <if test="variety_id == null">
+            and gs.variety_id = 1
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WorkBook xmlVersion="20151125" releaseVersion="8.0.0">
+<TableDataMap>
+<TableData name="栋舍地区清单" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="area_parent_name_default"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="null"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select DISTINCT
+  tmp1.farm_id
+  ,tmp1.farm_name
+  ,tmp1.house_id
+  ,tmp1.house_name
+  ,tmp1.area_id1
+  ,tmp1.area_name1
+  ,tmp1.area_id2
+  ,tmp1.area_name2
+  ,tmp1.area_id3
+  ,tmp1.area_name3
+  ,sdc1.code_name feed_method
+  ,sdc2.code_name farm_type
+  ,tmp0.user_name
+  ,tmp0.user_mobile
+#   ,vu.user_real_name farm_manager_name
+#   ,vu.user_mobile_1 farm_manager_mobile
+  ,sdo.name_cn org_name
+from v_farm_house tmp1
+  join
+  (select
+     va.area_id
+   from v_area va
+     left join (select
+                  farm_id
+                  ,farm_name
+                  ,house_id
+                  ,house_name
+                  ,area_id1 area_id
+                from v_farm_house
+                union all
+                select
+                  farm_id
+                  ,farm_name
+                  ,house_id
+                  ,house_name
+                  ,area_id2 area_id
+                from v_farm_house
+                union all
+                select
+                  farm_id
+                  ,farm_name
+                  ,house_id
+                  ,house_name
+                  ,area_id3 area_id
+                from v_farm_house
+               ) vfh
+       on va.area_id = vfh.area_id
+          and vfh.farm_id is not null
+          and exists(select 1 from v_user where 1 = 1
+                     ${if(len(user_id)==0,"and 1=2","and id='"+user_id+"'")}
+                     #                       and id = 1
+                     and obj_type=2 and (obj_id = vfh.house_id or obj_id = vfh.farm_id))
+   where va.status = 1
+         and (vfh.farm_id is not null or vfh.house_id is not null)
+   #    and IFNULL(va.parent_name,'中国(省级)')='山东省'
+   ${if(area_parent_name==null,"and va.parent_id=0","and IFNULL(va.parent_name,'中国(省级)')='"+ (area_parent_name) +"'")}
+     group by va.area_id
+  ,va.area_name
+  ,va.parent_id
+  ,IFNULL(va.parent_name,'${area_parent_name_default}')) tmp2
+    on tmp1.area_id1 = tmp2.area_id
+       or tmp1.area_id2 = tmp2.area_id
+       or tmp1.area_id3 = tmp2.area_id
+  left join s_d_code sdc1
+    on sdc1.code_type='FEED_METHOD'
+       and sdc1.biz_code = tmp1.feed_method
+  left join s_d_code sdc2
+    on sdc2.code_type='HOUSE_TYPE'
+       and sdc2.biz_code = tmp1.farm_type
+  left join v_user vu
+    on vu.obj_type=2
+       and vu.obj_id= tmp1.farm_id
+       and role_temp_id=101
+  left join s_d_organization sdo
+    on sdo.id = tmp1.org_id
+  left join (select
+               tmp.house_id
+               ,tmp2.user_code
+               ,tmp2.user_real_name user_name
+               ,tmp2.user_mobile_1 user_mobile
+             from s_b_user_house_sh tmp
+               join s_d_user_sh tmp2
+                 on tmp.user_id = tmp2.id
+               join (SELECT
+                       sbufs.house_id,
+                       max(sdus.modify_time) user_modify_time
+                     FROM s_b_user_house_sh sbufs
+                       JOIN s_d_user_role_sh sdurs
+                         ON sbufs.user_id = sdurs.user_id
+                            AND sdurs.role_id = 4
+                       JOIN s_d_user_sh sdus
+                         ON sdurs.user_id = sdus.id
+                     group by     sbufs.house_id
+                    ) tmp1
+                 on tmp.house_id = tmp1.house_id
+                    and tmp2.modify_time = tmp1.user_modify_time) tmp0
+    on tmp0.house_id = tmp1.house_id
+ORDER BY tmp1.area_id1,tmp1.area_id2,tmp1.area_id3,tmp1.farm_name, tmp1.house_name]]></Query>
+</TableData>
+</TableDataMap>
+<ReportWebAttr>
+<ServerPrinter/>
+<WebPageContent>
+<Listener event="afterload">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$area_parent_name]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<Content>
+<![CDATA[//alert(area_parent_name + "  " + decodeURIComponent(area_parent_name));
+var reportFrame = document.getElementById('content-container'); 
+reportFrame.style.backgroundColor = "#ffffff";
+reportFrame.style.left = "3px";]]></Content>
+</JavaScript>
+</Listener>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.form.ui.CustomToolBarButton">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[返回]]></Text>
+<IconName>
+<![CDATA[undo]]></IconName>
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$area_parent_name]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$user_id]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<Content>
+<![CDATA[window.location="ReportServer?reportlet=ifarm/farmStatReport.cpt&user_id="+ user_id+"&area_parent_name="+FR.cjkEncode(area_parent_name);]]></Content>
+</JavaScript>
+</Widget>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons appletPrint="false" flashPrint="false"/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<WebPage isPage="false" isShowAsImage="false" isAutoScale="false" isTDHeavy="false"/>
+</WebPageContent>
+<WebViewContent>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<SortFuncCheck check="true"/>
+<ConditionFuncCheck check="true"/>
+<ListFuncCheck check="true"/>
+</WebViewContent>
+</ReportWebAttr>
+<ReportFitAttr fitStateInPC="1" fitFont="false"/>
+<Report class="com.fr.report.worksheet.WorkSheet" name="农场列表">
+<ReportPageAttr>
+<HR/>
+<FR/>
+<HC/>
+<FC/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0" cs="15" s="0">
+<O>
+<![CDATA[地区栋舍列表]]></O>
+<PrivilegeControl/>
+</C>
+<C c="0" r="1" cs="2" s="1">
+<O>
+<![CDATA[省份]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="1" s="1">
+<O>
+<![CDATA[城市]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="1" cs="2" s="1">
+<O>
+<![CDATA[区县]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="1" cs="2" s="1">
+<O>
+<![CDATA[农场名]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="1" s="1">
+<O>
+<![CDATA[栋舍名]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="1" s="1">
+<O>
+<![CDATA[饲养类型]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="1" s="1">
+<O>
+<![CDATA[饲养方式]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="1" s="1">
+<O>
+<![CDATA[栋舍长]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="1" cs="2" s="1">
+<O>
+<![CDATA[联系电话]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="1" cs="2" s="1">
+<O>
+<![CDATA[上级公司]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="2" cs="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="area_name1"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="2" r="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="area_name2"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="3" r="2" cs="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="area_name3"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="5" r="2" cs="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="farm_name"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="7" r="2" s="3">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="house_name"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="8" r="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="farm_type"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="9" r="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="feed_method"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="10" r="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="user_name"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="11" r="2" cs="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="user_mobile"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="13" r="2" cs="2" s="2">
+<O t="DSColumn">
+<Attributes dsName="栋舍地区清单" columnName="org_name"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+</CellElementList>
+<ReportAttrSet>
+<ReportSettings headerHeight="0" footerHeight="0">
+<PaperSetting>
+<PaperSize width="43200000" height="17280000"/>
+<Margin top="0" left="0" bottom="0" right="0"/>
+</PaperSetting>
+</ReportSettings>
+<Header reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Header>
+<Footer reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Footer>
+</ReportAttrSet>
+<PrivilegeControl/>
+</Report>
+<ReportParameterAttr>
+<Attributes showWindow="true" delayPlaying="true" windowPosition="1" align="0"/>
+<PWTitle>
+<![CDATA[参数]]></PWTitle>
+<Parameter>
+<Attributes name="area_parent_name"/>
+<O>
+<![CDATA[中国(省级)]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="area_parent_name_default"/>
+<O>
+<![CDATA[中国(省级)]]></O>
+</Parameter>
+</ReportParameterAttr>
+<StyleList>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="SimSun" style="1" size="88"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="SimSun" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1"/>
+<Bottom style="1"/>
+<Left style="1"/>
+<Right style="1"/>
+</Border>
+</Style>
+<Style imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1"/>
+<Bottom style="1"/>
+<Left style="1"/>
+<Right style="1"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1"/>
+<Bottom style="1"/>
+<Left style="1"/>
+<Right style="1"/>
+</Border>
+</Style>
+</StyleList>
+<DesignerVersion DesignerVersion="IAA"/>
+<PreviewType PreviewType="0"/>
+<TemplateID TemplateID="c276dd8f-467c-457e-bac7-9ce95faf033f"/>
+</WorkBook>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SDfileMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+        <select id="selectByStatus" resultType="pd" parameterType="pd" useCache="false">
+            select f.*
+            from s_d_file f
+            where f.ISENABLED = #{ISENABLED}
+            <if test="user_id != null and user_id != ''">
+                and exists(select
+                            DISTINCT u1.id
+                            from (select * from v_user where obj_type=2) u1
+                                            join (select u2.obj_id
+                                                          ,u2.role_level
+                                                    from v_user u2
+                                                    where u2.id = #{user_id}
+                                                    and u2.obj_type=2) t1
+                                              on u1.obj_id = t1.obj_id
+                                                  and (u1.role_level &lt; (case when (t1.role_level-1) &lt;= 0 then 2 else t1.role_level end) or u1.id = #{user_id})
+                                    where u1.id = f.create_person)
+            </if>
+            ORDER BY f.create_time DESC
+        </select>
+
+        <update id="updateStatus" parameterType="pd">
+            UPDATE s_d_file set ISENABLED = 2, modify_date = curdate(), modify_time = curdate(), modify_person = #{user_id} where id in (${id})
+        </update>
+
+        <insert id="insert" parameterType="pd" flushCache="false">
+            INSERT INTO s_d_file (file_name, ISENABLED, file_path, download_num, bak, create_person, create_date, create_time, modify_person, modify_date, modify_time)
+              values(#{file_name},
+                      #{ISENABLED},
+                      #{file_path},
+                      #{download_num},
+                      #{bak},
+                      #{create_person},
+                      #{create_date},
+                      #{create_time},
+                      #{modify_person},
+                      #{modify_date},
+                      #{modify_time})
+        </insert>
+
+        <update id="updateDownloadNum" parameterType="pd">
+            UPDATE s_d_file set download_num = download_num + 1 where id = #{id}
+        </update>
+</mapper>

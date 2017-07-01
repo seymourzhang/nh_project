@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SDMenuMapper">
+ <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+	<resultMap type="SDMenu" id="menuResultMap">
+		<id column="MENU_ID" property="MENU_ID" />
+		<result column="MENU_PID" property="MENU_PID" />
+		<result column="MENU_NAME" property="MENU_NAME" />
+		<result column="MENU_URL" property="MENU_URL" />
+		<result column="MENU_ICON" property="MENU_ICON" />
+		<result column="SORT_DATE" property="SORT_DATE" />
+		<result column="CREATE_DATE" property="CREATE_DATE" />
+		<result column="ISENABLED" property="ISENABLED" />
+		<result column="write_read" property="write_read" />
+	</resultMap>
+
+	<select id="listAllParentMenu" parameterType="pd" resultMap="menuResultMap">
+		select 
+			m.MENU_ID,
+			m.MENU_ID,
+			m.MENU_PID,
+			m.MENU_NAME,
+			m.MENU_URL,
+			m.MENU_ICON,
+			m.ISENABLED,
+			a.write_read 
+		from s_d_menu m
+		LEFT JOIN s_d_rights c
+		on m.MENU_ID = c.obj_id
+		LEFT JOIN s_d_role_rights a
+		on c.rights_id = a.rights_id
+		LEFT JOIN s_d_user_role b
+		on a.role_id = b.role_id
+		where c.obj_type = 1
+		and m.MENU_PID=0
+		and m.ISENABLED = '1'
+		<if test="user_id != null">
+			AND b.user_id = #{user_id}
+		</if>
+		order by m.SORT_DATE
+	
+		<!-- SELECT
+		s_d_menu.MENU_ID,
+		s_d_menu.MENU_PID,
+		s_d_menu.MENU_NAME,
+		s_d_menu.MENU_URL,
+		s_d_menu.MENU_ICON,
+		s_d_menu.ISENABLED
+		FROM
+		s_d_menu
+		WHERE s_d_menu.MENU_PID=0
+	    and s_d_menu.ISENABLED = '1'
+		order by MENU_ID -->
+	</select>
+
+	<select id="listSubMenuByParentId" parameterType="pd" resultMap="menuResultMap">
+		select 
+			m.MENU_ID,
+			m.MENU_ID,
+			m.MENU_PID,
+			m.MENU_NAME,
+			m.MENU_URL,
+			m.MENU_ICON,
+			m.ISENABLED,
+			a.write_read  
+		from s_d_menu m
+		LEFT JOIN s_d_rights c
+		on m.MENU_ID = c.obj_id
+		LEFT JOIN s_d_role_rights a
+		on c.rights_id = a.rights_id
+		LEFT JOIN s_d_user_role b
+		on a.role_id = b.role_id
+		where c.obj_type = 1
+		and m.ISENABLED = '1'
+		<if test="user_id != null">
+			AND b.user_id = #{user_id}
+		</if>
+		<if test="MENU_PID != null">
+			AND m.MENU_PID = #{MENU_PID}
+		</if>
+		order by m.SORT_DATE
+	
+	
+	
+		<!-- SELECT
+		s_d_menu.MENU_ID,
+		s_d_menu.MENU_PID,
+		s_d_menu.MENU_NAME,
+		s_d_menu.MENU_URL,
+		s_d_menu.MENU_ICON,
+		s_d_menu.ISENABLED
+		FROM
+		s_d_menu
+		WHERE s_d_menu.MENU_PID= #{MENU_PID}
+		and s_d_menu.ISENABLED = '1'
+		order by MENU_ID -->
+	</select>
+</mapper>

@@ -1,0 +1,2407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WorkBook xmlVersion="20151125" releaseVersion="8.0.0">
+<TableDataMap>
+<TableData name="ds1" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="type1"/>
+<O>
+<![CDATA[5]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  z.farm_id,
+  z.house_id,
+  z.house_name,
+  z.growth_week_age,
+  (CASE WHEN ${type1}=1 THEN z.母鸡累计死淘率
+	   WHEN ${type1}=2 THEN z.实际均匀度
+        WHEN ${type1}=3 THEN z.实际日耗料
+    	   WHEN ${type1}=4 THEN round(z.实际日耗水/datediff(z.end_growth_date,z.begin_growth_date),1)
+	   WHEN ${type1}=5 THEN z.实际母均重
+	   WHEN ${type1}=6 THEN z.实际公均重
+	   WHEN ${type1}=7 THEN z.母鸡实际成活率
+     ELSE ''
+    END)indexColumn
+FROM(
+SELECT
+  w.farm_id,
+  w.house_id,
+  w.house_name,
+  w.growth_week_age,
+  w.begin_growth_date,
+  w.end_growth_date,
+  round(w.female_total_cd/w.female_in_amount*100,2) as 母鸡累计死淘率,
+  ROUND(w.female_act_evenness,1) as 实际均匀度,
+  ROUND(w.act_feed_daliy,1) as 实际日耗料,
+  ROUND(w.act_water_daliy,1) as 实际日耗水,
+  ROUND(ifnull(w.female_week_weight,0)/100,1) as 实际母均重,
+  ROUND(ifnull(w.male_week_weight,0)/100,1) as 实际公均重,
+  ROUND((1 -w.female_total_cd/w.female_in_amount)*100,2) as 母鸡实际成活率
+FROM
+	rpt_breed_detail_week w
+LEFT JOIN s_d_farm f
+ON f.id = w.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_b_batch_change c
+ON c.batch_id = w.batch_id
+AND c.operation_type=2
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_organization o
+ON o.id = f.farm_code
+AND o.freeze_status=0
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+AND u.obj_type = 2 
+WHERE u.id = '${user_id}' 
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and w.farm_id='"+farm_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+and g.M_category in (4,5,8)
+)z
+order by z.growth_week_age]]></Query>
+</TableData>
+<TableData name="农场" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  f.id,
+  f.farm_name_chs,
+  f.farm_type,
+  c.variety,
+  c.variety_id,
+  g.L_category,
+  g.M_category
+FROM
+	s_d_farm f
+LEFT JOIN s_d_organization o
+ON o.id = f.id
+LEFT JOIN s_b_batch_curr c
+ON c.farm_id = f.id
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN v_user u
+ON u.obj_id = o.id
+AND u.obj_type = 2
+WHERE o.freeze_status=0 
+AND f.freeze_status=0
+AND u.id = '${user_id}'
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}]]></Query>
+</TableData>
+<TableData name="公司" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  o.id org_id,
+  o.parent_id,
+  o.name_cn,
+  o.level_id,
+  o.level_name,
+  o.freeze_status,
+  u.id user_id,
+  u.user_code,
+  u.user_real_name,
+  f.id farm_id,
+  f.farm_name_chs,
+  h.id house_id,
+  h.house_name,
+  c.batch_id,
+  c.batch_no
+FROM
+	s_d_organization o
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+LEFT JOIN s_d_farm f
+ON o.id = f.id
+LEFT JOIN s_d_house h
+ON h.farm_id = f.id
+LEFT JOIN s_b_batch_curr c
+ON c.farm_id = f.id
+AND c.house_code = h.house_code
+WHERE u.obj_type = 2 AND o.level_id = 1  AND o.freeze_status=0 AND u.id = '${user_id}']]></Query>
+</TableData>
+<TableData name="产蛋" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="type"/>
+<O>
+<![CDATA[2]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[31222]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  z.farm_id,
+  z.house_id,
+  z.house_name,
+  z.laying_week_age,
+  (CASE WHEN ${type}=1 THEN z.实际产蛋率
+        WHEN ${type}=2 THEN z.实际母均重
+        WHEN ${type}=3 THEN z.实际均匀度
+        WHEN ${type}=4 THEN z.母鸡累计死淘率
+        WHEN ${type}=5 THEN z.入舍母鸡实际累计产合格蛋数
+        WHEN ${type}=6 THEN z.蛋重
+        WHEN ${type}=7 THEN z.种蛋合格率
+        WHEN ${type}=8 THEN z.实际日耗料
+        WHEN ${type}=9 THEN round(z.实际日耗水/(datediff(z.end_growth_date,z.begin_growth_date)+1),1)
+        WHEN ${type}=10 THEN z.母鸡实际成活率
+      ELSE''
+     END) indexColumn
+FROM(
+SELECT
+  w.farm_id,
+  w.house_id,
+  w.house_name,
+  w.laying_week_age,
+  w.begin_growth_date,
+  w.end_growth_date,
+  ROUND(w.laying_week_amount/7/w.total_week_amount*100,1) as 实际产蛋率,
+  w.female_week_weight*10 as 实际母均重,
+  w.female_act_evenness as 实际均匀度,
+  ROUND((w.female_total_cd / w.total_week_amount)*100,1) as 母鸡累计死淘率,
+  w.act_rs_laying_qual_amount as 入舍母鸡实际累计产合格蛋数,
+  round(w.laying_week_weight/1000,1) as 蛋重,
+  (w.laying_qual_week_amount / w.laying_week_amount) *100 种蛋合格率,
+  round(w.act_feed_daliy,1) as 实际日耗料,
+  round(w.cur_week_water/wk.total_week_amount*1000,1) as 实际日耗水,
+  round((1 - (w.female_total_cd / w.female_in_amount))*100,1) as 母鸡实际成活率
+FROM
+	rpt_breed_detail_week w
+LEFT JOIN s_b_lay_egg_std s
+ON w.laying_week_age = s.lay_egg_week_age
+AND w.feed_type = s.variety_id
+LEFT JOIN rpt_breed_detail_week wk
+on w.batch_id = wk.batch_id
+and w.growth_week_age - 1 = wk.growth_week_age
+LEFT JOIN s_d_farm f
+ON f.id = w.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_b_batch_change c
+ON c.batch_id = w.batch_id
+AND c.operation_type=2
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_organization o
+ON o.id = f.farm_code
+AND o.freeze_status=0
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+AND u.obj_type = 2
+WHERE u.id = '${user_id}' 
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and w.farm_id='"+farm_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+and g.M_category in (6,7,9)
+)z
+order by z.laying_week_age]]></Query>
+</TableData>
+<TableData name="肉鸡" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[10003]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="type1"/>
+<O>
+<![CDATA[6]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[3174]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[10]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  z.farm_id,
+  z.house_id,
+  z.house_name,
+  z.growth_week_age,
+  (CASE WHEN ${type1}=1 THEN z.实际存活率
+        WHEN ${type1}=2 THEN z.累计死淘率
+	   WHEN ${type1}=3 THEN z.实际均匀度
+        WHEN ${type1}=4 THEN z.实际日耗料
+    	   WHEN ${type1}=5 THEN round(z.实际日耗水/datediff(z.end_growth_date,z.begin_growth_date),1)
+	   WHEN ${type1}=6 THEN z.实际均重
+     ELSE ''
+    END)indexColumn
+FROM(
+SELECT
+  w.farm_id,
+  w.house_id,
+  w.house_name,
+  w.growth_week_age,
+  w.begin_growth_date,
+  w.end_growth_date,
+  ROUND((w.female_total_cd / w.female_in_amount)*100,1) as 累计死淘率,
+  ROUND(w.female_act_evenness,1) as 实际均匀度,
+  ROUND(w.act_feed_daliy,1) as 实际日耗料,
+  ROUND(w.act_water_daliy,1) as 实际日耗水,
+  ROUND((ifnull(w.female_week_weight,0)+ifnull(w.male_week_weight,0))/((case when w.female_week_weight is not null then 1 else 0 end) + (case when w.male_week_weight is not null then 1 else 0 end)),1) as 实际均重,
+  ROUND((1 - (w.female_total_cd / w.female_in_amount))*100,1) as 实际存活率
+FROM
+	rpt_breed_detail_week w
+LEFT JOIN s_d_farm f
+ON f.id = w.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_b_batch_change c
+ON c.batch_id = w.batch_id
+AND c.operation_type=2
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_organization o
+ON o.id = f.farm_code
+AND o.freeze_status=0
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+AND u.obj_type = 2
+WHERE u.id = '${user_id}' 
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and w.farm_id='"+farm_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+and g.M_category in (1,2,3,10)
+)z
+order by  z.house_id,z.growth_week_age]]></Query>
+</TableData>
+<TableData name="类型" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select f.id,f.farm_name_chs,farm_type from s_d_farm f WHERE f.id = '${farm_id}']]></Query>
+</TableData>
+</TableDataMap>
+<ReportWebAttr>
+<ServerPrinter/>
+<WebPageContent>
+<Listener event="afterload">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var reportFrame = document.getElementById('content-container'); 
+reportFrame.style.backgroundColor = "#ffffff";
+reportFrame.style.left = "3px";]]></Content>
+</JavaScript>
+</Listener>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<WebPage isPage="true" isShowAsImage="false" isAutoScale="false" isTDHeavy="false"/>
+</WebPageContent>
+</ReportWebAttr>
+<ReportExportAttr>
+<ExcelExportAttr hideColumn="false" hideRow="false"/>
+<PDFExportAttr/>
+<HTMLExportAttr/>
+<WordExportAttr/>
+</ReportExportAttr>
+<ElementCaseMobileAttr>
+<ElementCaseMobileAttrProvider horizontal="1" vertical="0" zoom="true" refresh="false" isUseHTML="false"/>
+</ElementCaseMobileAttr>
+<Report class="com.fr.report.worksheet.WorkSheet" name="sheet1">
+<ReportPageAttr>
+<HR/>
+<FR/>
+<HC/>
+<FC/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[0,1562100,1943100,2743200,3657600,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,3619500,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="0" cs="16" s="0">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[6]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[7]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[9]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[父母代蛋种鸡产蛋曲线图]]></O>
+</HighlightAction>
+</Highlight>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性2]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[4]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[5]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[8]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[父母代蛋种鸡育成曲线图]]></O>
+</HighlightAction>
+</Highlight>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性3]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[10]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[肉鸡曲线图]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="2" r="1" s="1">
+<O>
+<![CDATA[农场:]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="1" cs="2" s="2">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$farm_id]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="id" viName="farm_name_chs"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+</Present>
+<Expand/>
+</C>
+<C c="0" r="2" rs="22" s="3">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[6]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[7]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[9]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[10]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.RowHeightHighlightAction"/>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="1" r="2" cs="16" rs="22">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="1" size="128" foreground="-13421773"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<Attr4VanChart useHtml="false" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.line.VanChartLinePlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-2171170"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="4" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="true" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrTrendLine">
+<TrendLine>
+<Attr trendLineName="" trendLineType="exponential" prePeriod="0" afterPeriod="0"/>
+<LineStyleInfo>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+<AttrColor>
+<Attr/>
+</AttrColor>
+<AttrLineStyle>
+<newAttr lineStyle="0"/>
+</AttrLineStyle>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+</LineStyleInfo>
+</TrendLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrLine">
+<VanAttrLine>
+<Attr lineWidth="2" lineStyle="2" nullValueBreak="false"/>
+</VanAttrLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrMarker">
+<VanAttrMarker>
+<Attr isCommon="true" markerType="NullMarker" radius="4.5" width="30.0" height="30.0"/>
+<Background name="NullBackground"/>
+</VanAttrMarker>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="true"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+</DataSheet>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName=""/>
+<isCustomFillStyle isCustomFillStyle="true"/>
+<ColorList>
+<OColor colvalue="-13312"/>
+<OColor colvalue="-16751104"/>
+<OColor colvalue="-6736897"/>
+<OColor colvalue="-13369549"/>
+<OColor colvalue="-6710887"/>
+<OColor colvalue="-16737946"/>
+<OColor colvalue="-13421569"/>
+<OColor colvalue="-65536"/>
+<OColor colvalue="-3407668"/>
+<OColor colvalue="-26164"/>
+<OColor colvalue="-6711040"/>
+<OColor colvalue="-945550"/>
+<OColor colvalue="-4092928"/>
+<OColor colvalue="-13224394"/>
+<OColor colvalue="-12423245"/>
+<OColor colvalue="-10043521"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-13031292"/>
+<OColor colvalue="-16732559"/>
+<OColor colvalue="-7099690"/>
+<OColor colvalue="-11991199"/>
+<OColor colvalue="-331445"/>
+<OColor colvalue="-6991099"/>
+<OColor colvalue="-16686527"/>
+<OColor colvalue="-9205567"/>
+<OColor colvalue="-7397856"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-2712831"/>
+<OColor colvalue="-4737097"/>
+<OColor colvalue="-11460720"/>
+<OColor colvalue="-6696775"/>
+<OColor colvalue="-3685632"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartRectanglePlotAttr vanChartPlotType="custom" isDefaultIntervalBackground="true"/>
+<XAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[周龄]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Verdana" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="4"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="2" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-16777216"/>
+<AxisPosition value="3"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="Verdana" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+</VanChartAxis>
+</XAxisList>
+<YAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type1 = 1, "累计死淘率(%)", if($type1 = 2, "实际均匀度(%)", if($type1 = 3, "实际日耗料(克/只)", if($type1 = 4, "耗水(ml)",if($type1=5,"实际母均重(克/只)",if($type1=6,"实际公均重(克/只)","母鸡成活率(%)"))))))]]></Attributes>
+</O>
+<TextAttr>
+<Attr rotation="90" alignText="0">
+<FRFont name="宋体" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-16777216"/>
+<AxisPosition value="2"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+</YAxisList>
+<stackAndAxisCondition>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</stackAndAxisCondition>
+</Plot>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<ChartDefinition>
+<OneValueCDDefinition seriesName="house_name" valueName="indexColumn" function="com.fr.data.util.function.NoneFunction">
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[ds1]]></Name>
+</TableData>
+<CategoryName value="growth_week_age"/>
+</OneValueCDDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="true"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomResize="true" zoomType="x"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="24" rs="22">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[4]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[5]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[8]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[10]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.RowHeightHighlightAction"/>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="1" r="24" cs="16" rs="22">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="128" foreground="-13421773"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<Attr4VanChart useHtml="false" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.line.VanChartLinePlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="4" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="true" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrTrendLine">
+<TrendLine>
+<Attr trendLineName="" trendLineType="exponential" prePeriod="0" afterPeriod="0"/>
+<LineStyleInfo>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+<AttrColor>
+<Attr/>
+</AttrColor>
+<AttrLineStyle>
+<newAttr lineStyle="0"/>
+</AttrLineStyle>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+</LineStyleInfo>
+</TrendLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrLine">
+<VanAttrLine>
+<Attr lineWidth="2" lineStyle="2" nullValueBreak="false"/>
+</VanAttrLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrMarker">
+<VanAttrMarker>
+<Attr isCommon="true" markerType="NullMarker" radius="4.5" width="30.0" height="30.0"/>
+<Background name="NullBackground"/>
+</VanAttrMarker>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="true"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+</DataSheet>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName=""/>
+<isCustomFillStyle isCustomFillStyle="true"/>
+<ColorList>
+<OColor colvalue="-13261"/>
+<OColor colvalue="-16751104"/>
+<OColor colvalue="-3381505"/>
+<OColor colvalue="-16724941"/>
+<OColor colvalue="-65281"/>
+<OColor colvalue="-16724839"/>
+<OColor colvalue="-3394561"/>
+<OColor colvalue="-6684877"/>
+<OColor colvalue="-16744620"/>
+<OColor colvalue="-6187579"/>
+<OColor colvalue="-15714713"/>
+<OColor colvalue="-945550"/>
+<OColor colvalue="-4092928"/>
+<OColor colvalue="-13224394"/>
+<OColor colvalue="-12423245"/>
+<OColor colvalue="-10043521"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-13031292"/>
+<OColor colvalue="-16732559"/>
+<OColor colvalue="-7099690"/>
+<OColor colvalue="-11991199"/>
+<OColor colvalue="-331445"/>
+<OColor colvalue="-6991099"/>
+<OColor colvalue="-16686527"/>
+<OColor colvalue="-9205567"/>
+<OColor colvalue="-7397856"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-2712831"/>
+<OColor colvalue="-4737097"/>
+<OColor colvalue="-11460720"/>
+<OColor colvalue="-6696775"/>
+<OColor colvalue="-3685632"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartRectanglePlotAttr vanChartPlotType="custom" isDefaultIntervalBackground="true"/>
+<XAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[周龄]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="4"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="2" MainGridStyle="1"/>
+<newLineColor mainGridColor="-4144960" lineColor="-16777216"/>
+<AxisPosition value="3"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=2"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="false" autoLabelGap="false" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+</VanChartAxis>
+</XAxisList>
+<YAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type = 1, "实际产蛋率(%)", if($type = 2, "母均重(100g)", if($type = 3, "实际均匀度", if($type=4,"母鸡累计死淘率(%)",if($type=5,"每只入舍母鸡累计合格蛋数(枚)",if($type=6,"蛋重(千克)",if($type=7,"种蛋合格率(%)",if($type = 8,"日耗料(克/只)",if($type = 9,"日耗水(ml/只)","母鸡实际成活率(%)")))))))))]]></Attributes>
+</O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-16777216"/>
+<AxisPosition value="2"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+</YAxisList>
+<stackAndAxisCondition>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</stackAndAxisCondition>
+</Plot>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<ChartDefinition>
+<OneValueCDDefinition seriesName="house_name" valueName="indexColumn" function="com.fr.data.util.function.NoneFunction">
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[产蛋]]></Name>
+</TableData>
+<CategoryName value="laying_week_age"/>
+</OneValueCDDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="true"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomResize="true" zoomType="x"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="46" rs="22">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[4]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[5]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[6]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[7]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[8]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[9]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.RowHeightHighlightAction"/>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="1" r="46" cs="16" rs="22">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="128" foreground="-13421773"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<Attr4VanChart useHtml="false" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.line.VanChartLinePlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-2171170"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="4" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="true" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrTrendLine">
+<TrendLine>
+<Attr trendLineName="" trendLineType="exponential" prePeriod="0" afterPeriod="0"/>
+<LineStyleInfo>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+<AttrColor>
+<Attr/>
+</AttrColor>
+<AttrLineStyle>
+<newAttr lineStyle="0"/>
+</AttrLineStyle>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+</LineStyleInfo>
+</TrendLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrLine">
+<VanAttrLine>
+<Attr lineWidth="2" lineStyle="2" nullValueBreak="false"/>
+</VanAttrLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrMarker">
+<VanAttrMarker>
+<Attr isCommon="true" markerType="NullMarker" radius="4.5" width="30.0" height="30.0"/>
+<Background name="NullBackground"/>
+</VanAttrMarker>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="true"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+</DataSheet>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName=""/>
+<isCustomFillStyle isCustomFillStyle="true"/>
+<ColorList>
+<OColor colvalue="-13312"/>
+<OColor colvalue="-16751104"/>
+<OColor colvalue="-6736897"/>
+<OColor colvalue="-13369549"/>
+<OColor colvalue="-6710887"/>
+<OColor colvalue="-16737946"/>
+<OColor colvalue="-13421569"/>
+<OColor colvalue="-65536"/>
+<OColor colvalue="-3407668"/>
+<OColor colvalue="-26164"/>
+<OColor colvalue="-6711040"/>
+<OColor colvalue="-945550"/>
+<OColor colvalue="-4092928"/>
+<OColor colvalue="-13224394"/>
+<OColor colvalue="-12423245"/>
+<OColor colvalue="-10043521"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-13031292"/>
+<OColor colvalue="-16732559"/>
+<OColor colvalue="-7099690"/>
+<OColor colvalue="-11991199"/>
+<OColor colvalue="-331445"/>
+<OColor colvalue="-6991099"/>
+<OColor colvalue="-16686527"/>
+<OColor colvalue="-9205567"/>
+<OColor colvalue="-7397856"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-2712831"/>
+<OColor colvalue="-4737097"/>
+<OColor colvalue="-11460720"/>
+<OColor colvalue="-6696775"/>
+<OColor colvalue="-3685632"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartRectanglePlotAttr vanChartPlotType="custom" isDefaultIntervalBackground="true"/>
+<XAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[周龄]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="4"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="2" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-16777216"/>
+<AxisPosition value="3"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+</VanChartAxis>
+</XAxisList>
+<YAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type1 = 1, "实际成活率(%)", if($type1 = 2, "累计死淘率(%)", if($type1 = 3, "实际均匀度(%)", if($type1 = 4, "实际日耗料(克/只)",if($type1=5,"日饮;&nbsp;&nbsp水(ml/只)","实际均重(克/只)")))))]]></Attributes>
+</O>
+<TextAttr>
+<Attr rotation="90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-16777216"/>
+<AxisPosition value="2"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴" titleUseHtml="true" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+</YAxisList>
+<stackAndAxisCondition>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</stackAndAxisCondition>
+</Plot>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<ChartDefinition>
+<OneValueCDDefinition seriesName="house_name" valueName="indexColumn" function="com.fr.data.util.function.NoneFunction">
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[肉鸡]]></Name>
+</TableData>
+<CategoryName value="growth_week_age"/>
+</OneValueCDDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="true"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomResize="true" zoomType="x"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+</CellElementList>
+<ReportAttrSet>
+<ReportSettings headerHeight="0" footerHeight="0">
+<PaperSetting>
+<PaperSize width="43200000" height="17424000"/>
+<Margin top="0" left="0" bottom="0" right="0"/>
+</PaperSetting>
+</ReportSettings>
+<Header reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Header>
+<Footer reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Footer>
+</ReportAttrSet>
+<PrivilegeControl/>
+</Report>
+<ReportParameterAttr>
+<Attributes showWindow="true" delayPlaying="false" windowPosition="1" align="0"/>
+<PWTitle>
+<![CDATA[参数]]></PWTitle>
+<ParameterUI class="com.fr.form.main.parameter.FormParameterUI">
+<Parameters/>
+<Layout class="com.fr.form.ui.container.WParameterLayout">
+<Listener event="afterinit">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var variety_num = this.options.form.getWidgetByName("variety_num").getValue();
+var t = this.options.form.getWidgetByName("type");
+var t1 = this.options.form.getWidgetByName("type1");
+
+if(variety_num==6 || variety_num==7 || variety_num==9){
+	t.setVisible(true);
+     t.setEnable(true);
+
+     t1.setVisible(false);
+     t1.setEnable(false);
+	
+}else{
+	t.setVisible(false);
+     t.setEnable(false);
+
+     t1.setVisible(true);
+     t1.setEnable(true);
+}]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="para"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Margin top="1" left="1" bottom="1" right="1"/>
+<Border>
+<border style="0" color="-723724" borderRadius="0" type="0" borderStyle="0"/>
+<WidgetTitle>
+<O>
+<![CDATA[新建标题]]></O>
+<FRFont name="SimSun" style="0" size="72"/>
+<Position pos="0"/>
+</WidgetTitle>
+<Alpha alpha="1.0"/>
+</Border>
+<Background name="ColorBackground" color="-1118482"/>
+<LCAttr vgap="0" hgap="0" compInterval="0"/>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelfarm"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    农场:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="25" y="8" width="67" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<Listener event="afterinit">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type").getValue();
+//
+//var type= this.options.form.getWidgetByName("type");
+//var type1= this.options.form.getWidgetByName("type1");
+//if(houseType==1 || houseType==3){
+//	type.setVisible(false)
+//	type1.setVisible(true)
+//
+//}else if(houseType==2){
+//	type.setVisible(true)
+//	type1.setVisible(false)
+//
+//	}]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="afteredit">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type").getText();
+//
+//var type= this.options.form.getWidgetByName("type");
+//var type1= this.options.form.getWidgetByName("type1");
+//if(houseType==1 || houseType==3){
+//	type.setVisible(false)
+//	type1.setVisible(true)
+//
+//}else if(houseType==2){
+//	type.setVisible(true)
+//	type1.setVisible(false)
+//
+//	}]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="farm_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="id" viName="farm_name_chs"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:农场,Key:id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="92" y="8" width="140" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.parameter.FormSubmitButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var type = this.options.form.getWidgetByName("farm_type").getValue();
+//
+//var index1= this.options.form.getWidgetByName("type");
+//var index2= this.options.form.getWidgetByName("type1");
+//if(type==1 || type==3){
+//	index1.setVisible(false)
+//	index2.setVisible(true)
+//
+//}else if(type==2){
+//	index1.setVisible(true)
+//	index2.setVisible(false)
+//
+//	}]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="Search"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[查询]]></Text>
+<Hotkeys>
+<![CDATA[enter]]></Hotkeys>
+</InnerWidget>
+<BoundsAttr x="853" y="8" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labeluser_id"/>
+<WidgetAttr invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[user_id:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="25" y="103" width="67" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="user_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[]]></O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="92" y="103" width="110" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelorg_id"/>
+<WidgetAttr invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[org_id:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="232" y="103" width="49" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="org_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:公司,Key:org_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="281" y="103" width="111" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var user_id = this.options.form.getWidgetByName("user_id").getValue();
+var orgId = this.options.form.getWidgetByName("org_id").getValue();
+var farms = this.options.form.getWidgetByName("farm_id").getValue();
+var variety_num = this.options.form.getWidgetByName("variety_num").getValue();
+
+window.location="ReportServer?reportlet=ifarm/curveAnalysis.cpt&user_id="+user_id+"&org_id="+orgId+"&farm_id="+farms+"&variety_num="+variety_num;]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button0"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[返回]]></Text>
+</InnerWidget>
+<BoundsAttr x="948" y="8" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.RadioGroup">
+<Listener event="statechange">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var type = this.getValue();
+var form = this.options.form;
+var t = form.getWidgetByName("type");
+var h = form.getWidgetByName("type").getValue();
+var a = form.getWidgetByName("a");
+var b = form.getWidgetByName("a").getValue();
+if(type!=""){	
+	a.setValue(h);
+}else{
+     t.setValue(b);
+	} ]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="type1"/>
+<WidgetAttr invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.CustomDictionary">
+<CustomDictAttr>
+<Dict key="1" value="实际成活率"/>
+<Dict key="2" value="累计死淘率"/>
+<Dict key="3" value="实际均匀度"/>
+<Dict key="4" value="日耗料"/>
+<Dict key="5" value="日饮水"/>
+<Dict key="6" value="实际均重"/>
+</CustomDictAttr>
+</Dictionary>
+<widgetValue>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=1]]></Attributes>
+</O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="242" y="7" width="611" height="22"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.RadioGroup">
+<Listener event="statechange">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var type = this.getValue();
+var form = this.options.form;
+var t = form.getWidgetByName("type1");
+var h = form.getWidgetByName("type1").getValue();
+var a = form.getWidgetByName("a");
+var b = form.getWidgetByName("a").getValue();
+if(type!=""){	
+	a.setValue(h);
+}else{
+     t.setValue(b);
+	} ]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="type"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.CustomDictionary">
+<CustomDictAttr>
+<Dict key="1" value="产蛋率"/>
+<Dict key="2" value="均重"/>
+<Dict key="3" value="均匀度"/>
+<Dict key="4" value="死淘率"/>
+<Dict key="5" value="合格蛋数"/>
+<Dict key="6" value="蛋重"/>
+<Dict key="7" value="种蛋合格率"/>
+<Dict key="8" value="日耗料"/>
+<Dict key="9" value="日饮水"/>
+<Dict key="10" value="成活率"/>
+</CustomDictAttr>
+</Dictionary>
+<widgetValue>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=1]]></Attributes>
+</O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="242" y="8" width="611" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.TextEditor">
+<WidgetName name="a"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<TextAttr/>
+<widgetValue>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=1]]></Attributes>
+</O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="602" y="103" width="104" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelvariety_num"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[variety_num:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="409" y="103" width="67" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="variety_num"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[]]></O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="476" y="103" width="110" height="21"/>
+</Widget>
+<Sorted sorted="false"/>
+<Display display="true"/>
+<DelayDisplayContent delay="false"/>
+<Position position="0"/>
+<Design_Width design_width="1313"/>
+<MobileWidgetList>
+<Widget widgetName="type1"/>
+<Widget widgetName="farm_id"/>
+<Widget widgetName="type"/>
+<Widget widgetName="button0"/>
+<Widget widgetName="user_id"/>
+<Widget widgetName="org_id"/>
+<Widget widgetName="variety_num"/>
+<Widget widgetName="a"/>
+</MobileWidgetList>
+<WidgetNameTagMap>
+<NameTag name="a" tag="variety_num:"/>
+<NameTag name="user_id" tag="user_id:"/>
+<NameTag name="org_id" tag="org_id:"/>
+<NameTag name="button0" tag="    指标:"/>
+<NameTag name="farm_id" tag="    农场:"/>
+<NameTag name="variety_num" tag="variety_num:"/>
+</WidgetNameTagMap>
+</Layout>
+<DesignAttr width="1313" height="35"/>
+</ParameterUI>
+</ReportParameterAttr>
+<StyleList>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="128"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="4" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+</StyleList>
+<DesignerVersion DesignerVersion="IAA"/>
+<PreviewType PreviewType="0"/>
+</WorkBook>

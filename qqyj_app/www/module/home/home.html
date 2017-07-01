@@ -1,0 +1,136 @@
+
+
+
+
+  <ion-view> 
+   <div class="bar bar-header bar-balanced"> 
+    <a class="button icon ion-gear-a button-clear" ui-sref="infoSafeguard"></a>
+    <h1 class="title">智慧鸡场<span style="font-size: 0.8rem;">{{subtitle}}</span></h1> 
+    <a class="button icon ion-ios-information button-clear" ui-sref="about"></a> 
+   </div> 
+   <ion-content class="has-header" overflow-scroll="true" style="overflow: hidden;background-color: #3dcb64;"> 
+    <div id="underlying_DIV"> 
+     <div style="width:100%;
+                 height:55%;"> 
+      <div  style="width:100%;
+                    height:55%;">
+            <br>
+            <iframe name="weather_inc" id="weatherId" width="330" height="70" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" ></iframe>
+      </div>
+
+
+
+
+      <div style="width:100%;height:50%;">
+        <div style="width:33%;height:100%;" align="center">
+          <a ng-click="goProdReco()">
+          <img src="img/newFolder/home/prodReco.png" style="height:70px; width:70px; position: relative; top:10%;left:8%;"/>
+          </a>
+        </div>
+        <div style="position: relative; top: -100%;left: 34%; width:33%;height:100%;" align="center" ng-style="{{judgeAlarm()}}">
+          <a ng-click="goEnvMonitoring()">
+          <img id="AlarmImg" src="img/newFolder/home/envMonitoring.png" style="height:100px; width:100px;"/>
+          </a>
+        </div>
+        <div style="position: relative; top: -200%;left: 67%;width:33%;height:100%;" align="center">
+          <a ng-click="goTasklist()">
+          <img src="img/newFolder/home/pointDevelop.png" style="height:70px; width:70px;position: relative; top:10%;right:8%;"/>
+          </a>
+        </div>
+      </div>
+
+
+
+
+
+
+
+
+     </div> 
+
+
+
+     <div style="width:100%;
+                 height:30%;position:absolute;bottom:25px;
+                 background-color: #FFF;
+                 border:solid 1px #ECECEC;">
+            <table  style="width:100%;height:100%;">
+              <tr>
+                <td style="border:solid 2px #8E8E8E;">
+                  <a ng-click="goDailyTabIndex()">
+                    <img src="img/newFolder/home/dailyTable.png" class="imgStyle" />
+                    <p id="text1" class="textStyle">
+                      生产报告
+                    </p>
+                  </a>
+                </td>
+                <td style="border:solid 2px #8E8E8E;">
+                  <a ng-click="goEnvAnalyze()">
+                    <img src="img/newFolder/home/batchManage.png" class="imgStyle" />
+                    <p id="text2" class="textStyle">
+                      环境分析
+                    </p>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td style="border:solid 2px #8E8E8E;">
+                  <a ng-click="goTabIndex()">
+                    <img src="img/newFolder/home/dataAnalyseTable.png" class="imgStyle" />
+                    <p id="text3" class="textStyle">
+                      指标分析
+                    </p>
+                  </a>
+                </td>
+                <td style="border:solid 2px #8E8E8E;">
+                  <a ng-click="goBreedingBook()">
+                    <img src="img/newFolder/home/chickenAssistList.png" class="imgStyle" />
+                    <p id="text4" class="textStyle">
+                      养殖宝典
+                    </p>
+                  </a>
+                </td>
+              </tr>
+            </table>
+     </div>
+
+     <div style="width:100%;
+                 height:25px;position:absolute;bottom:0px;"  > 
+
+      <p style="color:white;
+                font-weight:bold;
+                position:relative;
+                top:0%;
+                left:2%;">公告:  
+      </p>
+
+      <div style="position:absolute;
+                  top:0px;
+                  left:18%;
+                  height:5%; 
+                  width:80%;">     
+        <marquee direction="left" align="bottom" height="25" width="100%" onmouseout="this.start()" onmouseover="this.stop()" scrollamount="2" scrolldelay="1" style="color:white;">欢迎使用智慧鸡场（{{subtitle}}）APP！ </marquee> 
+      </div>
+     </div> 
+    </div>
+
+    <div style="position:absolute;
+                left:0px;
+                top:0px;
+                width:100%;
+                height:20%;
+                z-index:2;
+                background:transparent;">
+      </div> 
+
+      <div style="position:absolute;
+                left:5%;
+                top:60px;
+                width:20%;
+                height:5%;
+                z-index:2;
+                background:#3dcb64;">
+      </div> 
+        
+   </ion-content> 
+  </ion-view>

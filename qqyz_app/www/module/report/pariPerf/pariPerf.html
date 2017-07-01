@@ -1,0 +1,30 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+  <a class="button icon ion-chevron-left button-clear" ui-sref="report"></a>
+    <h1 class="title">
+      {{embrAbilData.tableTitle}}
+    </h1>
+</div>
+    <ion-content class="has-header"  overflow-scroll="true" style="overflow: hidden">
+      <label class="item item-input item-select"> 
+          <span class="input-label fontColor">指标类型</span>
+          <i class="icon ion-ios-arrow-forward"></i> 
+          <select ng-model="embrAbilData.viewType" ng-change="judgeViewType()" style="position: absolute;right: 0%;top: 0%;width: 40%;height: 100%;text-align: right;border:solid 1px  #fff;color: #000; direction: rtl; -webkit-appearance: none;background:#FFF;"> 
+            <option value="{{key}}" ng-repeat="(key,val) in myConfig.perfIndexTypes" ng-selected="key==embrAbilData.viewType">{{val}}</option> 
+          </select>
+      </label>
+      <label class="item item-input item-select"> 
+          <span class="input-label fontColor">选择日期</span>
+          <i class="icon ion-ios-arrow-forward"></i> 
+          <select ng-model="embrAbilData.selectedWeekDate" ng-change="judgeWeekDate()" style="position: absolute;right: 0%;top: 0%;width: 50%;height: 100%;text-align: right;border:solid 1px  #fff;color: #000; direction: rtl; -webkit-appearance: none;background:#FFF;"> 
+            <option value="{{item}}" ng-repeat="item in embrAbilData.weekDateList" ng-selected="item==embrAbilData.selectedWeekDate">{{item}}</option> 
+          </select>
+      </label>
+      <p ng-show="dataNullText" id="dataNullTextId" style="border: 1px black; position: relative;top: 200px;left: 0%;" class="middle"></p>
+      <div style="position: absolute;height:78%;width:100%;">
+        <div ng-show="DayGridOption" ui-grid="toDayGridOptions" ui-grid-pinning style="position: relative;height:100%;width:100%;"></div>
+      </div>
+
+
+    </ion-content>
+</ion-view>

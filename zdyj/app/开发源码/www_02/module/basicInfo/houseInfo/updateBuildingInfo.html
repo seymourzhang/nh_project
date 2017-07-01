@@ -1,0 +1,69 @@
+
+  <ion-view> 
+   <div class="bar bar-header bar-balanced"> 
+    <a class="button icon ion-chevron-left button-clear" ng-hide="backBtn" ng-click="backTable()"></a>
+    <a class="button button-clear" ng-hide="cancelBtn" ng-click="cancelEvent()">取消</a> 
+    <h1 class="title">栋舍详情</h1> 
+    <a class="button button-clear" ng-hide="visible" ng-click="startEdit()">编辑</a>
+   </div> 
+   <ion-content class="has-header"> 
+    <form name="myForm">
+      <div class="list"> 
+       <label class="item item-input"> <span class="input-label fontColor">农场</span> <i class="icon ion-ios-arrow-forward"></i> <p style="color: #6E6E6E;">{{sparraw_user_temp.farminfo.name}}</p></label>
+       <label class="item item-input"> <span class="input-label fontColor">栋名称</span> <i class="icon ion-ios-arrow-forward"></i><p style="color: #6E6E6E;">{{tempVar.houseTemp.name}}</p></label>
+       <label class="item item-input"> <span class="input-label fontColor">栋舍类型</span> <i class="icon ion-ios-arrow-forward"></i><p style="color: #6E6E6E;">{{tempVar.houseTemp.houseTypeName}}</p></label> 
+       <label class="item item-input"> 
+        <span class="input-label fontColor">设备编号</span> 
+          <i class="icon ion-ios-arrow-forward"></i>
+            <input  type      =  "text" 
+                    placeholder  =  "手动输入或条形码扫描"
+                    ng-model  =  "deviceData.device_code"/> <!-- tempVar.houseTemp.deviceCode -->
+       </label>
+       <label class="item item-input" ng-click="dealBarCode()">
+          <a  class = "button button-small button-balanced"  
+            style = "width     :  100px      ;
+                     height    :  2rem       ;
+                     position  :  relative   ; 
+                     top       :  0rem       ; 
+                     left      :  220px      ;
+                     border    :  solid 0px #fff  ;">
+            条形码扫描
+        </a>
+        </label>
+       <div class="item" style="background: #EFEFF9;">
+        <strong style="color: #ABABAB;">设备探头位置</strong>
+       </div>
+       <div ng-repeat  =  "item in deviceData.sensorInfo">
+         <label class="item item-input item-select">
+              <span class="input-label fontColor">温度  {{item.sensor_no}} </span>
+              <i class="icon ion-ios-arrow-forward"></i>
+              <select ng-model="item.show_column" ng-style="{{judgeSelected(item.sensor_no)}}">
+                  <option value="{{key}}" ng-repeat="(key,val) in myConfig.TempProbeConfig" ng-selected="key==item.show_column">{{val}}</option>
+              </select>
+         </label>
+       </div>
+       
+      <br />
+      <br /> 
+      <br />
+      
+    </form>
+    <div style="  background-image:url('img/newFolder/public/clear_image.png');
+                  /*background: red;*/
+                  position:absolute;
+                  margin-left:40%;
+                  margin-top:-500px;
+                  width:250px;
+                  height:400px;
+                  z-index:2;"
+           ng-hide="sheerDiv"
+           ng-click="remindEditor()">
+      </div>
+    <br /> 
+    <div class="middle">  
+     <a class="button  button-balanced saveBtn" ng-show="visible" ng-click="saveUpdate()" nav-transition="android">保   存</a> 
+    </div>
+    <br /> 
+    <br /> 
+   </ion-content> 
+  </ion-view>

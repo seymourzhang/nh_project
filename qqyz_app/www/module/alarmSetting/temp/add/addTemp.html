@@ -1,0 +1,78 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+	<a class="button icon ion-chevron-left button-clear" ui-sref="alarmSetting"></a>
+    <h1 class="title">
+      温度设置
+    </h1>
+</div>
+
+</div>
+    <ion-content class="has-header">
+    	<label class="item item-input"> 
+            <span class="input-label fontColor">日龄</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "addTempData.day_age"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">目标温度</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "addTempData.set_temp"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">高报温度</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "addTempData.high_alarm_temp"
+                       ng-blur = "getHighCautionTemp(addTempData.high_alarm_temp)"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">低报温度</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "addTempData.low_alarm_temp"
+                       ng-blur = "getlowCautionTemp(addTempData.low_alarm_temp)"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">高报警示</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "addTempData.high_caution_temp"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">低报警示</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "addTempData.low_caution_temp"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <br>
+      <p style="color:#808080; position:relative; left:10px; top:1rem; font-size:16px;">提示：</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">1、目标温度需在15℃至35℃之间。</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">2、高报温度需低于41℃。</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">3、低报温度需高于11℃。</p>
+        <br /> 
+        <br /> 
+        <br />
+		<div class="middle"> 
+		<a class           =  "button  button-balanced saveBtn"
+		   ng-click        =  "addTempSave()" 
+		   nav-transition  =  "android">
+		   保   存
+		</a> 
+		</div>
+    </ion-content>
+</ion-view>
+

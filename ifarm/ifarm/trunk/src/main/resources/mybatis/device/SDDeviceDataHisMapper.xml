@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SDDeviceDataHisMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <!-- 查询数据 -->
+    <select id="findById" parameterType="pd" resultType="pd" useCache="false">
+        SELECT * FROM s_d_device_data_his
+        WHERE id = #{id}
+    </select>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="pd" flushCache="false">
+        INSERT into s_d_device_data_his(ID, device_id, device_type, port_id, source_code, alarm_code, set_temp, outside_temp, avg_temp, inside_temp1, inside_temp2, inside_temp3, inside_temp4, inside_temp5, inside_temp6, inside_temp7, inside_temp8, inside_temp9, inside_temp10, inside_temp11, inside_temp12, inside_temp13, inside_temp14, inside_temp15, inside_temp16, inside_temp17, inside_temp18, inside_temp19, inside_temp20, inside_temp21, inside_temp22, inside_temp23, inside_temp24, inside_temp25, inside_temp26, inside_temp27, humidity, water_consumption, lux, negative_pressure, CO2, small_fan_1, small_fan_2, small_fan_3, larger_fan_1, larger_fan_2, larger_fan_3, fenestella, skateboard, refrigeration, heating, collect_datetime, yt_datetime, status, signal_strength)
+        SELECT
+        ID, device_id, device_type, port_id, source_code, alarm_code, set_temp, outside_temp, avg_temp, inside_temp1, inside_temp2, inside_temp3, inside_temp4, inside_temp5, inside_temp6, inside_temp7, inside_temp8, inside_temp9, inside_temp10, inside_temp11, inside_temp12, inside_temp13, inside_temp14, inside_temp15, inside_temp16, inside_temp17, inside_temp18, inside_temp19, inside_temp20, inside_temp21, inside_temp22, inside_temp23, inside_temp24, inside_temp25, inside_temp26, inside_temp27, humidity, water_consumption, lux, negative_pressure, CO2, small_fan_1, small_fan_2, small_fan_3, larger_fan_1, larger_fan_2, larger_fan_3, fenestella, skateboard, refrigeration, heating, collect_datetime, yt_datetime, status, signal_strength
+        FROM s_d_device_data_cur
+        WHERE id =  #{id}
+    </insert>
+
+</mapper>

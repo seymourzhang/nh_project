@@ -1,0 +1,4518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WorkBook xmlVersion="20151125" releaseVersion="8.0.0">
+<TableDataMap>
+<TableData name="ds1" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="house_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[3174]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[10]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT dd.* FROM(
+SELECT
+  d.farm_id,
+  f.farm_name_chs,
+  f.farm_type,
+  d.house_id,
+  d.house_name,
+  h.house_type,
+  c.is_mix,
+  DATE_FORMAT(c.operation_date,'%Y-%m-%d') as 入雏日,
+  (ifnull(c.female_count,0) + ifnull(c.male_count,0)) as 入雏数量,
+  d.age,
+  (d.female_death +  d.male_death) as 死亡,
+  (d.female_culling+ d.male_culling) as 淘汰,
+  (d.female_cur_cd + d.male_cur_cd) as 死淘数,
+  round((ifnull(d.female_cur_cd_rate,0)+ifnull(d.male_cur_cd_rate,0))/((case when d.female_cur_cd_rate is not null then 1 else 0 end) + (case when d.male_cur_cd_rate is not null then 1 else 0 end))*100,2) as 死淘率,
+  round(d.cur_feed,1) as 当天耗料量,
+  round(d.act_feed_daliy,1) as 当天只日耗量,
+  round(d.cur_water,1) as 当天饮水量,
+  (CASE WHEN f.farm_type=1 THEN round(es.avg_feed_daliy,1)
+        WHEN f.farm_type=2 THEN round(gs.avg_feed_daliy,1)
+     ELSE''
+   END     
+  ) as 当天标准耗料量,
+  round((d.female_cur_weight/(case when d.female_cur_weight is not null then 1 else 0 end)*1000),1)   as 母均重,
+  round(d.female_cur_amount,1) as 母鸡存栏数,
+  round(d.male_cur_amount,1) as 公鸡存栏数,
+  round(d.female_cur_amount+d.male_cur_amount,1) as 存栏数,
+  (CASE WHEN f.farm_type=1 THEN round(es.female_week_avg_weed_out,2)
+        WHEN f.farm_type=2 THEN round(gs.female_week_avg_weed_out,2)
+     ELSE''
+   END
+  ) as 母鸡标准死淘率,
+  round(d.laying_cur_amount,1) as 当天产蛋量,
+  round(d.laying_qual_cur_wight,1) as 合格蛋重量
+FROM
+	rpt_breed_detail d
+inner JOIN s_b_batch_change c
+ON  c.batch_id = d.batch_id
+and c.operation_type = 2
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_farm f
+ON f.id = d.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON d.farm_id = h.farm_id
+AND d.house_id = h.id
+LEFT JOIN s_b_lay_egg_std es
+ON es.variety_id = c.variety_id
+AND es.grow_week_age = d.growth_week_age
+LEFT JOIN s_b_growing_std gs
+ON gs.variety_id = c.variety_id
+AND gs.grow_week_age = d.growth_week_age
+LEFT JOIN v_user u
+ON u.obj_id = d.farm_id
+AND u.obj_type = 2
+WHERE u.id = '${user_id}' and g.M_category in (4,5,8,6,7,9)
+${if(len(org_id)==0,"","and d.company_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+and d.growth_date < sysdate()
+
+
+UNION
+
+SELECT
+  d.farm_id,
+  f.farm_name_chs,
+  f.farm_type,
+  d.house_id,
+  d.house_name,
+  h.house_type,
+  c.is_mix,
+  DATE_FORMAT(c.operation_date,'%Y-%m-%d') as 入雏日,
+  (ifnull(c.female_count,0) + ifnull(c.male_count,0)) as 入雏数量,
+  d.age,
+  (d.female_death +  d.male_death) as 死亡,
+  (d.female_culling+ d.male_culling) as 淘汰,
+  (d.female_cur_cd + d.male_cur_cd) as 死淘数,
+  round((ifnull(d.female_cur_cd_rate,0)+ifnull(d.male_cur_cd_rate,0))/((case when d.female_cur_cd_rate is not null then 1 else 0 end) + (case when d.male_cur_cd_rate is not null then 1 else 0 end))*100,2) as 死淘率,
+  round(d.cur_feed,1) as 当天耗料量,
+  round(d.act_feed_daliy,1) as 当天只日耗量,
+  round(d.cur_water,1) as 当天饮水量,
+  round(gs.female_feed_daliy,1) as 当天标准耗料量,
+  round(d.female_cur_weight/(case when d.female_cur_weight is not null then 1 else 0 end),1)   as 母均重,
+  round(d.female_cur_amount,1) as 母鸡存栏数,
+  round(d.male_cur_amount,1) as 公鸡存栏数,
+  round(d.female_cur_amount+d.male_cur_amount,1) as 存栏数,
+  round(gs.female_avg_weed_out,2) as 母鸡标准死淘率,
+  round(d.laying_cur_amount,1) as 当天产蛋量,
+  round(d.laying_qual_cur_wight,1) as 合格蛋重量
+FROM
+	rpt_breed_detail d
+inner JOIN s_b_batch_change c
+ON  c.batch_id = d.batch_id
+and c.operation_type = 2
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_farm f
+ON f.id = d.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON d.farm_id = h.farm_id
+AND d.house_id = h.id
+LEFT JOIN s_b_meat_std gs
+on gs.variety_id = c.variety_id
+and gs.grow_age = d.age
+LEFT JOIN v_user u
+ON u.obj_id = d.farm_id
+AND u.obj_type = 2
+WHERE u.id = '${user_id}' and g.M_category in (1,2,3,10)
+${if(len(org_id)==0,"","and d.company_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+and d.growth_date < sysdate()
+)dd
+order by dd.age desc]]></Query>
+</TableData>
+<TableData name="农场" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  f.id,
+  f.farm_name_chs,
+  f.farm_type,
+  c.variety,
+  c.variety_id,
+  g.L_category,
+  g.M_category
+FROM
+	s_d_farm f
+LEFT JOIN s_d_organization o
+ON o.id = f.id
+LEFT JOIN s_b_batch_curr c
+ON c.farm_id = f.id
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN v_user u
+ON u.obj_id = o.id
+AND u.obj_type = 2
+WHERE o.freeze_status=0 
+AND f.freeze_status=0
+AND u.id = '${user_id}'
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}]]></Query>
+</TableData>
+<TableData name="栋舍" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  o.id org_id,
+  o.parent_id,
+  o.name_cn,
+  o.level_id,
+  o.level_name,
+  o.freeze_status,
+  u.id user_id,
+  u.user_code,
+  u.user_real_name,
+  h.id house_id,
+  h.house_name,
+  h.house_type
+FROM
+	s_d_organization o
+inner join rpt_breed_detail bd
+on o.id = bd.house_id
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+AND u.obj_type = 2
+LEFT JOIN s_d_house h
+ON h.id = o.organization_id
+AND h.freeze_status=0
+inner JOIN s_b_batch_change c
+ON  c.batch_id = bd.batch_id
+and c.operation_type = 2
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+WHERE o.freeze_status=0 AND u.id = '${user_id}' 
+ AND o.level_id=(select max(level_id) from s_d_organization) 
+${if(len(farm_id)==0,"","and o.parent_id='"+farm_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}]]></Query>
+</TableData>
+<TableData name="ds3" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="house_id"/>
+<O>
+<![CDATA[246586]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[21120]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT * FROM(
+SELECT
+  d.farm_id,
+  f.farm_name_chs,
+  f.farm_type,
+  d.house_id,
+  d.house_name,
+  h.house_type,
+  c.is_mix,
+  DATE_FORMAT(c.operation_date,'%Y-%m-%d') as 入雏日,
+  (ifnull(c.female_count,0) + ifnull(c.male_count,0)) as 入雏数量,
+  d.age,
+  (d.female_death +  d.male_death) as 死亡,
+  (d.female_culling+ d.male_culling) as 淘汰,
+  (d.female_cur_cd + d.male_cur_cd) as 死淘数,
+  round((ifnull(d.female_cur_cd_rate,0)+ifnull(d.male_cur_cd_rate,0))/((case when d.female_cur_cd_rate is not null then 1 else 0 end) + (case when d.male_cur_cd_rate is not null then 1 else 0 end))*100,2) as 死淘率,
+  round(d.cur_feed/1000,1) as 当天耗料量,
+  round(d.act_feed_daliy,1) as 当天只日耗量,
+  (CASE WHEN f.farm_type=1 THEN round(d.cur_water/1000,1)
+        WHEN f.farm_type=2 THEN round(d.cur_water/1000,1)
+        WHEN f.farm_type=3 THEN round(d.cur_water,1)
+     ELSE''
+   END
+   ) as 当天饮水量,
+  (CASE WHEN f.farm_type=1 THEN round(es.avg_feed_daliy,1)
+        WHEN f.farm_type=2 THEN round(gs.avg_feed_daliy,1)
+        WHEN f.farm_type=3 THEN round(ms.female_feed_daliy,1)
+     ELSE''
+   END     
+  ) as 当天标准耗料量,
+  round(d.female_cur_weight/(case when d.female_cur_weight is not null then 1 else 0 end),1)   as 母均重,
+  round(d.female_cur_amount,1) as 母鸡存栏数,
+  round(d.male_cur_amount,1) as 公鸡存栏数,
+  round(d.female_cur_amount+d.male_cur_amount,1) as 存栏数,
+  (CASE WHEN f.farm_type=1 THEN round(es.female_week_avg_weed_out,2)
+        WHEN f.farm_type=2 THEN round(gs.female_week_avg_weed_out,2)
+        WHEN f.farm_type=3 THEN round(ms.female_avg_weed_out,2)
+     ELSE''
+   END
+  ) as 母鸡标准死淘率,
+  round(d.laying_cur_amount,1) as 当天产蛋量,
+  round(d.laying_qual_cur_wight,1) as 合格蛋重量
+FROM
+	rpt_breed_detail d
+inner JOIN s_b_batch_change c
+ON  c.batch_id = d.batch_id
+and c.operation_type = 2
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_farm f
+ON f.id = d.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON d.farm_id = h.farm_id
+AND d.house_id = h.id
+LEFT JOIN s_b_lay_egg_std es
+ON es.variety_id = c.variety_id
+AND es.grow_week_age = d.growth_week_age
+LEFT JOIN s_b_growing_std gs
+ON gs.variety_id = c.variety_id
+AND gs.grow_week_age = d.growth_week_age
+LEFT JOIN s_b_meat_std ms
+on ms.variety_id = c.variety_id
+and ms.grow_age = d.age
+LEFT JOIN v_user u
+ON u.obj_id = d.farm_id
+AND u.obj_type = 2
+WHERE u.id = '${user_id}'
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+and d.growth_date < sysdate()
+)dd
+order by dd.age desc]]></Query>
+</TableData>
+<TableData name="产蛋累计数据" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="house_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[10003]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[214]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[7]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select * from (SELECT
+  d.farm_id,
+  f.farm_name_chs,
+  f.farm_type,
+  d.growth_date,
+  d.house_id,
+  d.house_name,
+  h.house_type,
+  c.is_mix,
+  d.age,
+  (d.female_cur_amount + d.male_cur_amount) as 存栏量,
+  dd.`死亡数` as 死亡数,
+  dd.`淘汰数` as 淘汰数,
+  (d.female_total_cd + d.male_total_cd) as 死淘数,
+  ROUND((ifnull(d.female_total_cd_rate,0)+ ifnull(d.male_total_cd_rate,0))/((case when d.female_total_cd_rate is not null then 1 else 0 end) + (case when d.male_total_cd_rate is not null then 1 else 0 end))*100,2) as 死淘率,
+  (100 - (ROUND((ifnull(d.female_total_cd_rate,0)+ ifnull(d.male_total_cd_rate,0)) /((case when d.female_total_cd_rate is not null then 1 else 0 end) + (case when d.male_total_cd_rate is not null then 1 else 0 end))*100,4)))  as 存活率,
+  round(d.total_feed,1) as 当天耗料量总重,
+  round(d.act_total_feed,1) as 当天只日耗量,
+  round(bk.total_water,1) as 当天耗水量,
+  round(d.cur_water_daily,1) as 当天只耗水量,
+  round(d.laying_total_amount,1) as 当天产蛋量,
+  round(d.act_cl_laying_rate*100,1) as 存栏鸡产蛋率,
+  round(d.std_cl_laying_rate,1) as 标准存栏鸡产蛋率,
+  round(d.rs_laying_total_amount,1) as 存栏鸡累计产蛋数,
+  round(d.std_rs_laying_total_amount,1) as 标准存栏鸡累计产蛋数,
+  round(d.laying_qual_cur_wight,1) as 合格蛋重量,
+  round(es.female_week_TOTAL_weed_out,1) as 标准死淘率,
+  round(es.total_feed,1) as 当天标准耗料量,
+  round(d.water_feed_rate,1) as 水料比,
+  round(d.female_cur_weight/case when d.female_cur_weight is not null then 1 else 0 end,1)  as 均重
+FROM
+	(select * from (select * from rpt_breed_detail
+where growth_date < sysdate()
+order by house_id,age desc ) a
+group by house_id,substring_index(a.batch_id,'-',-1)) d
+inner JOIN s_b_batch_curr c
+ON  c.batch_id = d.batch_id
+LEFT JOIN (select batch_id,sum(d1.female_death +  d1.male_death) as 死亡数,
+                  sum(d1.female_culling+ d1.male_culling) as 淘汰数 from rpt_breed_detail d1
+           where d1.growth_date <= DATE_FORMAT(DATE_ADD(SYSDATE(),INTERVAL -6 day),'%Y-%m-%d')
+           group by batch_id) dd
+on d.batch_id = dd.batch_id
+left join (select sum(cur_water) as total_water,farm_id,batch_id from rpt_breed_detail
+group by farm_id,batch_id) bk
+on d.batch_id= bk.batch_id
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_farm f
+ON f.id = d.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON d.farm_id = h.farm_id
+AND d.house_id = h.id
+LEFT JOIN s_b_lay_egg_std es
+on es.variety_id = c.variety_id
+and es.grow_week_age = d.growth_week_age
+LEFT JOIN v_user u
+ON u.obj_id = d.farm_id
+AND u.obj_type = 2
+where f.farm_type = 2
+and d.growth_date < sysdate()
+and u.id = '${user_id}'
+${if(len(org_id)==0,"","and d.company_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+
+ORDER BY d.growth_date desc ) dd
+GROUP BY dd.house_id
+]]></Query>
+</TableData>
+<TableData name="肉鸡累计数据" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="house_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select * from (SELECT
+ d.batch_id,
+  d.farm_id,
+  f.farm_name_chs,
+  f.farm_type,
+  d.growth_date,
+  d.house_id,
+  d.house_name,
+  h.house_type,
+  c.is_mix,
+  d.age,
+  c.operation_date as 入雏日,
+  (ifnull(c.female_count,0) + ifnull(c.male_count,0)) as 入雏数量,
+  (d.female_cur_amount + d.male_cur_amount) as 存栏量,
+  dd.`死亡数` as 死亡数,
+  dd.`淘汰数` as 淘汰数,
+  (ifnull(d.female_total_cd,0) + ifnull(d.male_total_cd,0)) as 死淘数,
+ ROUND((ifnull(d.female_total_cd_rate,0)+ ifnull(d.male_total_cd_rate,0)) /((case when d.female_total_cd_rate is not null then 1 else 0 end) + (case when d.male_total_cd_rate is not null then 1 else 0 end))*100,4) as 死淘率,
+  (100 - (ROUND((ifnull(d.female_total_cd_rate,0)+ ifnull(d.male_total_cd_rate,0)) /((case when d.female_total_cd_rate is not null then 1 else 0 end) + (case when d.male_total_cd_rate is not null then 1 else 0 end))*100,4)))  as 存活率, 
+  round(d.total_feed,1) as 当天耗料量总重,
+  round(d.act_total_feed,1) as 当天只日耗量,
+  round(bk.total_water,1) as 当天耗水量,
+  round(d.cur_water_daily,1) as 当天只耗水量,
+  round(gs.female_total_feed,1) as 当天标准耗料量,
+  round(d.female_cur_weight/(case when d.female_cur_weight is not null then 1 else 0 end),1)   as 母均重,
+  round(d.female_cur_amount,1) as 母鸡存栏数,
+  round(d.male_cur_amount,1) as 公鸡存栏数,
+  round(gs.female_total_weed_out,2) as 母鸡标准死淘率,
+  round((d.female_cur_weight + d.male_cur_weight)/(case when d.female_cur_weight is not null then 1 else 0 end) + (case when d.male_cur_weight is not null then 1 else 0 end),1) as 均重
+ 
+FROM
+	(select * from (select * from rpt_breed_detail
+where growth_date < sysdate()
+order by house_id,age desc ) a
+group by house_id,substring_index(a.batch_id,'-',-1)) d
+inner JOIN s_b_batch_curr c
+ON  c.batch_id = d.batch_id
+LEFT JOIN (select batch_id,sum(d1.female_death +  d1.male_death) as 死亡数,
+                  sum(d1.female_culling+ d1.male_culling) as 淘汰数 from rpt_breed_detail d1
+           where d1.growth_date < sysdate()
+           group by batch_id) dd
+on d.batch_id = dd.batch_id
+left join (select sum(cur_water) as total_water,farm_id,batch_id from rpt_breed_detail
+group by farm_id,batch_id) bk
+on d.batch_id= bk.batch_id
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_farm f
+ON f.id = d.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON d.farm_id = h.farm_id
+AND d.house_id = h.id
+LEFT JOIN s_b_meat_std gs
+on gs.variety_id = c.variety_id
+and gs.grow_age = d.age
+LEFT JOIN v_user u
+ON u.obj_id = d.farm_id
+where  f.farm_type = 3
+and d.growth_date < sysdate()
+and u.id = '${user_id}'
+${if(len(org_id)==0,"","and d.company_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+
+ORDER BY d.growth_date desc) dd
+GROUP BY dd.house_id]]></Query>
+</TableData>
+<TableData name="育成累计数据" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="house_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="variety_num"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select * from (SELECT
+  d.farm_id,
+  f.farm_name_chs,
+  f.farm_type,
+  d.growth_date,
+  d.house_id,
+  d.house_name,
+  h.house_type,
+  c.is_mix,
+  d.age,
+  (d.female_cur_amount + d.male_cur_amount) as 存栏量,
+  dd.`死亡数` as 死亡数,
+  dd.`淘汰数` as 淘汰数,
+  (d.female_total_cd + d.male_total_cd) as 死淘数,
+  round((d.female_total_cd_rate + d.male_total_cd_rate)/((case when d.female_total_cd_rate is not null then 1 else 0 end) + (case when d.male_total_cd_rate is not null then 1 else 0 end))*100,4) as 死淘率,
+  (100 - (ROUND((ifnull(d.female_total_cd_rate,0)+ ifnull(d.male_total_cd_rate,0)) /((case when d.female_total_cd_rate is not null then 1 else 0 end) + (case when d.male_total_cd_rate is not null then 1 else 0 end))*100,4)))  as 存活率,
+  round(d.total_feed,1) as 当天耗料量总重,
+  round(d.act_total_feed,1) as 当天只日耗量,
+  round(d.std_total_feed,1) as  当天标准耗料量,
+  round(bk.total_water,1) as 当天耗水量,
+  round(d.cur_water_daily,1) as 当天只耗水量,
+  round((d.female_cur_weight + d.male_cur_weight)/(case when d.female_cur_weight is not null then 1 else 0 end) + (case when d.male_cur_weight is not null then 1 else 0 end),1) as 实际只均重,
+  round((d.std_female_cur_weight + d.std_male_cur_weight)/(case when d.std_female_cur_weight is not null then 1 else 0 end) + (case when d.std_male_cur_weight is not null then 1 else 0 end),1)  as 标准体重,
+  round(d.act_evenness,1) as 均匀度,
+  round(gs.female_week_total_weed_out,2) as 标准死淘率,
+  round(d.water_feed_rate,1) as 水料比
+FROM
+	(select * from (select * from rpt_breed_detail
+where growth_date < sysdate()
+order by house_id,age desc ) a
+group by house_id,substring_index(a.batch_id,'-',-1)) d
+inner JOIN s_b_batch_curr c
+ON  c.batch_id = d.batch_id
+LEFT JOIN (select batch_id,sum(d1.female_death +  d1.male_death) as 死亡数,
+                  sum(d1.female_culling+ d1.male_culling) as 淘汰数 from rpt_breed_detail d1
+           where d1.growth_date <= DATE_FORMAT(DATE_ADD(SYSDATE(),INTERVAL -6 day),'%Y-%m-%d')
+           group by batch_id) dd
+on d.batch_id = dd.batch_id
+left join (select sum(cur_water) as total_water,farm_id,batch_id from rpt_breed_detail
+group by farm_id,batch_id) bk
+on d.batch_id= bk.batch_id
+LEFT JOIN s_d_goods g
+ON g.good_id = c.variety_id
+LEFT JOIN s_d_farm f
+ON f.id = d.farm_id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON d.farm_id = h.farm_id
+AND d.house_id = h.id
+LEFT JOIN s_b_growing_std gs
+on gs.variety_id = c.variety_id
+and gs.grow_week_age = d.growth_week_age
+LEFT JOIN v_user u
+ON u.obj_id = d.farm_id
+AND u.obj_type = 2
+where f.farm_type = 1
+and d.growth_date < sysdate()
+and u.id = '${user_id}'
+${if(len(org_id)==0,"","and d.company_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(variety_num)==0,"","and g.M_category='"+variety_num+"'")}
+
+ORDER BY d.growth_date desc ) dd
+GROUP BY dd.house_id
+]]></Query>
+</TableData>
+<TableData name="公司" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+	o.id,
+  o.parent_id,
+  o.name_cn,
+  o.level_id,
+  o.level_name,
+  f.id farm_id,
+  f.farm_name_chs
+FROM
+	s_d_organization o
+LEFT JOIN v_user u
+ON u.obj_id = o.id
+LEFT JOIN s_d_farm f
+ON o.id = f.id
+AND f.freeze_status=0
+WHERE o.freeze_status=0
+AND u.id = '${user_id}' AND o.level_id=1 and u.obj_type =2]]></Query>
+</TableData>
+</TableDataMap>
+<ReportWebAttr>
+<ServerPrinter/>
+<WebPageContent>
+<Listener event="afterload">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var reportFrame = document.getElementById('content-container'); 
+reportFrame.style.backgroundColor = "#ffffff";
+reportFrame.style.left = "3px";]]></Content>
+</JavaScript>
+</Listener>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.page.First">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-First')}]]></Text>
+<IconName>
+<![CDATA[first]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.page.Previous">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-Previous')}]]></Text>
+<IconName>
+<![CDATA[previous]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.page.PageNavi">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+</Widget>
+<Widget class="com.fr.report.web.button.page.Next">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-Next')}]]></Text>
+<IconName>
+<![CDATA[next]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.page.Last">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-Last')}]]></Text>
+<IconName>
+<![CDATA[last]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<WebPage isPage="true" isShowAsImage="false" isAutoScale="false" isTDHeavy="false"/>
+</WebPageContent>
+</ReportWebAttr>
+<ReportFitAttr fitStateInPC="1" fitFont="false"/>
+<Report class="com.fr.report.worksheet.WorkSheet" name="sheet1">
+<ReportPageAttr>
+<HR F="0" T="3"/>
+<FR/>
+<HC/>
+<FC/>
+<UPFCR COLUMN="false" ROW="true"/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[1104900,723900,990600,1371600,1028700,1028700,1028700,1028700,723900,723900,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[0,1524000,1447800,3124200,1943100,1371600,1752600,1562100,1981200,1066800,1524000,1943100,2895600,3048000,3009900,3009900,3086100,2971800,2819400,2781300,2781300,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="0" cs="25" s="0">
+<O>
+<![CDATA[生产明细日报]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="1" s="1">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="1" cs="3" s="2">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="id" viName="name_cn"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[公司]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+</Present>
+<Expand/>
+</C>
+<C c="4" r="1" s="3">
+<O>
+<![CDATA[农场：]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="1" cs="3" s="4">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$farm_id]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="id" viName="farm_name_chs"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+</Present>
+<Expand/>
+</C>
+<C c="8" r="1" s="3">
+<O>
+<![CDATA[栋舍：]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="1" cs="2" s="4">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$house_id]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="org_id" viName="name_cn"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[栋舍]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="11" r="1" s="3">
+<O>
+<![CDATA[雏源：]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="1" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="1" s="3">
+<O>
+<![CDATA[蛋种源：]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="1" s="1">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="1" s="3">
+<O>
+<![CDATA[入雏日：]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="1" s="4">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="入雏日"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="17" r="1" s="5">
+<O>
+<![CDATA[入雏数：]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="1" cs="2" s="6">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="入雏数量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="20" r="1" s="3">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[4]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[5]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[8]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[10]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=today()]]></Attributes>
+</O>
+</HighlightAction>
+</Highlight>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性2]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[6]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[7]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[9]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="21" r="1" cs="5" s="3">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[6]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[7]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[9]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=today()]]></Attributes>
+</O>
+</HighlightAction>
+</Highlight>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性2]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[4]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[5]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[8]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[10]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ColWidthHighlightAction"/>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="1" r="2" cs="5" s="7">
+<O>
+<![CDATA[基本信息]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="2" cs="8" s="7">
+<O>
+<![CDATA[死淘信息]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="2" cs="3" s="7">
+<O>
+<![CDATA[采食]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="2" cs="2" s="7">
+<O>
+<![CDATA[饮水]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="2" cs="2" s="7">
+<O>
+<![CDATA[能耗]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="2" cs="5" s="8">
+<O>
+<![CDATA[产蛋]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="3" cs="2" s="7">
+<O>
+<![CDATA[日龄]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="3" s="7">
+<O>
+<![CDATA[存栏数]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="3" cs="2" s="7">
+<O>
+<![CDATA[均重(克)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="3" cs="2" s="7">
+<O>
+<![CDATA[死亡]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="3" cs="2" s="7">
+<O>
+<![CDATA[淘汰]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="3" cs="2" s="7">
+<O>
+<![CDATA[合计]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="3" s="7">
+<O>
+<![CDATA[死淘率(%)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="3" s="7">
+<O>
+<![CDATA[标准(%)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="3" s="7">
+<O>
+<![CDATA[采食(千克)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="3" s="7">
+<O>
+<![CDATA[只日耗(克/只)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="3" s="7">
+<O>
+<![CDATA[标准]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="3" s="7">
+<O>
+<![CDATA[饮水(千克/栋)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="3" s="7">
+<O>
+<![CDATA[水料比]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="3" s="7">
+<O>
+<![CDATA[燃料]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="3" s="7">
+<O>
+<![CDATA[电量]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="3" s="7">
+<O>
+<![CDATA[产蛋数(枚)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="3" s="7">
+<O>
+<![CDATA[产蛋率(%)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="3" s="7">
+<O>
+<![CDATA[总蛋重(千克)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="3" s="7">
+<O>
+<![CDATA[蛋重(克/枚)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="3" s="8">
+<O>
+<![CDATA[破损数(枚)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="4" s="9">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[6]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[7]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[9]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[10]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.RowHeightHighlightAction"/>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="1" r="4" cs="2" s="10">
+<O>
+<![CDATA[累计]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="4" s="11">
+<O t="DSColumn">
+<Attributes dsName="育成累计数据" columnName="存栏量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="4" r="4" cs="2" s="12">
+<O t="DSColumn">
+<Attributes dsName="育成累计数据" columnName="实际只均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="6" r="4" cs="2" s="13">
+<O t="DSColumn">
+<Attributes dsName="育成累计数据" columnName="死亡数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="8" r="4" cs="2" s="13">
+<O t="DSColumn">
+<Attributes dsName="育成累计数据" columnName="淘汰数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="10" r="4" cs="2" s="13">
+<O t="DSColumn">
+<Attributes dsName="育成累计数据" columnName="死淘数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="12" r="4" s="14">
+<O t="DSColumn">
+<Attributes dsName="育成累计数据" columnName="死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="13" r="4" s="14">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(N8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="14" r="4" s="12">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(O8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="M6" upParentDefault="false"/>
+</C>
+<C c="15" r="4" s="13">
+<O>
+<![CDATA[-]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="4" s="13">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=max(Q8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false"/>
+</C>
+<C c="17" r="4" s="12">
+<O t="DSColumn">
+<Attributes dsName="育成累计数据" columnName="当天耗水量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="M5"/>
+</C>
+<C c="18" r="4" s="13">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=round(if(O5=0,0,R5/O5),1)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false"/>
+</C>
+<C c="19" r="4" s="13">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="20" r="4" s="13">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="21" r="4" s="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="4" s="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="4" s="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="4" s="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="4" s="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="5" s="9">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[4]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[5]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[8]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[10]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.RowHeightHighlightAction"/>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="1" r="5" cs="2" s="10">
+<O>
+<![CDATA[累计]]></O>
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="3" r="5" s="11">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="存栏量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="4" r="5" cs="2" s="12">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="6" r="5" cs="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="死亡数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="8" r="5" cs="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="淘汰数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="10" r="5" cs="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="死淘数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="12" r="5" s="14">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="13" r="5" s="14">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(N8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="14" r="5" s="12">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(O8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="M6" upParentDefault="false"/>
+</C>
+<C c="15" r="5" s="13">
+<O>
+<![CDATA[-]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="5" s="13">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=max(Q8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="17" r="5" s="12">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="当天耗水量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="M6" upParentDefault="false"/>
+</C>
+<C c="18" r="5" s="13">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=round(if(O6=0,0,R6/O6),1)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="19" r="5" s="13">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="20" r="5" s="13">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="21" r="5" s="11">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="当天产蛋量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="R6" upParentDefault="false"/>
+</C>
+<C c="22" r="5" s="13">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="存栏鸡产蛋率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="23" r="5" s="15">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=Y6 * V6 / 1000]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="24" r="5" s="12">
+<O t="DSColumn">
+<Attributes dsName="产蛋累计数据" columnName="合格蛋重量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="W6" upParentDefault="false"/>
+</C>
+<C c="25" r="5" s="13">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="0" r="6" s="9">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$variety_num]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[4]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[5]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[6]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[7]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[8]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[9]]></O>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.RowHeightHighlightAction"/>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="1" r="6" cs="2" s="10">
+<O>
+<![CDATA[累计]]></O>
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="3" r="6" s="11">
+<O t="DSColumn">
+<Attributes dsName="肉鸡累计数据" columnName="存栏量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="4" r="6" cs="2" s="12">
+<O t="DSColumn">
+<Attributes dsName="肉鸡累计数据" columnName="均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="6" r="6" cs="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="肉鸡累计数据" columnName="死亡数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="8" r="6" cs="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="肉鸡累计数据" columnName="淘汰数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="10" r="6" cs="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="肉鸡累计数据" columnName="死淘数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="12" r="6" s="14">
+<O t="DSColumn">
+<Attributes dsName="肉鸡累计数据" columnName="死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" upParentDefault="false"/>
+</C>
+<C c="13" r="6" s="14">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(N8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="14" r="6" s="12">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(O8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="15" r="6" s="13">
+<O>
+<![CDATA[-]]></O>
+<PrivilegeControl/>
+<Expand leftParentDefault="false"/>
+</C>
+<C c="16" r="6" s="13">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=max(Q8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false"/>
+</C>
+<C c="17" r="6" s="12">
+<O t="DSColumn">
+<Attributes dsName="肉鸡累计数据" columnName="当天耗水量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="M7" upParentDefault="false"/>
+</C>
+<C c="18" r="6" s="13">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=round(if(O7=0,0,R7/O7),1)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false"/>
+</C>
+<C c="19" r="6" s="13">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="20" r="6" s="13">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="21" r="6" s="13">
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="22" r="6" s="13">
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="23" r="6" s="13">
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="24" r="6" s="13">
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="25" r="6" s="13">
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="0" r="7">
+<PrivilegeControl/>
+<Expand upParentDefault="false"/>
+</C>
+<C c="1" r="7" cs="2" s="16">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="age"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="3" r="7" s="17">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="存栏数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="4" r="7" cs="2" s="17">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性2]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O t="I">
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="6" r="7" cs="2" s="18">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="死亡"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="8" r="7" cs="2" s="18">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="淘汰"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="10" r="7" cs="2" s="18">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="死淘数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="12" r="7" s="16">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="13" r="7" s="16">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡标准死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="14" r="7" s="17">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="当天耗料量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="15" r="7" s="16">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="当天只日耗量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="16" r="7" s="17">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="当天标准耗料量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="17" r="7" s="17">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="当天饮水量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="18" r="7" s="19">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if(O8 = 0, 0, R8 / O8)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="19" r="7" s="16">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="20" r="7" s="16">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+<C c="21" r="7" s="18">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="当天产蛋量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="R8"/>
+</C>
+<C c="22" r="7" s="19">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=(V8 / D8) * 100]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="23" r="7" s="20">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=V8 * Y8 / 1000]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" upParentDefault="false"/>
+</C>
+<C c="24" r="7" s="17">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="合格蛋重量"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0" leftParentDefault="false" left="V8"/>
+</C>
+<C c="25" r="7" s="16">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand upParentDefault="false"/>
+</C>
+</CellElementList>
+<ReportAttrSet>
+<ReportSettings headerHeight="0" footerHeight="0">
+<PaperSetting>
+<PaperSize width="61920000" height="30240000"/>
+<Margin top="0" left="0" bottom="0" right="0"/>
+</PaperSetting>
+</ReportSettings>
+<Header reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Header>
+<Footer reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Footer>
+</ReportAttrSet>
+<PrivilegeControl/>
+</Report>
+<ReportParameterAttr>
+<Attributes showWindow="true" delayPlaying="false" windowPosition="1" align="0"/>
+<PWTitle>
+<![CDATA[参数]]></PWTitle>
+<ParameterUI class="com.fr.form.main.parameter.FormParameterUI">
+<Parameters/>
+<Layout class="com.fr.form.ui.container.WParameterLayout">
+<Listener event="afterinit">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var farmType = this.options.form.getWidgetByName("farm_type").getValue(); 
+//
+//var button0 = this.options.form.getWidgetByName("button0");
+//var button1 = this.options.form.getWidgetByName("button1");
+//var button2 = this.options.form.getWidgetByName("button2");
+//var button3 = this.options.form.getWidgetByName("button3");
+//var button4 = this.options.form.getWidgetByName("button4");
+//var button5 = this.options.form.getWidgetByName("button5");
+//var button6 = this.options.form.getWidgetByName("button6");
+//var button7 = this.options.form.getWidgetByName("button7");
+//var button8 = this.options.form.getWidgetByName("button8");
+//var button9 = this.options.form.getWidgetByName("button9");
+//var button10 = this.options.form.getWidgetByName("button10");
+//var Search = this.options.form.getWidgetByName("Search");
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id"); 
+//
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//  if(farmType==1){
+//  	     button0.setVisible(true);
+//  	     button1.setVisible(true);
+//  	     button2.setVisible(false);
+//  	     button3.setVisible(false);
+//  	     button4.setVisible(true);
+//  	     button5.setVisible(true);
+//  	     button6.setVisible(false);
+//  	     button7.setVisible(false);
+//  	     button8.setVisible(true);
+//  	     Search.setVisible(true);
+//  	     button9.setVisible(false);
+//  	     button10.setVisible(false);
+//
+//  	     Labelfarm_id.setVisible(true); 
+//          farm_id.setVisible(true); 
+//          Labelhouse_id.setVisible(true);
+//          house_id.setVisible(true);
+//          Labelfarm_id.setEnable(true); 
+//          farm_id.setEnable(true); 
+//          Labelhouse_id.setEnable(true);
+//          house_id.setEnable(true);   
+//
+//          label0.setVisible(false);
+//          farm2_id.setVisible(false);
+//          label1.setVisible(false);
+//          house2_id.setVisible(false);
+//          label0.setEnable(false);
+//          farm2_id.setEnable(false);
+//          label1.setEnable(false);
+//          house2_id.setEnable(false);
+//
+//  	     
+//  }else if(farmType==2){
+//  	     button0.setVisible(true);
+//  	     button1.setVisible(true);
+//  	     button2.setVisible(false);
+//  	     button3.setVisible(false);
+//  	     button4.setVisible(false);
+//  	     button5.setVisible(false);
+//  	     button6.setVisible(true);
+//  	     button7.setVisible(true);
+//  	     button8.setVisible(true);
+//  	     Search.setVisible(true);
+//  	     button9.setVisible(false);
+//  	     button10.setVisible(false);
+//
+//  	     Labelfarm_id.setVisible(true); 
+//          farm_id.setVisible(true); 
+//          Labelhouse_id.setVisible(true);
+//          house_id.setVisible(true);
+//          Labelfarm_id.setEnable(true); 
+//          farm_id.setEnable(true); 
+//          Labelhouse_id.setEnable(true);
+//          house_id.setEnable(true);   
+//
+//          label0.setVisible(false);
+//          farm2_id.setVisible(false);
+//          label1.setVisible(false);
+//          house2_id.setVisible(false);
+//          label0.setEnable(false);
+//          farm2_id.setEnable(false);
+//          label1.setEnable(false);
+//          house2_id.setEnable(false);
+//  	    
+//  }else if(farmType==3){
+//          button0.setVisible(false);
+//  	     button1.setVisible(false);
+//  	     button2.setVisible(true);
+//  	     button3.setVisible(true);
+//  	     button4.setVisible(false);
+//  	     button5.setVisible(false);
+//  	     button6.setVisible(false);
+//  	     button7.setVisible(false);
+//  	     button8.setVisible(false);
+//  	     Search.setVisible(false);
+//  	     button9.setVisible(true);
+//  	     button10.setVisible(true);
+//
+//  	     Labelfarm_id.setVisible(false); 
+//          farm_id.setVisible(false); 
+//          Labelhouse_id.setVisible(false);
+//          house_id.setVisible(false);
+//          Labelfarm_id.setEnable(false); 
+//          farm_id.setEnable(false); 
+//          Labelhouse_id.setEnable(false);
+//          house_id.setEnable(false);   
+//
+//          label0.setVisible(true);
+//          farm2_id.setVisible(true);
+//          label1.setVisible(true);
+//          house2_id.setVisible(true);
+//          label0.setEnable(true);
+//          farm2_id.setEnable(true);
+//          label1.setEnable(true);
+//          house2_id.setEnable(true);
+//	}]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="para"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Margin top="0" left="0" bottom="0" right="0"/>
+<Border>
+<border style="0" color="-723724" borderRadius="0" type="0" borderStyle="0"/>
+<WidgetTitle>
+<O>
+<![CDATA[新建标题]]></O>
+<FRFont name="SimSun" style="0" size="72"/>
+<Position pos="0"/>
+</WidgetTitle>
+<Alpha alpha="1.0"/>
+</Border>
+<Background name="ColorBackground" color="-1118482"/>
+<LCAttr vgap="0" hgap="0" compInterval="0"/>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelhouse_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    栋舍:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="240" y="8" width="63" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="house_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="org_id" viName="name_cn"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[栋舍]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:栋舍,Key:org_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="303" y="8" width="121" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.parameter.FormSubmitButton">
+<WidgetName name="Search"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[查询]]></Text>
+<Hotkeys>
+<![CDATA[enter]]></Hotkeys>
+</InnerWidget>
+<BoundsAttr x="438" y="8" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelfarm_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    农场:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="25" y="8" width="63" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="farm_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="id" viName="farm_name_chs"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:农场,Key:id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="88" y="8" width="140" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labeltype"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[farm_type:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="240" y="54" width="63" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$user_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<Content>
+<![CDATA[var farm_id = this.options.form.getWidgetByName("farm_id").getValue();
+var farm_type = this.options.form.getWidgetByName("farm_type").getValue();
+var variety_num = this.options.form.getWidgetByName("variety_num").getValue();
+
+window.location="ReportServer?reportlet=ifarm/dailyProductionReport.cpt&user_id="+user_id+"&org_id="+org_id+"&farm_id="+farm_id+"&variety_num="+variety_num;]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button8"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[日报]]></Text>
+</InnerWidget>
+<BoundsAttr x="532" y="8" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="farm_type"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[]]></O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="303" y="54" width="122" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button0");  
+//var r = contentPane.parameterEl.getWidgetByName("button1");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button2"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button3"); 
+//
+//var y = contentPane.parameterEl.getWidgetByName("button4");  
+//var c = contentPane.parameterEl.getWidgetByName("button5");  
+//var y1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var c1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8");
+//var button9 = contentPane.parameterEl.getWidgetByName("button9");
+//var button10 = contentPane.parameterEl.getWidgetByName("button10");
+//var Search = contentPane.parameterEl.getWidgetByName("Search");
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id"); 
+//
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(true);
+//	r.setVisible(true);
+//	z1.setVisible(false);
+//	r1.setVisible(false);
+//
+//     y.setVisible(true);
+//	c.setVisible(true);
+//	y1.setVisible(false);
+//	c1.setVisible(false);
+//
+//	button8.setVisible(true);
+//	Search.setVisible(true);
+//	button9.setVisible(false);
+//	button10.setVisible(false);
+//
+//     Labelfarm_id.setVisible(true);
+//     farm_id.setVisible(true);
+//     Labelhouse_id.setVisible(true);
+//     house_id.setVisible(true);
+//     Labelfarm_id.setEnable(true); 
+//     farm_id.setEnable(true); 
+//     Labelhouse_id.setEnable(true);
+//     house_id.setEnable(true);
+//
+//     label0.setVisible(false);
+//     farm2_id.setVisible(false);
+//     label1.setVisible(false);
+//     house2_id.setVisible(false);
+//     label0.setEnable(false);
+//     farm2_id.setEnable(false);
+//     label1.setEnable(false);
+//     house2_id.setEnable(false);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(1);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button0"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[种鸡]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[lO<9(kN.ld@UNU%p%320!n(4:/BZ$B,cAk8GlUC?"o*b\\ug>hA2<@]A-\.Jn3/1Df8ktIU9j
+qL=Zt<]A^'AKl.,k(!_kH`A^Ta:]A~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-1"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="25" y="130" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button0");  
+//var r = contentPane.parameterEl.getWidgetByName("button1");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button2"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button3"); 
+//
+//var y = contentPane.parameterEl.getWidgetByName("button4"); 
+//var c= contentPane.parameterEl.getWidgetByName("button5"); 
+//var y1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var c1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8");
+//var button9 = contentPane.parameterEl.getWidgetByName("button9");
+//var button10 = contentPane.parameterEl.getWidgetByName("button10");
+//var Search = contentPane.parameterEl.getWidgetByName("Search");
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id");
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(false);
+//	r.setVisible(false);
+//	z1.setVisible(true);
+//	r1.setVisible(true);
+//
+//     y.setVisible(false);
+//	c.setVisible(false);
+//	y1.setVisible(false);
+//	c1.setVisible(false);
+//
+//	button8.setVisible(false);
+//	Search.setVisible(false);
+//	button9.setVisible(true);
+//	button10.setVisible(true);
+//
+//	Labelfarm_id.setVisible(false);
+//     farm_id.setVisible(false);
+//     Labelhouse_id.setVisible(false);
+//     house_id.setVisible(false);
+//     Labelfarm_id.setEnable(false); 
+//     farm_id.setEnable(false); 
+//     Labelhouse_id.setEnable(false);
+//     house_id.setEnable(false);
+//
+//     label0.setVisible(true);
+//     farm2_id.setVisible(true);
+//     label1.setVisible(true);
+//     house2_id.setVisible(true);
+//     label0.setEnable(true);
+//     farm2_id.setEnable(true);
+//     label1.setEnable(true);
+//     house2_id.setEnable(true);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(3);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button1"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[肉鸡]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[!Q>%"s+sQI7h#eD$31&+%7s)Y;?-[sIfKHK'aOj@!!(r]AVK`(@!/sK;5u`*_mFa3$^b?0"62
+ggX"rI,<MNeUhOFZe#]A$f[MWZ2\]AZ0_!X@56.Kg4Run2^hO1Q6A#)esfM7F_u*'IOPTfqK4n
+_lJj1,l;J.^lLQ9+laMO>rJqRhIbs`8fAKr,+[N'a#3Y<a95s1n18*pI1'e3flV!ecrCQg[J
+OfZe#na2^qA483<71L01]A7:R!!#SZ:.26O@"J~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="108" y="130" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button0");  
+//var r = contentPane.parameterEl.getWidgetByName("button1");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button2"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button3"); 
+//
+//var y = contentPane.parameterEl.getWidgetByName("button4");  
+//var c = contentPane.parameterEl.getWidgetByName("button5");  
+//var y1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var c1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8");
+//var button9 = contentPane.parameterEl.getWidgetByName("button9");
+//var button10 = contentPane.parameterEl.getWidgetByName("button10");
+//var Search = contentPane.parameterEl.getWidgetByName("Search");
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id"); 
+//
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(true);
+//	r.setVisible(true);
+//	z1.setVisible(false);
+//	r1.setVisible(false);
+//
+//     y.setVisible(true);
+//	c.setVisible(true);
+//	y1.setVisible(false);
+//	c1.setVisible(false);
+//
+//	button8.setVisible(true);
+//	Search.setVisible(true);
+//	button9.setVisible(false);
+//	button10.setVisible(false);
+//
+//     Labelfarm_id.setVisible(true);
+//     farm_id.setVisible(true);
+//     Labelhouse_id.setVisible(true);
+//     house_id.setVisible(true);
+//     Labelfarm_id.setEnable(true); 
+//     farm_id.setEnable(true); 
+//     Labelhouse_id.setEnable(true);
+//     house_id.setEnable(true);
+//
+//     label0.setVisible(false);
+//     farm2_id.setVisible(false);
+//     label1.setVisible(false);
+//     house2_id.setVisible(false);
+//     label0.setEnable(false);
+//     farm2_id.setEnable(false);
+//     label1.setEnable(false);
+//     house2_id.setEnable(false);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(1);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button2"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[种鸡]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[!Q>%"s+sQI7h#eD$31&+%7s)Y;?-[sIfKHK'aOj@!!(r]AVK`(@!/sK;5u`*_mFa3$^b?0"62
+ggX"rI,<MNeUhOFZe#]A$f[MWZ2\]AZ0_!X@56.Kg4Run2^hO1Q6A#)esfM7F_u*'IOPTfqK4n
+_lJj1,l;J.^lLQ9+laMO>rJqRhIbs`8fAKr,+[N'a#3Y<a95s1n18*pI1'e3flV!ecrCQg[J
+OfZe#na2^qA483<71L01]A7:R!!#SZ:.26O@"J~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="25" y="130" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button0");  
+//var r = contentPane.parameterEl.getWidgetByName("button1");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button2"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button3"); 
+//
+//var y = contentPane.parameterEl.getWidgetByName("button4"); 
+//var c= contentPane.parameterEl.getWidgetByName("button5"); 
+//var y1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var c1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8");
+//var button9 = contentPane.parameterEl.getWidgetByName("button9");
+//var button10 = contentPane.parameterEl.getWidgetByName("button10");
+//var Search = contentPane.parameterEl.getWidgetByName("Search");
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id");
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(false);
+//	r.setVisible(false);
+//	z1.setVisible(true);
+//	r1.setVisible(true);
+//
+//     y.setVisible(false);
+//	c.setVisible(false);
+//	y1.setVisible(false);
+//	c1.setVisible(false);
+//
+//	button8.setVisible(false);
+//	Search.setVisible(false);
+//	button9.setVisible(true);
+//	button10.setVisible(true);
+//
+//	Labelfarm_id.setVisible(false);
+//     farm_id.setVisible(false);
+//     Labelhouse_id.setVisible(false);
+//     house_id.setVisible(false);
+//     Labelfarm_id.setEnable(false); 
+//     farm_id.setEnable(false); 
+//     Labelhouse_id.setEnable(false);
+//     house_id.setEnable(false);
+//
+//     label0.setVisible(true);
+//     farm2_id.setVisible(true);
+//     label1.setVisible(true);
+//     house2_id.setVisible(true);
+//     label0.setEnable(true);
+//     farm2_id.setEnable(true);
+//     label1.setEnable(true);
+//     house2_id.setEnable(true);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(3);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button3"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[肉鸡]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[lO<9(kN.ld@UNU%p%320!n(4:/BZ$B,cAk8GlUC?"o*b\\ug>hA2<@]A-\.Jn3/1Df8ktIU9j
+qL=Zt<]A^'AKl.,k(!_kH`A^Ta:]A~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-1"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="108" y="130" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button4");  
+//var r = contentPane.parameterEl.getWidgetByName("button5");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8"); 
+//var button9 = contentPane.parameterEl.getWidgetByName("button9"); 
+//var button10 = contentPane.parameterEl.getWidgetByName("button10"); 
+//var Search = contentPane.parameterEl.getWidgetByName("Search"); 
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id"); 
+//
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(true);
+//	r.setVisible(true);
+//	z1.setVisible(false);
+//	r1.setVisible(false);
+//
+//	button8.setVisible(true);
+//	Search.setVisible(true);
+//	button9.setVisible(false);
+//	button10.setVisible(false);
+//
+//     Labelfarm_id.setVisible(true);
+//     farm_id.setVisible(true);
+//     Labelhouse_id.setVisible(true);
+//     house_id.setVisible(true);
+//     Labelfarm_id.setEnable(true); 
+//     farm_id.setEnable(true); 
+//     Labelhouse_id.setEnable(true);
+//     house_id.setEnable(true);
+//
+//     label0.setVisible(false);
+//     farm2_id.setVisible(false);
+//     label1.setVisible(false);
+//     house2_id.setVisible(false);
+//     label0.setEnable(false);
+//     farm2_id.setEnable(false);
+//     label1.setEnable(false);
+//     house2_id.setEnable(false);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(1);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button4"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[育成]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[lO<9(kN.ld@UNU%p%320!n(4:/BZ$B,cAk8GlUC?"o*b\\ug>hA2<@]A-\.Jn3/1Df8ktIU9j
+qL=Zt<]A^'AKl.,k(!_kH`A^Ta:]A~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-1"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="199" y="131" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button4");  
+//var r = contentPane.parameterEl.getWidgetByName("button5");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8"); 
+//var button9 = contentPane.parameterEl.getWidgetByName("button9"); 
+//var button10 = contentPane.parameterEl.getWidgetByName("button10"); 
+//var Search = contentPane.parameterEl.getWidgetByName("Search"); 
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id"); 
+//
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(false);
+//	r.setVisible(false);
+//	z1.setVisible(true);
+//	r1.setVisible(true);
+//
+//     button8.setVisible(true);
+//	Search.setVisible(true);
+//	button9.setVisible(false);
+//	button10.setVisible(false);
+//
+//     Labelfarm_id.setVisible(true);
+//     farm_id.setVisible(true);
+//     Labelhouse_id.setVisible(true);
+//     house_id.setVisible(true);
+//     Labelfarm_id.setEnable(true); 
+//     farm_id.setEnable(true); 
+//     Labelhouse_id.setEnable(true);
+//     house_id.setEnable(true);
+//
+//     label0.setVisible(false);
+//     farm2_id.setVisible(false);
+//     label1.setVisible(false);
+//     house2_id.setVisible(false);
+//     label0.setEnable(false);
+//     farm2_id.setEnable(false);
+//     label1.setEnable(false);
+//     house2_id.setEnable(false);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(2);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button5"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[产蛋]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[!Q>%"s+sQI7h#eD$31&+%7s)Y;?-[sIfKHK'aOj@!!(r]AVK`(@!/sK;5u`*_mFa3$^b?0"62
+ggX"rI,<MNeUhOFZe#]A$f[MWZ2\]AZ0_!X@56.Kg4Run2^hO1Q6A#)esfM7F_u*'IOPTfqK4n
+_lJj1,l;J.^lLQ9+laMO>rJqRhIbs`8fAKr,+[N'a#3Y<a95s1n18*pI1'e3flV!ecrCQg[J
+OfZe#na2^qA483<71L01]A7:R!!#SZ:.26O@"J~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="282" y="131" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button4");  
+//var r = contentPane.parameterEl.getWidgetByName("button5");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8"); 
+//var button9 = contentPane.parameterEl.getWidgetByName("button9"); 
+//var button10 = contentPane.parameterEl.getWidgetByName("button10"); 
+//var Search = contentPane.parameterEl.getWidgetByName("Search"); 
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id"); 
+//
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(true);
+//	r.setVisible(true);
+//	z1.setVisible(false);
+//	r1.setVisible(false);
+//
+//	button8.setVisible(true);
+//	Search.setVisible(true);
+//	button9.setVisible(false);
+//	button10.setVisible(false);
+//
+//     Labelfarm_id.setVisible(true);
+//     farm_id.setVisible(true);
+//     Labelhouse_id.setVisible(true);
+//     house_id.setVisible(true);
+//     Labelfarm_id.setEnable(true); 
+//     farm_id.setEnable(true); 
+//     Labelhouse_id.setEnable(true);
+//     house_id.setEnable(true);
+//
+//     label0.setVisible(false);
+//     farm2_id.setVisible(false);
+//     label1.setVisible(false);
+//     house2_id.setVisible(false);
+//     label0.setEnable(false);
+//     farm2_id.setEnable(false);
+//     label1.setEnable(false);
+//     house2_id.setEnable(false);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(1);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button6"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[育成]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[!Q>%"s+sQI7h#eD$31&+%7s)Y;?-[sIfKHK'aOj@!!(r]AVK`(@!/sK;5u`*_mFa3$^b?0"62
+ggX"rI,<MNeUhOFZe#]A$f[MWZ2\]AZ0_!X@56.Kg4Run2^hO1Q6A#)esfM7F_u*'IOPTfqK4n
+_lJj1,l;J.^lLQ9+laMO>rJqRhIbs`8fAKr,+[N'a#3Y<a95s1n18*pI1'e3flV!ecrCQg[J
+OfZe#na2^qA483<71L01]A7:R!!#SZ:.26O@"J~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="199" y="131" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var z = contentPane.parameterEl.getWidgetByName("button4");  
+//var r = contentPane.parameterEl.getWidgetByName("button5");  
+//var z1 = contentPane.parameterEl.getWidgetByName("button6"); 
+//var r1 = contentPane.parameterEl.getWidgetByName("button7"); 
+//var button8 = contentPane.parameterEl.getWidgetByName("button8"); 
+//var button9 = contentPane.parameterEl.getWidgetByName("button9"); 
+//var button10 = contentPane.parameterEl.getWidgetByName("button10"); 
+//var Search = contentPane.parameterEl.getWidgetByName("Search"); 
+//
+//var Labelfarm_id = this.options.form.getWidgetByName("Labelfarm_id"); 
+//var farm_id = this.options.form.getWidgetByName("farm_id"); 
+//var Labelhouse_id = this.options.form.getWidgetByName("Labelhouse_id"); 
+//var house_id = this.options.form.getWidgetByName("house_id"); 
+//
+//
+//var label0 = this.options.form.getWidgetByName("label0");
+//var farm2_id = this.options.form.getWidgetByName("farm2_id");
+//var label1 = this.options.form.getWidgetByName("label1");
+//var house2_id = this.options.form.getWidgetByName("house2_id");
+//
+//	z.setVisible(false);
+//	r.setVisible(false);
+//	z1.setVisible(true);
+//	r1.setVisible(true);
+//
+//     button8.setVisible(true);
+//	Search.setVisible(true);
+//	button9.setVisible(false);
+//	button10.setVisible(false);
+//
+//     Labelfarm_id.setVisible(true);
+//     farm_id.setVisible(true);
+//     Labelhouse_id.setVisible(true);
+//     house_id.setVisible(true);
+//     Labelfarm_id.setEnable(true); 
+//     farm_id.setEnable(true); 
+//     Labelhouse_id.setEnable(true);
+//     house_id.setEnable(true);
+//
+//     label0.setVisible(false);
+//     farm2_id.setVisible(false);
+//     label1.setVisible(false);
+//     house2_id.setVisible(false);
+//     label0.setEnable(false);
+//     farm2_id.setEnable(false);
+//     label1.setEnable(false);
+//     house2_id.setEnable(false);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[//var houseType = this.options.form.getWidgetByName("farm_type"); 
+//houseType.setValue(2);//b是需要取到显示值的参数控件名
+//
+//_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button7"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[产蛋]]></Text>
+<initial>
+<Background name="ImageBackground" specifiedImageWidth="-1.0" specifiedImageHeight="-1.0" layout="0">
+<IM>
+<![CDATA[lO<9(kN.ld@UNU%p%320!n(4:/BZ$B,cAk8GlUC?"o*b\\ug>hA2<@]A-\.Jn3/1Df8ktIU9j
+qL=Zt<]A^'AKl.,k(!_kH`A^Ta:]A~
+]]></IM>
+</Background>
+</initial>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-1"/>
+<isCustomType isCustomType="true"/>
+</InnerWidget>
+<BoundsAttr x="282" y="131" width="83" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="label0"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    农场:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="378" y="130" width="67" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="farm2_id"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="farm_id" viName="farm_name_chs"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:农场,Key:farm_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="445" y="130" width="140" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="label1"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    栋舍:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="599" y="130" width="63" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="house2_id"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="org_id" viName="name_cn"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[栋舍2]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:栋舍2,Key:org_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="662" y="130" width="121" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[_g().parameterCommit();]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button9"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[查询]]></Text>
+</InnerWidget>
+<BoundsAttr x="798" y="130" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$user_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<Content>
+<![CDATA[var farm_type = this.options.form.getWidgetByName("farm_type").getValue();
+var farm2_id = this.options.form.getWidgetByName("farm2_id").getValue();
+
+
+window.location="ReportServer?reportlet=ifarm/dailyProductionReport.cpt&user_id="+user_id+"&org_id="+org_id+"&farm2_id="+farm2_id+"&farm_type="+farm_type;]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button10"/>
+<WidgetAttr disabled="true" invisible="true" description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[每日报表]]></Text>
+</InnerWidget>
+<BoundsAttr x="892" y="130" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelvariety_num"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[variety_num:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="25" y="54" width="63" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="variety_num"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[]]></O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="88" y="54" width="140" height="21"/>
+</Widget>
+<Sorted sorted="false"/>
+<Display display="true"/>
+<DelayDisplayContent delay="false"/>
+<Position position="0"/>
+<Design_Width design_width="1027"/>
+<MobileWidgetList>
+<Widget widgetName="farm_id"/>
+<Widget widgetName="house_id"/>
+<Widget widgetName="button8"/>
+<Widget widgetName="variety_num"/>
+<Widget widgetName="farm_type"/>
+<Widget widgetName="button0"/>
+<Widget widgetName="button2"/>
+<Widget widgetName="button1"/>
+<Widget widgetName="button3"/>
+<Widget widgetName="farm2_id"/>
+<Widget widgetName="house2_id"/>
+<Widget widgetName="button9"/>
+<Widget widgetName="button10"/>
+<Widget widgetName="button4"/>
+<Widget widgetName="button6"/>
+<Widget widgetName="button5"/>
+<Widget widgetName="button7"/>
+</MobileWidgetList>
+<WidgetNameTagMap>
+<NameTag name="button4" tag="    农场:"/>
+<NameTag name="house_id" tag="    栋舍:"/>
+<NameTag name="button10" tag="    栋舍:"/>
+<NameTag name="button8" tag="    栋舍:"/>
+<NameTag name="house2_id" tag="    栋舍:"/>
+<NameTag name="button9" tag="    栋舍:"/>
+<NameTag name="button6" tag="    农场:"/>
+<NameTag name="farm2_id" tag="    农场:"/>
+<NameTag name="farm_type" tag="farm_type:"/>
+<NameTag name="farm_id" tag="    农场:"/>
+<NameTag name="variety_num" tag="variety_num:"/>
+</WidgetNameTagMap>
+</Layout>
+<DesignAttr width="1027" height="36"/>
+</ParameterUI>
+</ReportParameterAttr>
+<StyleList>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="128"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="4" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="4" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0]]></Format>
+<FRFont name="微软雅黑" style="1" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="2" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="ColorBackground" color="-2171170"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="72"/>
+<Background name="ColorBackground" color="-2171170"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="ColorBackground" color="-2171170"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0.#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="ColorBackground" color="-2171170"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="ColorBackground" color="-2171170"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.0#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="ColorBackground" color="-2171170"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0.0#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="ColorBackground" color="-2171170"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0.#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0.0#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+</StyleList>
+<DesignerVersion DesignerVersion="IAA"/>
+<PreviewType PreviewType="0"/>
+</WorkBook>

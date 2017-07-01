@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SDDeviceMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <!-- 查询数据 -->
+    <select id="findDevice" parameterType="pd" resultType="pd" useCache="false">
+        SELECT distinct device_code device_id
+                ,bak1 app_key
+        FROM s_d_device
+        WHERE device_type=#{device_type}
+              and d_status=2
+    </select>
+
+    <!-- 根据序列号查询设备 -->
+    <select id="findDeviceByMainId" parameterType="pd" resultType="pd" useCache="false">
+        SELECT * FROM s_d_device
+        WHERE main_id = #{main_id}
+    </select>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="pd" flushCache="false">
+        INSERT INTO s_d_device(main_id, device_code, device_type, device_factory, port_id, key_id, tele_number, d_status, bak1, bak2, bak3, bak4, create_date, power_status, voltage, run_time, hardware_version, software_version, device_property,signal_strength, modify_date)
+        VALUES (#{main_id},
+        #{device_code},
+        #{device_type},
+        #{device_factory},
+        #{port_id},
+        #{key_id},
+        #{tele_number},
+        #{d_status},
+        #{bak1},
+        #{bak2},
+        #{bak3},
+        #{bak4},
+        current_timestamp(),
+        #{power_status},
+        #{voltage},
+        #{run_time},
+        #{hardware_version},
+        #{software_version},
+        #{device_property},
+        #{signal_strength},
+        current_timestamp())
+    </insert>
+
+    <update id="updateDeviceData" parameterType="pd" flushCache="false">
+        update  s_d_device
+        set modify_date			= current_timestamp()
+        <if test="key_id != null and key_id != ''">
+            , key_id				= #{key_id}
+        </if>
+        <if test="tele_number != null and tele_number != ''">
+            , tele_number				= #{tele_number}
+        </if>
+        <if test="d_status != null and d_status != ''">
+            , d_status				= #{d_status}
+        </if>
+        <if test="bak1 != null and bak1 != ''">
+            , bak1				= #{bak1}
+        </if>
+        <if test="bak2 != null and bak2 != ''">
+            , bak2				= #{bak2}
+        </if>
+        <if test="bak3 != null and bak3 != ''">
+            , bak3				= #{bak3}
+        </if>
+        <if test="bak4 != null and bak4 != ''">
+            , bak4				= #{bak4}
+        </if>
+        <if test="power_status != null and power_status != ''">
+            , power_status				= #{power_status}
+        </if>
+        <if test="voltage != null and voltage != ''">
+            , voltage				= #{voltage}
+        </if>
+        <if test="run_time != null and run_time != ''">
+            , run_time				= #{run_time}
+        </if>
+        <if test="hardware_version != null and hardware_version != ''">
+            , hardware_version				= #{hardware_version}
+        </if>
+        <if test="software_version != null and software_version != ''">
+            , software_version				= #{software_version}
+        </if>
+        <if test="device_property != null and device_property != ''">
+            , device_property  				= #{device_property}
+        </if>
+        <if test="signal_strength != null and signal_strength != ''">
+            , signal_strength 				= #{signal_strength }
+        </if>
+        where 1=1
+        and main_id = #{main_id}
+    </update>
+
+
+</mapper>

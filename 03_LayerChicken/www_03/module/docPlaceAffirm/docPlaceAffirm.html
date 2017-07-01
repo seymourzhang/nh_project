@@ -1,0 +1,172 @@
+<ion-view>
+<div class="bar bar-header bar-balanced" style="background: #439AFC;">
+<a class="button icon ion-chevron-left button-clear" ui-sref="home"></a>
+    <h1 class="title">
+      进鸡
+    </h1>
+</div>
+    <ion-scroll class="has-header"  on-scroll="Funscroll()" style="width: 100%; height: 93.5%;background: #EFEFF9;">
+
+    <br />
+    <label class="item item-input item-select" style=" position: relative;  top:0rem;  left:0rem; height:3rem; width:101%; "> 
+              <span class="input-label fontColor">类别</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+              
+              <select id="place_typeSelect"
+                      ng-model="docPlaceData.batchInfo.place_type"> 
+                  <option value="">请选择</option> 
+                  <option value        =  "{{key}}" 
+                          ng-repeat    =  "(key,val) in myConfig.eggType" 
+                          ng-selected  =  "key==docPlaceData.batchInfo.place_type">
+                          {{val}}
+                  </option> 
+              </select>
+         </label>
+          <label class="item item-input item-select" style=" position: relative;  top:0rem;  left:0rem; height:3rem; width:101%; "> 
+            <span class="input-label fontColor">品种</span>
+            <i class="icon ion-ios-arrow-forward"></i> 
+            <select id="place_breedSelect"
+                    ng-model="docPlaceData.batchInfo.place_breed"> 
+                    <option value="">请选择</option> 
+                    <option value        =  "{{key}}" 
+                            ng-repeat    =  "(key,val) in myConfig.chickenType" 
+                            ng-selected  =  "key==docPlaceData.batchInfo.place_breed">
+                            {{val}}
+                    </option> 
+            </select>
+         </label> 
+         <br />
+      <div ng-repeat="item in docPlaceData.houseInfo">
+     <div  style="width:100%;
+                         height:160px;
+                         background:#FFF;">
+              <div style="position:relative;
+                          top:0px;
+                          left:0px;
+                          width:20%;
+                          height:100%;
+                          background:#FFF;">
+                  <div style="position:relative;
+                              top:0px;
+                              left:0px;
+                              width:100%;
+                              height:50%;
+                              background: #FFF;">
+                      <img src="img/newFolder/envMonitor/voiceSettings/house.png" height="30" width="30" style="position:relative; left:25%; top:30%;" />
+                  </div>
+                  <div style="position:relative;
+                              top:0px;
+                              bottom:0px;
+                              width:100%;
+                              height:50%;
+                              background: #FFF;">
+                    <span style="position:relative; left:25%; top:30%; font-size: 28px;">{{item.houseName}}</span>
+                  </div>
+                  <div style="position:relative;
+                              top:-95%;
+                              left:85%;
+                              width:1px;
+                              height:140px;
+                              background:#AEAEAE;
+                              z-index:2;">
+                </div>
+                  <div style="position:relative;
+                                top:-260px;
+                                left:70px;
+                                width:500px;
+                                height:1px;
+                                background:#AEAEAE;
+                                z-index:2;">
+                  </div>
+                  <div style="position:relative;
+                                top:-220px;
+                                left:70px;
+                                width:500px;
+                                height:1px;
+                                background:#AEAEAE;
+                                z-index:2;">
+                  </div>
+                  <div style="position:relative;
+                                top:-180px;
+                                left:70px;
+                                width:500px;
+                                height:1px;
+                                background:#AEAEAE;
+                                z-index:2;">
+                  </div>
+              </div>
+                  <div style="position:relative;
+                              top:-100%;
+                              left:20%;
+                              width:80%;
+                              height:25%;
+                              background:#FFF;">
+                    <img src="img/newFolder/newBatchManages/docPlaceAffirm/Group7.png" height="20" width="20" style="position:relative; left:0%; top:35%;" />
+                        <span style="position:relative; left:2%; top:28%; font-size: 14px;">入雏日期</span>
+                        <input style="position: absolute;right: 5%;top: 0%;width: 50%;height: 100%;text-align: right;border:solid 1px  #fff;color: #000; direction: rtl; -webkit-appearance: none;background:#FFF;" ng-model="item.place_date"  placeholder="请点击选择" readonly="readonly" placeholder="请输入" ng-click="clickDateInput(item)">
+                        </input>
+                  </div>
+                  <div style="position:relative;
+                              top:-100%;
+                              left:20%;
+                              width:80%;
+                              height:25%;
+                              background:#FFF;">
+
+
+                        <img src="img/newFolder/newBatchManages/docPlaceAffirm/Group8.png" height="20" width="20" style="position:relative; left:0%; top:35%;" />
+                        <span style="position:relative; left:2%; top:28%; font-size: 14px;">入雏日龄</span>
+                        <input style="position: absolute;right: 5%;top: 0%;width: 50%;height: 100%;text-align: right;border:solid 1px  #fff;color: #000; direction: rtl; background:#FFF;" ng-model="item.place_day_age" type="number"   ng-change="getthedate()" placeholder="请输入" onfocus="if(this.value==0)this.value='';" onblur="if(this.value=='')this.value=0;">
+                        </input>
+                  </div>
+                  <div style="position:relative;
+                              top:-100%;
+                              left:20%;
+                              width:80%;
+                              height:25%;
+                              background:#FFF;">
+                      <img src="img/newFolder/newBatchManages/docPlaceAffirm/Group8.png" height="20" width="20" style="position:relative; left:0%; top:35%;" />
+                        <span style="position:relative; left:2%; top:28%; font-size: 14px;">入舍时周龄（自动）</span>
+                        <span style="position: absolute;right: 5%;top: 30%;width: 30%;height: 60%;text-align: right;border:solid 1px  #fff;color: #000;background:#FFF;" >{{item.place_week_age}}</span>
+                  </div>
+
+                  <div style="position:relative;
+                              top:-100%;
+                              left:20%;
+                              width:80%;
+                              height:20%;
+                              background:#FFF;">
+                      <img src="img/newFolder/newBatchManages/docPlaceAffirm/Group8.png" height="20" width="20" style="position:relative; left:0%; top:35%;" />
+                        <span style="position:relative; left:2%; top:28%; font-size: 14px;">入雏数量</span>
+                        <input style="position: absolute;right: 5%;top: 0%;width: 50%;height: 100%;text-align: right;border:solid 1px  #fff;color: #000; direction: rtl; -webkit-appearance: none;background:#FFF;" ng-model="item.place_num" type="number" placeholder="请输入"  onfocus="if(this.value==0)this.value='';" onblur="if(this.value=='')this.value=0;">
+                        </input>
+                  </div>
+              </div>
+              <div style="position:relative;
+                            top:10px;
+                            left:5%;
+                            width:90%;
+                            height:35px;
+                            background: #439AFC;
+                            border: solid 0px #439AFC;" ng-style="{{judgeSave(item)}}" class="employesListBtn" ng-click="save(item)">
+                    <p style="position:relative; left:0%; top:18%; width: 100%;height:100%;font-size: 20px;color:#FFF; text-align:center;">保存</p>
+              </div>
+          <br />
+      </div>
+      <br />
+      <br />
+      <br />
+      <br />
+    </ion-scroll>
+
+
+
+    <div class="tabs tabs-icon-top" style="background: #EFEFF9; border: solid 0px #EFEFF9;">
+      <table style="position: relative;left: 0%;top: 0%;width: 100%;height: 100%;">
+        <tr style="height: 100%;color:#FFF;">
+          <td style="width: 50%; background: #E3E3E3;"  class="middle">进鸡</td>
+          <td style="width: 50%; background: #439AFC;" class="middle" ui-sref="breedAffirm">出栏</td>
+        </tr>
+      </table>
+    </div>
+</ion-view>

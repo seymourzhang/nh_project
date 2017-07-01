@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ShowDataMobileMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <select id="selectRotemData" useCache="false" parameterType="pd" resultType="pd">
+        select
+            id,
+            date_format(make_time, '%Y-%m-%d %H:%i:%s') as date_time,
+            ifnull(col_a, '')  col_a,
+            ifnull(col_b, '')  col_b,
+            ifnull(col_c, '')  col_c,
+            ifnull(col_d, '')  col_d,
+            ifnull(col_e, '')  col_e,
+            ifnull(col_f, '')  col_f,
+            ifnull(col_g, '')  col_g,
+            ifnull(col_h, '')  col_h,
+            ifnull(col_i, '')  col_i,
+            ifnull(col_j, '')  col_j,
+            ifnull(col_k, '')  col_k,
+            ifnull(col_l, '')  col_l,
+            ifnull(col_m, '')  col_m,
+            ifnull(col_n, '')  col_n,
+            ifnull(col_o, '')  col_o,
+            ifnull(col_p, '')  col_p,
+            ifnull(col_q, '')  col_q,
+            ifnull(col_r, '')  col_r,
+            ifnull(col_s, '')  col_s,
+            ifnull(col_t, '')  col_t,
+            ifnull(col_u, '')  col_u,
+            ifnull(col_v, '')  col_v,
+            ifnull(col_w, '')  col_w,
+            ifnull(col_x, '')  col_x,
+            ifnull(col_y, '')  col_y,
+            ifnull(col_z, '')  col_z,
+            ifnull(col_aa, '')  col_aa,
+            ifnull(col_ab, '')  col_ab,
+            ifnull(col_ac, '')  col_ac,
+            ifnull(col_ad, '')  col_ad,
+            ifnull(col_ae, '')  col_ae,
+            ifnull(col_af, '')  col_af,
+            ifnull(col_ag, '')  col_ag
+        from s_b_rotem_net_data
+        order by id desc  LIMIT 100
+    </select>
+</mapper>

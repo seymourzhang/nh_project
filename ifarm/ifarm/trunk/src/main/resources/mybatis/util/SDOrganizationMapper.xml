@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SDOrganizationMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+  <select id="getOrgLevelList" resultType="pd" useCache="false">
+			select distinct level_id,level_name
+				from s_d_organization
+				order by level_id
+	</select>
+
+	<select id="getOrgList" resultType="pd" useCache="false">
+	    select d.id,
+	    	   d.organization_id,
+	    	   d.name_cn,
+	    	   d.parent_id,
+	    	   d.level_id,
+	    	   d.level_name,
+	    	   d.create_person,
+	    	   d.create_date,
+	    	   d.create_time,
+	  		   devi.device_code,
+	  		   h.house_type,
+	  		   f.farm_type,
+               dc.code_name
+	    from s_d_organization d
+		LEFT JOIN s_d_rights c
+		on d.id = c.obj_id
+		LEFT JOIN s_d_role_rights a
+		on c.rights_id = a.rights_id
+		LEFT JOIN s_d_user_role b
+		on a.role_id = b.role_id
+	  	LEFT JOIN s_b_devi_house devi
+	  	on devi.house_id = d.id and devi.farm_id = d.parent_id
+	  	LEFT JOIN s_d_farm f
+        on f.id = d.organization_id
+	  	LEFT JOIN s_d_house h
+	  	on h.id = d.organization_id
+        LEFT JOIN s_d_code dc
+        on dc.code_type = 'HOUSE_TYPE' AND dc.biz_code = h.house_type
+		where c.obj_type = 2
+	  		AND d.freeze_status=0
+		<if test="user_id != null"> 
+			and b.user_id = #{user_id}
+		</if>
+		<if test="parent_id != null"> 
+			and d.parent_id = #{parent_id}
+		</if>
+		<if test="level_id != null">
+			and d.level_id = #{level_id}
+		</if>
+		<if test="role_id != null"> 
+			and a.role_id = #{role_id}
+		</if>
+		<if test="house_type != null and house_type != ''"> 
+			and (h.house_type = #{house_type} or f.farm_type = #{house_type})
+		</if>
+		
+	  order by d.id
+    </select> 
+    
+    <select id="getOrgListByRoleId" resultType="pd" useCache="false">
+		select DISTINCT
+				d.id,
+				d.organization_id,
+				d.name_cn,
+				d.parent_id,
+				d.level_id,
+				d.level_name,
+				d.create_person,
+				d.create_date,
+				d.create_time,
+				tmp.role_level,
+				tmp.id user_id
+		FROM s_d_organization d
+		LEFT JOIN (SELECT DISTINCT role_level role_level FROM v_user WHERE id = #{user_id} AND obj_type=2) tmp2
+    		ON 1=1
+    	LEFT JOIN(SELECT * FROM v_user WHERE id = #{user_id} AND obj_type=2) tmp
+			ON tmp.obj_id = d.id OR tmp.obj_id = (CASE WHEN tmp2.role_level=1 THEN d.id ELSE d.parent_id END )
+		WHERE  1=1
+				  AND d.freeze_status=0
+				  AND ((tmp.role_level is not null AND (d.level_id > tmp.role_level or d.id = tmp.obj_id))
+				  			OR (tmp.role_level is null AND tmp2.role_level=1))
+				  AND tmp.id is not null
+				  OR ((case when #{user_id}=1 then 1 else d.create_person end) = #{user_id} AND d.freeze_status = 0)
+		ORDER BY d.id
+    </select>
+
+    <select id="getOrgListById" resultType="pd" useCache="false">
+	    SELECT a.id,
+				a.organization_id,
+				a.name_cn,
+				a.parent_id,
+				b.name_cn parent_name,
+				a.level_id,
+				a.level_name,
+				a.create_person,
+				a.create_date,
+				a.create_time,
+				farm.farm_type,
+				farm.feed_type,
+				farm.feed_method,
+				(SELECT cc.code_name FROM s_d_code cc
+				WHERE code_type = 'HOUSE_TYPE' AND biz_code = farm.farm_type) farm_type_name,
+                farm.farm_add1,
+                farm.farm_add2,
+                farm.farm_add3,
+				house.house_type,
+				code.code_name house_type_name,
+				ac.pinyin_name,
+				(select name from s_d_area_china where id = farm.farm_add1) as level1,
+				(select name from s_d_area_china where id = farm.farm_add2) as level2,
+				(select name from s_d_area_china where id = farm.farm_add3) as level3
+	     FROM  s_d_organization a
+		 LEFT JOIN s_d_organization b
+			ON a.parent_id = b.id
+         LEFT JOIN s_d_farm farm
+            ON farm.id = a.id
+		LEFT JOIN s_d_area_china ac
+			ON ac.id = farm.farm_add3
+		LEFT JOIN s_d_house house
+			ON house.id = a.id
+		LEFT JOIN (SELECT * FROM s_d_code
+						WHERE code_type='HOUSE_TYPE') code
+			ON code.biz_code = house.house_type
+	     WHERE 1=1
+		AND a.freeze_status=0
+		<if test="id != null">
+			AND a.id = #{id}
+		</if>
+		<if test="organization_id != null">
+			AND a.organization_id = #{organization_id}
+		</if>
+		<if test="parent_id != null">
+			AND a.parent_id = #{parent_id}
+		</if>
+		<if test="parentOrgIdList != null">
+			AND a.parent_id IN
+			<foreach collection="parentOrgIdList" item="item" index="index"
+					 open="(" separator="," close=")">#{item}
+			</foreach>
+		</if>
+		<if test="level_id != null">
+			AND a.level_id = #{level_id}
+		</if>
+		ORDER BY id
+    </select>
+    
+    <select id="getCompanyByUserId" parameterType="pd" resultType="pd" useCache="false">
+		select u.id user_id
+				,u.user_code
+				,u.user_real_name_en
+				,u.user_real_name
+				,ur.role_id
+				,rr.rights_id
+				,rr.write_read
+				,org.id org_id
+				,org.organization_id org_code
+				,org.name_cn org_name
+				,org.level_name
+				,org.parent_id org_parent_id
+				,org.level_id org_level_id
+		from s_d_user u
+		left join s_d_user_role ur
+		on u.id = ur.user_id
+		left join s_d_role_rights rr
+		on ur.role_id = rr.role_id
+		left join s_d_rights r
+		on rr.rights_id = r.rights_id
+		left join s_d_organization org
+		on r.obj_id = org.id
+		where r.obj_type = 2
+			and org.level_id = (select max(level_id)-2 from s_d_organization)
+			and u.id = #{user_id}
+			AND org.freeze_status=0
+	</select>
+
+	<select id="getFarmByUserId" parameterType="pd" resultType="pd" useCache="false">
+		select u.id user_id
+				,u.user_code
+				,u.user_real_name_en
+				,u.user_real_name
+				,ur.role_id
+				,rr.rights_id
+				,rr.write_read
+				,org.id org_id
+				,org.organization_id org_code
+				,org.name_cn org_name
+				,org.parent_id org_parent_id
+				,org.level_id org_level_id
+				,f.feed_type
+		from s_d_user u
+		left join s_d_user_role ur
+		on u.id = ur.user_id
+		left join s_d_role_rights rr
+		on ur.role_id = rr.role_id
+		left join s_d_rights r
+		on rr.rights_id = r.rights_id
+		left join s_d_organization org
+		on r.obj_id = org.id
+		left join s_d_farm f
+		on f.id = org.organization_id
+		where r.obj_type = 2
+			and org.level_id = (select max(level_id)-1 from s_d_organization)
+			and u.id = #{user_id}
+			<if test="parent_id != null and parent_id !=''"> 
+           and org.parent_id = #{parent_id} 
+        </if> 
+			AND org.freeze_status=0
+		limit 1
+	</select>
+
+    <select id="getFarmListByUserId" parameterType="pd" resultType="pd" useCache="false">
+        select u.id user_id
+        ,u.user_code
+        ,u.user_real_name_en
+        ,u.user_real_name
+        ,ur.role_id
+        ,rr.rights_id
+        ,rr.write_read
+        ,org.id org_id
+        ,org.organization_id org_code
+        ,org.name_cn org_name
+        ,org.parent_id org_parent_id
+        ,org.level_id org_level_id
+        from s_d_user u
+        left join s_d_user_role ur
+        on u.id = ur.user_id
+        left join s_d_role_rights rr
+        on ur.role_id = rr.role_id
+        left join s_d_rights r
+        on rr.rights_id = r.rights_id
+        left join s_d_organization org
+        on r.obj_id = org.id
+        where r.obj_type = 2
+        and org.level_id = (select max(level_id)-1 from s_d_organization)
+        <if test="user_id != null and user_id !=''"> 
+        and u.id = #{user_id}
+        </if>
+        <if test="parent_id != null and parent_id !=''"> 
+           and org.parent_id = #{parent_id} 
+        </if> 
+        AND org.freeze_status=0
+    </select>
+
+	<select id="getHouseListByUserId" parameterType="pd" resultType="pd" useCache="false">
+		select u.id user_id
+				,u.user_code
+				,u.user_real_name_en
+				,u.user_real_name
+				,ur.role_id
+				,rr.rights_id
+				,rr.write_read
+				,org.id org_id
+				,org.organization_id org_code
+				,org.name_cn org_name
+				,org.parent_id org_parent_id
+				,org.level_id org_level_id
+		from s_d_user u
+		left join s_d_user_role ur
+		on u.id = ur.user_id
+		left join s_d_role_rights rr
+		on ur.role_id = rr.role_id
+		left join s_d_rights r
+		on rr.rights_id = r.rights_id
+		left join s_d_organization org
+		on r.obj_id = org.id
+		where r.obj_type=2
+			and org.level_id=(select max(level_id) from s_d_organization)
+			and org.parent_id = #{farm_id}
+			and u.id = #{user_id}
+			AND org.freeze_status=0
+	</select>
+
+	<select id="getOrgListByUser" parameterType="pd" resultType="pd" useCache="false">
+		select d.id,
+			d.organization_id,
+			d.name_cn,
+			d.parent_id,
+			d.level_id,
+			d.level_name,
+			d.create_person,
+			d.create_date,
+			d.create_time
+		from s_d_organization d
+		LEFT JOIN s_d_rights c
+		on d.id = c.obj_id
+		LEFT JOIN s_d_role_rights a
+		on c.rights_id = a.rights_id
+		LEFT JOIN s_d_user_role b
+		on a.role_id = b.role_id
+		where c.obj_type = 2
+	  		and d.level_id = (select max(aa.level_id) - 2 from s_d_organization aa)
+			and b.user_id = #{user_id}
+			AND d.freeze_status=0
+		order by d.id
+		<if test="flag == null">
+			limit 1
+		</if>
+	</select>
+
+	<select id="getHouseType" parameterType="pd" resultType="pd" useCache="false">
+		SELECT
+			id house_id
+			,house_code
+			,house_name
+			,house_type
+			,farm_id
+		FROM s_d_house
+		WHERE farm_id = #{farmId}
+		<if test="houseId != null and houseId !=''"> 
+			AND id = #{houseId}
+		</if>	
+			AND freeze_status=0
+	</select>
+
+	<select id="getOrganizationList" resultType="pd" useCache="false">
+		SELECT sdo.id,
+				sdo.organization_id org_code,
+				sdo.name_cn name,
+				sdo.parent_id pId,
+				IFNULL(sdo2.name_cn,'') p_name,
+				sdo.level_id org_level,
+				sdo.level_name org_level_name,
+				sdo.create_person,
+				sdo.create_date,
+				sdo.create_time,
+				true open,
+				false chkDisabled
+		FROM  s_d_organization sdo
+		LEFT JOIN (SELECT bb.id, bb.name_cn FROM s_d_organization bb) sdo2
+		ON sdo.parent_id = sdo2.id
+		WHERE  (sdo.level_id &lt;= (select max(aa.level_id) - 2 from s_d_organization aa) or sdo.level_id=1)
+				AND sdo.freeze_status=0
+				<if test="user_id != null">
+					AND (sdo.id in (select obj_id from v_user where id = #{user_id} and obj_type=2)
+					OR (sdo.create_person = #{user_id}))
+				</if>
+		ORDER BY sdo.id
+	</select>
+
+	<select id="getMaxOrgLevelId" resultType="pd" useCache="false">
+		  SELECT
+			  (CASE WHEN tmp.max_level_id is null THEN (SELECT MAX(level_id)+1 FROM s_d_organization) ELSE tmp.max_level_id END) max_level_id
+			FROM (SELECT
+					MAX(org.level_id) max_level_id
+				  FROM s_d_organization org
+				  WHERE org.freeze_status=0
+						AND level_name='农场') tmp
+	</select>
+
+	<!-- 新增机构 -->
+	<insert id="insertOrg" parameterType="pd" flushCache="false" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO s_d_organization(id
+										, organization_id
+										, name_cn
+										, parent_id
+										, level_id
+										, level_name
+										, freeze_status
+										, create_person
+										, create_date
+										, create_time)
+	  	VALUES(
+	  		get_organization_id(TRUE)
+	  		,get_organization_id(FALSE)
+	  		,#{name_cn}
+	  		,#{parent_id}
+	  		,#{level_id}
+	  		,#{level_name}
+	  		,#{freeze_status}
+	  		,#{create_person}
+	  		,CURRENT_DATE
+	  		,CURRENT_TIMESTAMP
+	  	)
+	</insert>
+
+	<!-- 修改机构 -->
+	<update id="updateOrg" parameterType="pd" flushCache="false">
+		UPDATE s_d_organization SET name_cn = #{org_name_updated}
+			WHERE id = #{org_id}
+	</update>
+
+	<!-- 删除机构 -->
+	<update id="deleteOrg" parameterType="pd" flushCache="false">
+			UPDATE s_d_organization SET freeze_status = #{freeze_status}
+			WHERE id in
+			<foreach collection="orgList" item="item" index="index"
+					 open="(" separator="," close=")">#{item}
+			</foreach>
+	</update>
+
+	<select id="getFarmForMapping" resultType="pd" useCache="false">
+		SELECT
+			id
+			,farm_name_chs name_cn
+		FROM s_d_farm
+		WHERE farm_code NOT IN (SELECT organization_id FROM s_d_organization WHERE freeze_status=0)
+			AND farm_code IN (SELECT DISTINCT farm_id FROM s_d_house WHERE freeze_status=0);
+	</select>
+
+	<!-- 绑定农场与机构 -->
+	<insert id="setFarmMapping" parameterType="pd" flushCache="false" useGeneratedKeys="true" keyProperty="id">
+
+			INSERT INTO s_d_organization(
+				id
+				,organization_id
+				,name_cn
+				,parent_id
+				,level_id
+				,level_name
+				,freeze_status
+				,create_person
+				,create_date
+				,create_time
+			)
+				SELECT
+					id
+					,farm_code
+					,farm_name_chs
+					,#{parent_id}
+					,#{level_id}+1
+					,"农场"
+					,0
+					,#{user_id}
+					,CURRENT_DATE
+					,CURRENT_TIME
+				FROM s_d_farm
+				WHERE 1 = 1
+						AND freeze_status = 0
+						AND id IN
+						<foreach collection="orgList" item="item" index="index" open="(" separator="," close=")">
+							  #{item}
+						</foreach>
+	</insert>
+
+	<!-- 绑定栋舍与农场 -->
+	<insert id="setHouseMapping" parameterType="pd" flushCache="false" useGeneratedKeys="true" keyProperty="id">
+
+		INSERT INTO s_d_organization(
+				id
+				,organization_id
+				,name_cn
+				,parent_id
+				,level_id
+				,level_name
+				,freeze_status
+				,create_person
+				,create_date
+				,create_time
+				)
+			SELECT
+				id
+				,#{id}
+				,house_name
+				,farm_id
+				,#{level_id}
+				,"栋舍"
+				,0
+				,#{user_id}
+				,CURRENT_DATE
+				,CURRENT_TIME
+			FROM s_d_house
+			WHERE 1 = 1
+				AND freeze_status = 0
+				AND id =#{id}
+	</insert>
+
+	<select id="getFarmUser" parameterType="pd" resultType="pd" useCache="false">
+		SELECT u.*, rt.role_temp_id, rt.role_temp_name
+        FROM s_d_organization o
+          LEFT JOIN s_d_rights r
+            ON r.obj_type = 2 AND r.obj_id = o.id
+          LEFT JOIN s_d_role_rights rr
+            ON rr.rights_id = r.rights_id
+          LEFT JOIN s_d_user_role ur
+            ON ur.role_id = rr.role_id
+          LEFT JOIN s_d_user u
+            ON u.id = ur.user_id and u.user_status = 1 and u.freeze_status = 0
+          LEFT JOIN s_d_user_role_temp urt
+            ON urt.user_id = u.id
+          LEFT JOIN s_d_role_temp rt
+            ON rt.role_temp_id = urt.role_temp_id
+        WHERE o.id = ${farm_id}
+		<choose>
+			<when test="insertHouseFlag != null and insertHouseFlag != ''">
+				and rt.role_level = 2
+			</when>
+			<otherwise>
+				and rt.role_level >= 2
+			</otherwise>
+		</choose>
+        GROUP BY u.id;
+	</select>
+
+	<select id="getAuthorityInfo" parameterType="pd" resultType="pd" useCache="false">
+		SELECT aa.*
+			FROM s_b_app_authority aa
+ 			LEFT JOIN s_d_role_temp rt
+    			ON rt.role_temp_id = aa.role_temp_id
+  			LEFT JOIN s_d_user_role_temp urt
+    			ON urt.role_temp_id = rt.role_temp_id
+		where urt.user_id = ${user_id};
+	</select>
+
+	<select id="getUserRole" parameterType="pd" resultType="pd" useCache="false">
+		SELECT
+		  rt.role_temp_id,
+		  rt.role_temp_name,
+		  u.user_mobile_1,
+		  u.user_code,
+		  u.id,
+		  u.user_real_name
+		FROM s_d_user_role_temp urt
+				LEFT JOIN s_d_role_temp rt
+				ON urt.role_temp_id = rt.role_temp_id
+				LEFT JOIN s_d_user u
+				ON u.id = urt.user_id
+		WHERE urt.user_id = ${user_id} limit 1;
+	</select>
+	
+	<select id="getFarmListByFarmName" parameterType="pd" resultType="pd" useCache="false">
+        select org.id org_id
+        ,org.organization_id org_code
+        ,org.name_cn org_name
+        ,org.parent_id org_parent_id
+        ,org.level_id org_level_id
+        from s_d_organization org
+        where org.level_id = (select max(level_id)-1 from s_d_organization)
+        and org.name_cn = #{farm_name} 
+        AND org.freeze_status=0
+    </select>
+
+</mapper>

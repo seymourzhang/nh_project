@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SDCodeMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+  <select id="getCodeList" resultType="pd" useCache="false">  
+	   SELECT  code_type, 
+		       biz_code,
+		       code_name, 
+		       bak1, 
+		       bak2, 
+		       code_desc 
+		FROM s_d_code
+		where 1=1
+		<if test="code_type != null"> 
+			and code_type = #{code_type}
+		</if>
+		<if test="biz_code != null"> 
+			and biz_code = #{biz_code}
+		</if>
+ 		<if test="code_name != null">  
+			and lower(code_name) LIKE lower(CONCAT(CONCAT('%', #{code_name}),'%'))
+ 		</if> 
+		<if test="bak1 != null"> 
+			and bak1 = #{bak1}
+		</if>
+		<if test="bak2 != null"> 
+			and bak2 = #{bak2}
+		</if>
+		order by biz_code
+    </select> 
+    
+</mapper>

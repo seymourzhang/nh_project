@@ -1,0 +1,103 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+	<a class="button icon ion-chevron-left button-clear" ui-sref="alarmSetting"></a>
+    <h1 class="title">
+      修改光照设置
+    </h1>
+</div>
+
+</div>
+    <ion-content class="has-header">
+    	<label class="item item-input"> 
+            <span class="input-label fontColor">周龄</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "text"
+                       ng-model     =  "updateLuxData.tableData.day_age"
+                       style        =  "background: #FFF;" 
+                       disabled/> 
+        </label>
+
+         <label class="item item-input"> 
+            <span class="input-label fontColor">光照目标值</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "updateLuxData.tableData.set_lux"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+
+
+
+        <label class="item item-input"> 
+            <span class="input-label fontColor">光照高报值</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "updateLuxData.tableData.high_lux"
+                       ng-blur = "getHighCautionLux(updateLuxData.tableData.high_lux)"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">光照低报值</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "updateLuxData.tableData.low_lux"
+                       ng-blur = "getLowCautionLux(updateLuxData.tableData.low_lux)"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+
+
+
+
+        <label class="item item-input"> 
+            <span class="input-label fontColor">高报警示值</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "updateLuxData.tableData.high_caution_lux"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">低报警示值</span>
+              <i class="icon ion-ios-arrow-forward"></i> 
+                <input type         =  "number"
+                       ng-model     =  "updateLuxData.tableData.low_caution_lux"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/> 
+        </label>
+
+
+
+
+        <label class="item item-input item-select">
+              <span class="input-label fontColor">开始时间</span>
+              <i class="icon ion-ios-arrow-forward"></i>
+              <select ng-model="updateLuxData.tableData.start_time">
+                  <option value="{{key}}" ng-repeat="(key,val) in myConfig.start_time" ng-selected="key==updateLuxData.tableData.start_time">{{val}}</option>
+              </select>
+         </label>
+
+         <label class="item item-input item-select">
+              <span class="input-label fontColor">结束时间</span>
+              <i class="icon ion-ios-arrow-forward"></i>
+              <select ng-model="updateLuxData.tableData.end_time">
+                  <option value="{{key}}" ng-repeat="(key,val) in myConfig.end_time" ng-selected="key==updateLuxData.tableData.end_time">{{val}}</option>
+              </select>
+         </label>
+        <br>
+      <p style="color:#808080; position:relative; left:10px; top:1rem; font-size:16px;">提示：</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">1、光照目标值需在6至61之间。</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">2、光照高报值需低于121</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">3、光照低报值需高于0</p>
+        <br /> 
+		<div class="middle"> 
+		<a class           =  "button  button-balanced saveBtn"
+		   ng-click        =  "updateLuxSave()" 
+		   nav-transition  =  "android">
+		   保   存
+		</a> 
+		</div>
+    </ion-content>
+</ion-view>
+

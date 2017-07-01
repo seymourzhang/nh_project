@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SDUserMapper">
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+	
+	<!-- 判断用户名和密码 -->
+	<select id="getUserInfo" parameterType="pd" resultType="pd" useCache="false">
+		select * from s_d_user
+		where 1=1
+		<if test="user_status != null and user_status != ''">
+			AND user_status = #{user_status}
+		</if>
+		<if test="user_code != null and user_password != null">
+			and	(user_code = #{user_code} and user_password = #{user_password})
+		</if>
+		<if test="id != null and id != ''">
+			and id=#{id}
+		</if>
+	</select>
+	
+	
+	<!-- 根据查询条件查询用户信息 -->
+	<select id="findUserInfo" parameterType="pd" resultType="pd" useCache="false">
+		select * from s_d_user 
+		where 1=1
+		<if test="user_status != null and user_status != ''">
+			AND user_status = #{user_status}
+		</if>
+		<if test="user_code != null and user_code != ''">
+			and user_code=#{user_code}
+		</if>
+		<if test="id != null and id != ''">
+			and id=#{id}
+		</if>
+		<if test="freeze_status != null and freeze_status != ''">
+			and freeze_status = #{freeze_status}
+		</if>
+	</select>
+
+	<!-- 分页查询用户信息 -->
+	<select id="getUserList" parameterType="pd" resultType="pd" useCache="false">
+		select
+		sdu.id
+		,sdu.user_code
+		,sdu.user_real_name
+		,sdu.user_real_name_en
+		,sdu.user_password
+		,sdu.user_mobile_1
+		,sdu.user_mobile_2
+		,sdu.user_tel_1
+		,sdu.user_tel_2
+		,sdu.user_email
+		,sdu.user_status
+		,sdu.user_type
+		,(select d.code_name from s_d_code d where d.code_type ='USER_TYPE' and d.biz_code = sdu.user_type) as user_type_name
+		,sdu.memo_1
+		,sdu.memo_2
+		,sdu.memo_3
+		,sdu.memo_4
+		,(select a.name from s_d_area_china a where a.id = max(f.farm_add1)) as farm_add1
+		,(select a.name from s_d_area_china a where a.id = max(f.farm_add2)) as farm_add2
+		,(select a.name from s_d_area_china a where a.id = max(f.farm_add3)) as farm_add3
+		from s_d_user sdu
+		LEFT JOIN(SELECT * FROM v_user WHERE obj_type=2) tmp
+		ON sdu.id = tmp.id
+		LEFT JOIN s_d_organization o
+		ON tmp.obj_id = o.id
+		LEFT JOIN s_d_farm f
+		ON f.id = o.organization_id
+		where 1 = 1
+		<if test="user_code != null and user_password != null">
+			and (sdu.user_code = #{user_code} and sdu.user_password = #{user_password})
+		</if>
+		<if test="user_real_name != null and user_real_name != ''">
+			and (sdu.user_real_name LIKE CONCAT(CONCAT('%', #{user_real_name}),'%') or sdu.user_code LIKE CONCAT(CONCAT('%', #{user_real_name}),'%') )
+		</if>
+		<if test="user_mobile_1 != null and user_mobile_1 != ''">
+			and sdu.user_mobile_1 LIKE CONCAT(CONCAT('%', #{user_mobile_1}),'%')
+		</if>
+		<if test="user_status != null and user_status != ''">
+			and sdu.user_status = 1
+		</if>
+		<if test="freeze_status != null and freeze_status != ''">
+			and sdu.freeze_status = 0
+		</if>
+		<if test="user_type != null and user_type != ''">
+			and sdu.user_type = #{user_type}
+		</if>
+		and IFNULL(o.freeze_status,0) = 0
+		<if test="farm_add1 != null and farm_add1 != ''">
+			and f.farm_add1 = #{farm_add1}
+		</if>
+		<if test="farm_add2 != null and farm_add2 != ''">
+			and f.farm_add2 = #{farm_add2}
+		</if>
+		<if test="farm_add3 != null and farm_add3 != ''">
+			and f.farm_add3 = #{farm_add3}
+		</if>
+		<if test="id != null and id != ''">
+			and (sdu.create_person = #{id}
+			or sdu.modify_person = #{id}
+			or (sdu.id in (select distinct vu1.id from v_user vu1
+			join (select distinct role_level,role_temp_id
+			from v_user
+			where id = #{id}
+			and obj_type=1) vu2
+			on vu1.role_level >= vu2.role_level
+			and vu1.role_temp_id >= (CASE WHEN vu2.role_temp_id = 1 THEN 1
+			WHEN vu2.role_temp_id = 2 THEN 2 ELSE vu2.role_temp_id END)
+			where vu1.obj_type=1)
+			and sdu.id in (select distinct vu1.id from v_user vu1
+			join (select
+			b.id obj_id
+			from (select distinct obj_id,role_level
+			from v_user
+			where id = #{id}
+			and obj_type=2) a
+			join s_d_organization b
+			on a.obj_id = b.id
+			and a.role_level = b.level_id) vu2
+			on vu1.obj_id = vu2.obj_id
+			where vu1.obj_type=2))
+			)
+		</if>
+		group by sdu.id
+		order by sdu.create_date desc
+	</select>
+	<select id="getUserList2" parameterType="pd" resultType="pd" useCache="false">
+		select
+		sdu.id
+		,sdu.user_code
+		,sdu.user_real_name
+		,sdu.user_real_name_en
+		,sdu.user_password
+		,sdu.user_mobile_1
+		,sdu.user_mobile_2
+		,sdu.user_tel_1
+		,sdu.user_tel_2
+		,sdu.user_email
+		,sdu.user_status
+		,sdu.user_type
+		,(select d.code_name from s_d_code d where d.code_type ='USER_TYPE' and d.biz_code = sdu.user_type) as user_type_name
+		,sdu.memo_1
+		,sdu.memo_2
+		,sdu.memo_3
+		,sdu.memo_4
+		,(select a.name from s_d_area_china a where a.id = max(f.farm_add1)) as farm_add1
+		,(select a.name from s_d_area_china a where a.id = max(f.farm_add2)) as farm_add2
+		,(select a.name from s_d_area_china a where a.id = max(f.farm_add3)) as farm_add3
+		from s_d_user sdu
+		LEFT JOIN(SELECT * FROM v_user WHERE obj_type=2) tmp
+		ON sdu.id = tmp.id
+		LEFT JOIN s_d_organization o
+		ON tmp.obj_id = o.id
+		LEFT JOIN s_d_farm f
+		ON f.id = o.organization_id
+		where 1 = 1
+		<if test="user_code != null and user_password != null">
+			and (sdu.user_code = #{user_code} and sdu.user_password = #{user_password})
+		</if>
+		<if test="user_real_name != null and user_real_name != ''">
+			and (sdu.user_real_name LIKE CONCAT(CONCAT('%', #{user_real_name}),'%') or sdu.user_code LIKE CONCAT(CONCAT('%', #{user_real_name}),'%') )
+		</if>
+		<if test="user_mobile_1 != null and user_mobile_1 != ''">
+			and sdu.user_mobile_1 LIKE CONCAT(CONCAT('%', #{user_mobile_1}),'%')
+		</if>
+		<if test="user_status != null and user_status != ''">
+			and sdu.user_status = 1
+		</if>
+		<if test="freeze_status != null and freeze_status != ''">
+			and sdu.freeze_status = 0
+		</if>
+		<if test="user_type != null and user_type != ''">
+			and sdu.user_type = #{user_type}
+		</if>
+		and not exists(select 1 from  (SELECT * FROM v_user WHERE obj_type=2) tmp
+		LEFT JOIN s_d_organization o
+		ON tmp.obj_id = o.id LEFT JOIN s_d_farm f on f.id = o.organization_id where sdu.id = tmp.id and o.freeze_status = 0 and f.farm_add1 is not null)
+		<if test="id != null and id != ''">
+			and (sdu.create_person = #{id}
+			or sdu.modify_person = #{id}
+			or (sdu.id in (select distinct vu1.id from v_user vu1
+			join (select distinct role_level,role_temp_id
+			from v_user
+			where id = #{id}
+			and obj_type=1) vu2
+			on vu1.role_level >= vu2.role_level
+			and vu1.role_temp_id >= (CASE WHEN vu2.role_temp_id = 1 THEN 1
+			WHEN vu2.role_temp_id = 2 THEN 2 ELSE vu2.role_temp_id END)
+			where vu1.obj_type=1)
+			and sdu.id in (select distinct vu1.id from v_user vu1
+			join (select
+			b.id obj_id
+			from (select distinct obj_id,role_level
+			from v_user
+			where id = #{id}
+			and obj_type=2) a
+			join s_d_organization b
+			on a.obj_id = b.id
+			and a.role_level = b.level_id) vu2
+			on vu1.obj_id = vu2.obj_id
+			where vu1.obj_type=2))
+			)
+		</if>
+		group by sdu.id
+		order by sdu.create_date desc
+	</select>
+	<!-- 根据用户id查询用户栋舍 -->
+	<select id="findUserHouseCode" parameterType="pd" resultType="pd" useCache="false">
+		SELECT  s_d_house.id, 
+		        s_d_house.house_code, 
+		        s_d_house.house_name,
+		        s_b_user_house.user_id,
+		        s_b_user_house.user_code,
+		        s_b_user_house.farm_id
+		 FROM   s_d_house  
+		 left join s_b_user_house on s_b_user_house.house_id=s_d_house.id
+		 where 1=1
+		<if test="farm_id != null and farm_id != ''">
+			and s_b_user_house.farm_id=#{farm_id}
+		</if>
+		<if test="user_id != null and user_id != ''">
+			and s_b_user_house.user_id=#{user_id}
+		</if>
+	</select>
+	
+
+	
+	
+	<!-- 新增用户 -->
+	<insert id="saveUser" parameterType="pd"  flushCache="false" useGeneratedKeys="true" keyProperty="id">
+		insert into s_d_user (
+			user_code,
+			user_real_name,
+			user_real_name_en,
+			user_password,
+			user_mobile_1,
+			user_status,
+			user_type,
+			freeze_status,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (
+			#{user_code},
+			#{user_real_name},
+			#{user_real_name_en},
+			#{user_password},
+			#{user_mobile_1},
+			#{user_status},
+			#{user_type},
+			#{freeze_status},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	
+	<!-- 新增用户所属农场 -->
+	<insert id="saveUserFarm" parameterType="pd" flushCache="false">
+		insert into s_b_user_farm (
+			user_id,
+			user_code,
+			farm_id,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (
+			#{user_id},
+			#{user_code},
+			#{farm_id},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	<!-- 删除用户所属农场 -->
+	<delete id="delUserFarm" parameterType="pd" flushCache="false">
+		delete from s_b_user_farm
+		where  user_id =#{user_id}
+	</delete>
+	<!-- 新增用户所属栋舍 -->
+	<insert id="saveUserHouse" parameterType="pd" flushCache="false">
+		insert into s_b_user_house (
+			user_id,
+			user_code,
+			farm_id,
+			house_id,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (
+			#{user_id},
+			#{user_code},
+			#{farm_id},
+			#{house_id},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	<!-- 删除用户所属栋舍 -->
+	<delete id="delUserHouse" parameterType="pd" flushCache="false">
+		delete from s_b_user_house
+		where  user_id =#{user_id} and farm_id=#{farm_id}
+	</delete>
+	
+	<!-- 修改用户信息 -->
+	<update id="editUser" parameterType="pd" flushCache="false">
+		update  s_d_user
+			set modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			<if test="user_real_name != null and user_real_name != ''">
+				,user_real_name				= #{user_real_name}
+			</if>
+			<if test="user_real_name_en != null and user_real_name_en != ''">
+				,user_real_name_en			 = #{user_real_name_en}
+			</if>
+			<if test="user_password != null and user_password != ''">
+				,user_password			 = #{user_password}
+			</if>
+			<if test="user_mobile_1 != null and user_mobile_1 != ''">
+				,user_mobile_1			 = #{user_mobile_1}
+			</if>
+			<if test="user_status != null and user_status != ''">
+				,user_status			 = #{user_status}
+			</if>
+			<if test="freeze_status != null and freeze_status != ''">
+				,freeze_status			 = #{freeze_status}
+			</if>
+			<if test="user_type != null and user_type != ''">
+				,user_type			 = #{user_type}
+			</if>
+			where 
+				id = #{id}
+	</update>
+
+	<!-- 根据用户ID获取权限 -->
+	<select id="getUserRights" parameterType="pd" resultType="pd" useCache="false">
+	select
+		  id,
+		  user_code,
+		  user_real_name,
+		  user_real_name_en,
+		  user_password,
+		  user_mobile_1,
+		  user_mobile_2,
+		  user_tel_1,
+		  user_tel_2,
+		  user_email,
+		  user_status,
+		  freeze_status,
+		  memo_1,
+		  memo_2,
+		  memo_3,
+		  memo_4,
+		  create_person,
+		  create_date,
+		  create_time,
+		  modify_person,
+		  modify_date,
+		  modify_time,
+		  role_id,
+		  rights_id,
+		  write_read,
+		  obj_type,
+		  obj_id,
+		  role_level,
+		  role_temp_id
+	  from v_user
+	  where 1=1
+		<if test="obj_type != null and obj_type != ''">
+			and obj_type = ${obj_type}
+		</if>
+		<if test="user_id != null and user_id != ''">
+			and id = ${user_id}
+		</if>
+		<if test="menu_id != null and menu_id != ''">
+			and obj_id = ${menu_id}
+		</if>
+	</select>
+
+	<select id="getUserHouses" parameterType="pd" resultType="pd" useCache="false">
+		SELECT
+		u.user_code,
+		u.role_id,
+		u.obj_id house_id,
+		o.name_cn,
+		d.device_code,
+		h.house_type,
+		c.code_name,
+		b.batch_id,
+		b.status
+		FROM v_user u
+		LEFT JOIN s_d_organization o ON o.id = u.obj_id
+		LEFT JOIN s_b_devi_house d ON d.house_id = u.obj_id
+		LEFT JOIN s_b_batch_curr b on b.house_code = u.obj_id
+		LEFT JOIN s_d_house h on h.id = u.obj_id
+		LEFT JOIN s_d_code c on h.house_type = c.biz_code AND code_type = 'HOUSE_TYPE'
+		WHERE u.id = ${user_id}
+		AND u.obj_type = ${obj_type}
+		AND h.freeze_status = 0
+		AND o.freeze_status = 0
+		<if test="farm_id != null and farm_id != ''">
+			AND o.parent_id = ${farm_id}
+		</if>
+		AND o.level_id = (SELECT max(level_id) FROM s_d_organization)
+	</select>
+	
+</mapper>

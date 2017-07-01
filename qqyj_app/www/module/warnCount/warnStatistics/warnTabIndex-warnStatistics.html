@@ -1,0 +1,17 @@
+<ion-view view-title="envWarnChart" id="warnStatisticsView">
+  <div id="mainContent" style="background: #FFF; position: absolute; width: 100%;">
+              <!-- <p style="position: relative;top: 80px; width: 100%;" align="center">模块正在开发中...</p> -->
+
+  	<div id="main" style = "position: relative;width: 100%;height: 85%;"></div>
+  	<table style="position: relative; left: 1%; width: 98%;height: 30px;">
+          <tr>
+            <td  ng-click="chooseHouse('all')" id="allButton">
+              <p style="color: #FFF;position: relative;top: 5px;" align="center">全场</p>
+            </td>
+            <td ng-repeat="item in sparraw_user_temp.houseinfos" id="IDis{{item.id}}" ng-click="chooseHouse(item.id)">
+              <p style="color: #FFF;position: relative;top: 5px;" align="center">{{item.name}}栋</p>
+            </td>
+          </tr>
+         </table>
+  </div>
+</ion-view>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="VideoMonitorMapper">
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+    <select id="selectByCondition" resultType="pd" useCache="false">
+      SELECT farm_id,
+              house_code,
+              Camera_ip,
+              port_id,
+              channl_id
+      FROM s_d_camera_house_rela
+      WHERE farm_id = #{farmId} AND house_code = #{houseCode}
+    </select>
+</mapper>

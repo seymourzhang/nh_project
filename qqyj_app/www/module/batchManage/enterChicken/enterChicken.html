@@ -1,0 +1,160 @@
+<ion-view>
+<div class="bar bar-header bar-balanced" style="background: #33cd5f;">
+  <a class="button icon ion-chevron-left button-clear" ui-sref="batchManage"></a>
+    <h1 class="title">
+      进鸡
+    </h1>
+</div>
+    <ion-content class="has-header" style="background: rgba(239, 239, 244, 1);">
+    		
+
+            <label class="item item-input showFontColor">
+                <span class="input-label"><strong>发雏批次</strong></span> 
+                <i class="icon ion-ios-arrow-forward"></i> 
+                <span>{{enterChickenData.youthInfos.childBatchNo}}</span>
+              </label>
+
+            <label class="item item-input item-select"> 
+  	          <span class="input-label" style="color: #000;"><strong>请选栋舍</strong></span>
+  	            <i class="icon ion-ios-arrow-forward"></i> 
+  	              <select ng-model="enterChickenData.selectHouse"
+  	                      ng-change="judgeHouse()"> 
+  	                  <option value        =  "{{item}}" 
+  	                          ng-repeat    =  "item in enterChickenData.HouseList"
+  	                          ng-selected  =  "item == enterChickenData.selectHouse">
+  	                          {{item.name}}栋
+  	                  </option> 
+  	              </select> 
+  	        </label>
+
+	          
+
+
+
+            <div ng-show="showDiv" class="showFontColor">
+              <label class="item item-input">
+                <span class="input-label">进鸡批次</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <span>{{enterChickenData.youthInfos.youthBatchNo}}</span>
+              </label>
+              <label class="item item-input">
+                <span class="input-label">进鸡数量</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <span>{{enterChickenData.youthInfos.placeNum}}</span>
+              </label>
+
+              <label class="item item-input">
+                <span class="input-label">生长日龄</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <span>{{enterChickenData.youthInfos.growthAge}}</span>
+              </label>
+
+              <label class="item item-input">
+                <span class="input-label">进鸡日期</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <span>{{enterChickenData.youthInfos.placeDate}}</span>
+              </label>
+
+              <label class="item item-input">
+                <span class="input-label">品种</span> 
+                <i class="icon ion-ios-arrow-forward"></i> 
+                <span>{{enterChickenData.youthInfos.variety}}</span>
+              </label>
+
+              <label class="item item-input">
+                <span class="input-label">雏鸡来源</span> 
+                <i class="icon ion-ios-arrow-forward"></i> 
+                <span>{{enterChickenData.youthInfos.corporation}}</span>
+              </label>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div ng-show="editDiv">
+              <label class="item item-input">
+                <span class="input-label fontColor">进鸡批次</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <input type="text" id="youthBatchNoInput"  ng-model="enterChickenData.youthInfos.youthBatchNo" placeholder="请输入" style="background: #FFF;"/>
+              </label>
+
+              <label class="item item-input">
+                <span class="input-label fontColor">进鸡数量</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <input type="tel" ng-model="enterChickenData.youthInfos.placeNum" placeholder="请输入"/>
+              </label>
+
+              <label class="item item-input">
+                <span class="input-label fontColor">生长日龄</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <input type="tel" ng-model="enterChickenData.youthInfos.growthAge" placeholder="请输入"/>
+              </label>
+
+              <label class="item item-input">
+                <span class="input-label fontColor">进鸡日期</span> 
+                <i class="icon ion-ios-arrow-forward"></i>
+                <input style="background: #FFF; box-shadow: 0px 0 0 #FFF,0 0px 0 #FFF,0 0px 0 #FFF,0px 0 0 #FFF;" ng-model="enterChickenData.youthInfos.placeDate" type="text" placeholder="请点击选择" readonly="readonly" placeholder="请输入" ng-click="clickDateInput(enterChickenData.youthInfos.placeDate)">
+              </label>
+
+
+        			<label class="item item-input item-select" style="border:solid 0px #fff; border-bottom:solid 1px #878787;  position: relative;  top:0rem;  left:0rem; height:3rem; width:100%; "> 
+        					<span class="input-label" style="color: rgba(47, 127, 255, 1)">品种</span>
+        					<i class="icon ion-ios-arrow-forward"></i> 
+        					<select ng-model="enterChickenData.selectVariety"
+        					      	ng-change="getCorporationList()"> 
+                    <option value="">请选择</option>
+        					  <option value        =  "{{item}}" 
+        					          ng-repeat    =  "item in enterChickenData.varietyList"
+        					          ng-selected  =  "item == enterChickenData.selectVariety">
+        					          {{item.showName}}
+        					  </option> 
+        					</select> 
+        			</label>
+              <label class="item item-input item-select" style="border:solid 0px #fff; border-bottom:solid 1px #878787;  position: relative;  top:0rem;  left:0rem; height:3rem; width:100%; "> 
+                  <span class="input-label" style="color: rgba(47, 127, 255, 1)">雏鸡来源</span>
+                  <i class="icon ion-ios-arrow-forward"></i> 
+                  <select ng-model="enterChickenData.selectCorporation"
+                          ng-change="judgeCorporation()">
+                    <option value="">请选择</option> 
+                    <option value        =  "{{item}}" 
+                            ng-repeat    =  "item in enterChickenData.corporationList"
+                            ng-selected  =  "item == enterChickenData.selectCorporation">
+                            {{item.showName}}
+                    </option> 
+                  </select> 
+              </label>
+            </div>
+            
+            <br />
+            <div style="position: relative;width: 100%;height: 43px;background: rgba(239, 239, 244, 1);" class="middle">
+              <a id              =  "saveBtn"
+              	 class           =  "button  button-balanced saveBtn"
+                 style           =  "background: #33cd5f; border: solid 1px rgba(239, 239, 244, 1);" 
+                 ng-click        =  "clickSave()">
+                 进   鸡
+              </a>
+            </div>
+            
+
+    </ion-content>
+</ion-view>
+
+
+
+<!-- “houseName":"01栋"   -栋舍名称
+”youthBatchNo":"",      -进鸡批次
+”variety":"",                -品种
+"corporation":"",          -雏鸡来源
+“growthAge":"",           -生长日龄
+"placeDate":"",            -进鸡日期
+"placeNum":""             -进鸡数量 -->

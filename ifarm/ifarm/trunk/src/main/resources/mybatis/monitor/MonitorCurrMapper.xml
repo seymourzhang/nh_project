@@ -1,0 +1,1924 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="MonitorCurrMapper" >
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <select id="selectAll" resultType="pd" useCache="false">
+        SELECT mc.id
+        , o.parent_id corporation_id
+        , mc.farm_id
+        , mc.house_id
+        , sg.M_category
+        , DATE_FORMAT(mc.collect_datetime,'%H:%i:%s') collect_datetime
+        , mc.deal_status
+        , (select code_name from s_d_code g where g.code_type = 'ALARM_CODE' and mc.alarm_code = g.biz_code) alarm_code
+        , ifnull(if(truncate(mc.date_age, 1)=-99, '-', truncate(mc.date_age, 1)),"-") date_age
+        , mc.week_age
+        ,ifnull(if(truncate(mc.inside_temp1, 1)=-99, '-', truncate(mc.inside_temp1, 1)),"-") inside_temp1
+        ,ifnull(if(truncate(mc.inside_temp2, 1)=-99, '-', truncate(mc.inside_temp2, 1)),"-") inside_temp2
+        ,ifnull(if(truncate(mc.inside_temp3, 1)=-99, '-', truncate(mc.inside_temp3, 1)),"-") inside_temp3
+        ,ifnull(if(truncate(mc.inside_temp4, 1)=-99, '-', truncate(mc.inside_temp4, 1)),"-") inside_temp4
+        ,ifnull(if(truncate(mc.inside_temp5, 1)=-99, '-', truncate(mc.inside_temp5, 1)),"-") inside_temp5
+        ,ifnull(if(truncate(mc.inside_temp6, 1)=-99, '-', truncate(mc.inside_temp6, 1)),"-") inside_temp6
+        ,ifnull(if(truncate(mc.inside_temp7, 1)=-99, '-', truncate(mc.inside_temp7, 1)),"-") inside_temp7
+        ,ifnull(if(truncate(mc.inside_temp8, 1)=-99, '-', truncate(mc.inside_temp8, 1)),"-") inside_temp8
+        ,ifnull(if(truncate(mc.inside_temp9, 1)=-99, '-', truncate(mc.inside_temp9, 1)),"-") inside_temp9
+        ,ifnull(if(truncate(mc.inside_temp10, 1)=-99, '-', truncate(mc.inside_temp10, 1)),"-") inside_temp10
+        ,ifnull(if(truncate(mc.inside_temp11, 1)=-99, '-', truncate(mc.inside_temp11, 1)),"-") inside_temp11
+        ,ifnull(if(truncate(mc.inside_temp12, 1)=-99, '-', truncate(mc.inside_temp12, 1)),"-") inside_temp12
+        ,ifnull(if(truncate(mc.inside_temp13, 1)=-99, '-', truncate(mc.inside_temp13, 1)),"-") inside_temp13
+        ,ifnull(if(truncate(mc.inside_temp14, 1)=-99, '-', truncate(mc.inside_temp14, 1)),"-") inside_temp14
+        ,ifnull(if(truncate(mc.inside_temp15, 1)=-99, '-', truncate(mc.inside_temp15, 1)),"-") inside_temp15
+        ,ifnull(if(truncate(mc.inside_temp16, 1)=-99, '-', truncate(mc.inside_temp16, 1)),"-") inside_temp16
+        ,ifnull(if(truncate(mc.inside_temp17, 1)=-99, '-', truncate(mc.inside_temp17, 1)),"-") inside_temp17
+        ,ifnull(if(truncate(mc.inside_temp18, 1)=-99, '-', truncate(mc.inside_temp18, 1)),"-") inside_temp18
+        ,ifnull(if(truncate(mc.inside_temp19, 1)=-99, '-', truncate(mc.inside_temp19, 1)),"-") inside_temp19
+        ,ifnull(if(truncate(mc.inside_temp20, 1)=-99, '-', truncate(mc.inside_temp20, 1)),"-") inside_temp20
+        ,ifnull(if(truncate(mc.inside_temp21, 1)=-99, '-', truncate(mc.inside_temp21, 1)),"-") inside_temp21
+        ,ifnull(if(truncate(mc.inside_temp22, 1)=-99, '-', truncate(mc.inside_temp22, 1)),"-") inside_temp22
+        ,ifnull(if(truncate(mc.inside_temp23, 1)=-99, '-', truncate(mc.inside_temp23, 1)),"-") inside_temp23
+        ,ifnull(if(truncate(mc.inside_temp24, 1)=-99, '-', truncate(mc.inside_temp24, 1)),"-") inside_temp24
+        ,ifnull(if(truncate(mc.inside_temp25, 1)=-99, '-', truncate(mc.inside_temp25, 1)),"-") inside_temp25
+        ,ifnull(if(truncate(mc.inside_temp26, 1)=-99, '-', truncate(mc.inside_temp26, 1)),"-") inside_temp26
+        ,ifnull(if(truncate(mc.inside_temp27, 1)=-99, '-', truncate(mc.inside_temp27, 1)),"-") inside_temp27
+        , ifnull(if(truncate(mc.inside_avg_temp, 1)=-99, '-', truncate(mc.inside_avg_temp, 1)),"-") inside_avg_temp
+        , ifnull(if(truncate(mc.inside_set_temp, 1)=-99, '-', truncate(mc.inside_set_temp, 1)),"-") inside_set_temp
+        , ifnull(if(truncate(mc.high_alarm_temp, 1)=-99, '-', truncate(mc.high_alarm_temp, 1)),"-") high_alarm_temp
+        , ifnull(if(truncate(mc.low_alarm_temp, 1)=-99, '-', truncate(mc.low_alarm_temp, 1)),"-") low_alarm_temp
+        , ifnull(ifnull(if(truncate(mc.outside_temp, 1)=-99, null, truncate(mc.outside_temp, 1)),null), ifnull(truncate(sbmcf.outside_temp,1), ifnull(truncate(sbmc.outside_temp,1),'-') )) outside_temp
+        , mc.outside_temp outside_temp_house
+        , ifnull(if(truncate(mc.inside_humidity, 1)=-99, '-', truncate(mc.inside_humidity, 1)),"-") inside_humidity
+        , ifnull(if(truncate(mc.point_temp_diff, 1)=-99, '-', truncate(mc.point_temp_diff, 1)),"-") point_temp_diff
+        , ifnull(if(truncate(mc.target_humidity, 1)=-99, '-', truncate(mc.target_humidity, 1)),"-") target_humidity
+        , ifnull(if(truncate(mc.co2, 1)=-99, '-', truncate(mc.co2, 1)),"-") co2
+        , ifnull(if(truncate(mc.high_alarm_co2, 1)=-99, '-', truncate(mc.high_alarm_co2, 1)),"-") high_alarm_co2
+        , ifnull(if(truncate(mc.lux, 1)=-99, '-', truncate(mc.lux, 1)),"-") lux
+        , ifnull(if(truncate(mc.high_lux, 1)=-99, '-', truncate(mc.high_lux, 1)),"-") high_lux
+        , ifnull(if(truncate(mc.low_lux, 1)=-99, '-', truncate(mc.low_lux, 1)),"-") low_lux
+        , ifnull(if(truncate(mc.is_lux, 0)=-99, '-', truncate(mc.is_lux, 0)),"-") is_lux
+        , mc.power_status
+        , mc.update_datetime
+        , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") small_fan
+        , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") fl
+        , ifnull(if(truncate(mc.larger_fan, 0)=-99, '-', truncate(mc.larger_fan, 0)),"-") larger_fan
+        , ifnull(if(truncate(mc.refrigeration, 0)=-99, '-', truncate(mc.refrigeration, 0)),"-") refrigeration
+        , ifnull(if(truncate(mc.heating, 0)=-99, '-', truncate(mc.heating, 0)),"-") heating
+        , ifnull(if(truncate(mc.fenestella, 0)=-99, '-', truncate(mc.fenestella, 0)),"-") fenestella
+        , ifnull(if(truncate(mc.Tunnel, 0)=-99, '-', truncate(mc.Tunnel, 0)),"-") Tunnel
+        , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)),"-") water_consumption
+        , ifnull(if(truncate(mc.negative_pressure, 1)=-99, '-', truncate(mc.negative_pressure, 1)),"-") negative_pressure
+        , c.code_name refrigeration_name
+        , d.code_name heating_name
+        , e.code_name fenestella_name
+        , f.farm_name_chs farm_name
+        , h.house_name house_name
+        ,  CONCAT(mc.farm_id,"-",mc.house_id,"-",mc.batch_no) batch_no
+        , ifnull(if(truncate(p.point_alarm, 1)=-99, '-', truncate(p.point_alarm, 1)),"-") point_alarm
+        , ifnull(if(truncate(mc.high_temp_warning, 1)=-99, '-', truncate(mc.high_temp_warning, 1)),"-") high_temp_warning
+        , ifnull(if(truncate(mc.low_temp_warning, 1)=-99, '-', truncate(mc.low_temp_warning, 1)),"-") low_temp_warning
+        , ifnull(if(truncate(mc.high_lux_warning, 1)=-99, '-', truncate(mc.high_lux_warning, 1)),"-") high_lux_warning
+        , ifnull(if(truncate(mc.low_lux_warning, 1)=-99, '-', truncate(mc.low_lux_warning, 1)),"-") low_lux_warning
+        , ifnull(if(truncate(mc.high_co2_warning, 1)=-99, '-', truncate(mc.high_co2_warning, 1)),"-") high_co2_warning
+        , ifnull(if(truncate(mc.feed, 1)=-99, '-', truncate(mc.feed, 1)),"-") feed
+        , ifnull(if(truncate(mc.high_humidity_warning, 1)=-99, '-', truncate(mc.high_humidity_warning, 1)),"-") high_humidity_warning
+        , ifnull(if(truncate(mc.low_humidity_warning, 1)=-99, '-', truncate(mc.low_humidity_warning, 1)),"-") low_humidity_warning
+        , ifnull(if(truncate(mc.high_negative_pressure_warning, 1)=-99, '-', truncate(mc.high_negative_pressure_warning, 1)),"-") high_negative_pressure_warning
+        , ifnull(if(truncate(mc.low_negative_pressure_warning, 1)=-99, '-', truncate(mc.low_negative_pressure_warning, 1)),"-") low_negative_pressure_warning
+        , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)),"-") ammonia_1
+        , ifnull(if(truncate(mc.ammonia_2, 1)=-99, '-', truncate(mc.ammonia_2, 1)),"-") ammonia_2
+        , ifnull(if(truncate(mc.ammonia_3, 1)=-99, '-', truncate(mc.ammonia_3, 1)),"-") ammonia_3
+        , ifnull(if(truncate(mc.ammonia_4, 1)=-99, '-', truncate(mc.ammonia_4, 1)),"-") ammonia_4
+        , DATE_FORMAT(mc.collect_datetime,'%Y/%m/%d') collect_date
+        , ifnull(h.sensor_count,-99) sensor_count
+        , g.code_name vaporization_namme
+        , ifnull(if(truncate(mc.vent_mode_1, 1)='-99', '-', mc.vent_mode_1),"-") vent_mode_1
+        , ifnull(if(truncate(mc.dev_set_temp, 1)=-99, '-', truncate(mc.dev_set_temp, 1)),"-") dev_set_temp
+        , ifnull(if(truncate(mc.dev_heat_temp, 1)=-99, '-', truncate(mc.dev_heat_temp, 1)),"-") dev_heat_temp
+        , ifnull(if(truncate(mc.dev_cool_temp, 1)=-99, '-', truncate(mc.dev_cool_temp, 1)),"-") dev_cool_temp
+        , ifnull(if(truncate(mc.dev_set_humidity, 1)=-99, '-', truncate(mc.dev_set_humidity, 1)),"-") dev_set_humidity
+        , ifnull(if(truncate(mc.dev_set_pressure, 1)=-99, '-', truncate(mc.dev_set_pressure, 1)),"-") dev_set_pressure
+        , h.house_type
+        FROM s_b_monitor_curr mc
+        LEFT JOIN s_d_code c
+        ON mc.refrigeration= c.biz_code and c.code_type = 'KGZT'
+        LEFT JOIN s_d_code d
+        ON mc.heating= d.biz_code and d.code_type = 'KGZT'
+        LEFT JOIN s_d_code g
+        ON mc.vaporization= g.biz_code and g.code_type = 'KGZT'
+        LEFT JOIN s_d_code e
+        ON mc.fenestella= e.biz_code and e.code_type = 'KGZT'
+        LEFT JOIN s_d_farm f
+        ON mc.farm_id= f.id
+        LEFT JOIN s_d_house h
+        ON mc.house_id= h.id
+        LEFT JOIN (select farm_id,house_id,max(point_alarm) point_alarm from s_b_house_alarm group by farm_id,house_id) p
+        ON mc.farm_id = p.farm_id
+        and mc.house_id = p.house_id
+        LEFT JOIN s_d_organization o
+        ON f.id = o.organization_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_id from s_b_monitor_curr where show_flag=1 group by farm_id) sbmcf
+        ON sbmcf.farm_id = mc.farm_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_add3 from s_b_monitor_curr LEFT JOIN s_d_farm sdf ON  farm_id= sdf.id where show_flag=1 group by farm_add3) sbmc
+        ON sbmc.farm_add3 = f.farm_add3
+        LEFT JOIN (select bc.farm_id,bc.variety_id,bc.status,bc.is_enable from s_b_batch_curr bc where bc.status = 1 and bc.is_enable = 1 group by bc.farm_id) sdbc
+        ON mc.farm_id = sdbc.farm_id
+        LEFT JOIN s_d_goods sg
+        ON sdbc.variety_id = sg.good_id
+        WHERE mc.show_flag=1
+        <if test="user_id != null and user_id !=''">
+            AND EXISTS (select DISTINCT obj_id from v_user vu where vu.id=#{user_id} and vu.obj_type=2 and (vu.obj_id = mc.farm_id or vu.obj_id = mc.house_id))
+        </if>
+        <if test="isShowEmptyHouse != null and isShowEmptyHouse == 'false'">
+            and mc.batch_no is not null
+        </if>
+        <if test="isShowEmptyHouse = null">
+            and mc.batch_no is not null
+        </if>
+        ORDER BY f.farm_name_chs,h.house_name
+    </select>
+
+    <select id="selectAllForMobile" resultType="pd" useCache="false">
+        SELECT f.farm_name_chs FarmName
+                , o.parent_id corporation_id
+                , f.id FarmId
+                , h.house_name houseName
+                , h.id HouseId
+                , mc.date_age dayAge
+                , (case when mc.alarm_code=9 then 1 else 0 end) isAlarm
+                , (select code_name from s_d_code g where g.code_type = 'ALARM_CODE' and mc.alarm_code = g.biz_code) alarmName
+                , concat('{"tar_temp":"',format(ifnull(mc.inside_set_temp,0),1),'",'
+                            ,'"out_temp":"',format(ifnull(mc.outside_temp,0),1),'",'
+                            ,'"avg_temp":"',format(ifnull(mc.inside_avg_temp,0),1),'",'
+                            ,'"temp_diff":"',format(ifnull(mc.inside_avg_temp,0)-ifnull(mc.inside_set_temp,0),1),'",'
+                            ,'"in_temp1":"',format(ifnull(mc.inside_temp1,0),1),'",'
+                            ,'"in_temp2":"',format(ifnull(mc.inside_temp2,0),1),'",'
+                            ,'"in_temp3":"',format(ifnull(mc.inside_temp3,0),1),'",'
+                            ,'"in_temp4":"',format(ifnull(mc.inside_temp4,0),1),'"}'
+                            ) tempInfo
+                , format(mc.inside_humidity,0) inside_humidity
+                , mc.water_consumption
+                , format(mc.co2,1) co2
+                , format(mc.negative_pressure,1) negative_pressure
+                , mc.small_fan
+                , mc.larger_fan
+                , e.code_name fenestella_name
+                , d.code_name heating_name
+                , c.code_name refrigeration_name
+                , DATE_FORMAT(mc.update_datetime,'%H:%i:%s') collect_datetime
+        FROM s_b_monitor_curr mc
+        LEFT JOIN s_d_code c
+        ON mc.refrigeration= c.biz_code and c.code_type = 'KGZT'
+        LEFT JOIN s_d_code d
+        ON mc.heating= d.biz_code and d.code_type = 'KGZT'
+        LEFT JOIN s_d_code e
+        ON mc.fenestella= e.biz_code and e.code_type = 'KGZT'
+        LEFT JOIN s_d_farm f
+        ON mc.farm_id= f.id
+        LEFT JOIN s_d_house h
+        ON mc.house_id= h.id
+        LEFT JOIN s_d_organization o
+        ON f.id = o.organization_id
+        WHERE mc.show_flag=1
+        ORDER BY f.farm_name_chs,h.house_name
+    </select>
+
+    <select id="selectByCondition" resultType="pd" useCache="false">
+        SELECT mc.id
+        , o.parent_id corporation_id
+        , mc.farm_id
+        , mc.house_id
+        , sg.M_category
+        , DATE_FORMAT(mc.collect_datetime,'%H:%i:%s') collect_datetime
+        , DATE_FORMAT(mc.collect_datetime,'%Y-%m-%d %H:%i:%s') collect_datetime2
+        , mc.deal_status
+        , mc.alarm_code biz_code
+        , g.code_name alarm_code
+        , ifnull(if(truncate(mc.date_age, 1)=-99, '-', truncate(mc.date_age, 1)),"-") date_age
+        , mc.week_age
+        , mc.show_flag
+        ,ifnull(if(truncate(mc.inside_temp1, 1)=-99, '-', truncate(mc.inside_temp1, 1)),"-") inside_temp1
+        ,ifnull(if(truncate(mc.inside_temp2, 1)=-99, '-', truncate(mc.inside_temp2, 1)),"-") inside_temp2
+        ,ifnull(if(truncate(mc.inside_temp3, 1)=-99, '-', truncate(mc.inside_temp3, 1)),"-") inside_temp3
+        ,ifnull(if(truncate(mc.inside_temp4, 1)=-99, '-', truncate(mc.inside_temp4, 1)),"-") inside_temp4
+        ,ifnull(if(truncate(mc.inside_temp5, 1)=-99, '-', truncate(mc.inside_temp5, 1)),"-") inside_temp5
+        ,ifnull(if(truncate(mc.inside_temp6, 1)=-99, '-', truncate(mc.inside_temp6, 1)),"-") inside_temp6
+        ,ifnull(if(truncate(mc.inside_temp7, 1)=-99, '-', truncate(mc.inside_temp7, 1)),"-") inside_temp7
+        ,ifnull(if(truncate(mc.inside_temp8, 1)=-99, '-', truncate(mc.inside_temp8, 1)),"-") inside_temp8
+        ,ifnull(if(truncate(mc.inside_temp9, 1)=-99, '-', truncate(mc.inside_temp9, 1)),"-") inside_temp9
+        ,ifnull(if(truncate(mc.inside_temp10, 1)=-99, '-', truncate(mc.inside_temp10, 1)),"-") inside_temp10
+        ,ifnull(if(truncate(mc.inside_temp11, 1)=-99, '-', truncate(mc.inside_temp11, 1)),"-") inside_temp11
+        ,ifnull(if(truncate(mc.inside_temp12, 1)=-99, '-', truncate(mc.inside_temp12, 1)),"-") inside_temp12
+        ,ifnull(if(truncate(mc.inside_temp13, 1)=-99, '-', truncate(mc.inside_temp13, 1)),"-") inside_temp13
+        ,ifnull(if(truncate(mc.inside_temp14, 1)=-99, '-', truncate(mc.inside_temp14, 1)),"-") inside_temp14
+        ,ifnull(if(truncate(mc.inside_temp15, 1)=-99, '-', truncate(mc.inside_temp15, 1)),"-") inside_temp15
+        ,ifnull(if(truncate(mc.inside_temp16, 1)=-99, '-', truncate(mc.inside_temp16, 1)),"-") inside_temp16
+        ,ifnull(if(truncate(mc.inside_temp17, 1)=-99, '-', truncate(mc.inside_temp17, 1)),"-") inside_temp17
+        ,ifnull(if(truncate(mc.inside_temp18, 1)=-99, '-', truncate(mc.inside_temp18, 1)),"-") inside_temp18
+        ,ifnull(if(truncate(mc.inside_temp19, 1)=-99, '-', truncate(mc.inside_temp19, 1)),"-") inside_temp19
+        ,ifnull(if(truncate(mc.inside_temp20, 1)=-99, '-', truncate(mc.inside_temp20, 1)),"-") inside_temp20
+        ,ifnull(if(truncate(mc.inside_temp21, 1)=-99, '-', truncate(mc.inside_temp21, 1)),"-") inside_temp21
+        ,ifnull(if(truncate(mc.inside_temp22, 1)=-99, '-', truncate(mc.inside_temp22, 1)),"-") inside_temp22
+        ,ifnull(if(truncate(mc.inside_temp23, 1)=-99, '-', truncate(mc.inside_temp23, 1)),"-") inside_temp23
+        ,ifnull(if(truncate(mc.inside_temp24, 1)=-99, '-', truncate(mc.inside_temp24, 1)),"-") inside_temp24
+        ,ifnull(if(truncate(mc.inside_temp25, 1)=-99, '-', truncate(mc.inside_temp25, 1)),"-") inside_temp25
+        ,ifnull(if(truncate(mc.inside_temp26, 1)=-99, '-', truncate(mc.inside_temp26, 1)),"-") inside_temp26
+        ,ifnull(if(truncate(mc.inside_temp27, 1)=-99, '-', truncate(mc.inside_temp27, 1)),"-") inside_temp27
+        , ifnull(if(truncate(mc.inside_avg_temp, 1)=-99, '-', truncate(mc.inside_avg_temp, 1)),"-") inside_avg_temp
+        , ifnull(if(truncate(mc.inside_set_temp, 1)=-99, '-', truncate(mc.inside_set_temp, 1)),"-") inside_set_temp
+        , ifnull(if(truncate(mc.high_alarm_temp, 1)=-99, '-', truncate(mc.high_alarm_temp, 1)),"-") high_alarm_temp
+        , ifnull(if(truncate(mc.low_alarm_temp, 1)=-99, '-', truncate(mc.low_alarm_temp, 1)),"-") low_alarm_temp
+        , ifnull(ifnull(if(truncate(mc.outside_temp, 1)=-99, null, truncate(mc.outside_temp, 1)),null), ifnull(truncate(sbmcf.outside_temp,1), ifnull(truncate(sbmc.outside_temp,1),'-') )) outside_temp
+        , mc.outside_temp outside_temp_house
+        , ifnull(if(truncate(mc.inside_humidity, 1)=-99, '-', truncate(mc.inside_humidity, 1)),"-") inside_humidity
+        , ifnull(if(truncate(mc.point_temp_diff, 1)=-99, '-', truncate(mc.point_temp_diff, 1)),"-") point_temp_diff
+        , ifnull(if(truncate(mc.target_humidity, 1)=-99, '-', truncate(mc.target_humidity, 1)),"-") target_humidity
+        , ifnull(if(truncate(mc.co2, 1)=-99, '-', truncate(mc.co2, 1)),"-") co2
+        , ifnull(if(truncate(mc.high_alarm_co2, 1)=-99, '-', truncate(mc.high_alarm_co2, 1)),"-") high_alarm_co2
+        , ifnull(if(truncate(mc.lux, 1)=-99, '-', truncate(mc.lux, 1)),"-") lux
+        , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)), '-') water_consumption
+        , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)), '-') ammonia_1
+        , ifnull(if(truncate(mc.high_lux, 1)=-99, '-', truncate(mc.high_lux, 1)),"-") high_lux
+        , ifnull(if(truncate(mc.low_lux, 1)=-99, '-', truncate(mc.low_lux, 1)),"-") low_lux
+        , ifnull(if(truncate(mc.is_lux, 1)=-99, '-', truncate(mc.is_lux, 1)),"-") is_lux
+        , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)), '-') water_consumption
+        , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)), '-') ammonia_1
+        , ifnull(mc.power_status, "-") power_status
+        , mc.update_datetime
+        , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") small_fan
+        , ifnull(if(truncate(mc.small_fan, 0)=-99, '-', truncate(mc.small_fan, 0)),"-") fl
+        , ifnull(if(truncate(mc.larger_fan, 0)=-99, '-', truncate(mc.larger_fan, 0)),"-") larger_fan
+        , ifnull(if(truncate(mc.refrigeration, 0)=-99, '-', truncate(mc.refrigeration, 0)),"-") refrigeration
+        , ifnull(if(truncate(mc.heating, 0)=-99, '-', truncate(mc.heating, 0)),"-") heating
+        , ifnull(if(truncate(mc.fenestella, 0)=-99, '-', truncate(mc.fenestella, 0)),"-") fenestella
+        , ifnull(if(truncate(mc.Tunnel, 0)=-99, '-', truncate(mc.Tunnel, 0)),"-") Tunnel
+        , ifnull(if(truncate(mc.water_consumption, 1)=-99, '-', truncate(mc.water_consumption, 1)),"-") water_consumption
+        , ifnull(if(truncate(mc.negative_pressure, 1)=-99, '-', truncate(mc.negative_pressure, 1)),"-") negative_pressure
+        , c.code_name refrigeration_name
+        , d.code_name heating_name
+        , e.code_name fenestella_name
+        , f.farm_name_chs farm_name
+        , h.house_name house_name
+        , IFNULL((SELECT (CASE WHEN alarm_code like 'QH%' THEN 'H' WHEN alarm_code like 'QL%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('QH1','QL1','QH2','QL2') LIMIT 1),'N') AS temp_in1_alarm
+        , IFNULL((SELECT (CASE WHEN alarm_code like 'ZH%' THEN 'H' WHEN alarm_code like 'ZL%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('ZH1','ZL1','ZH2','ZL2') LIMIT 1),'N') AS temp_in2_alarm
+        , IFNULL((SELECT (CASE WHEN alarm_code like 'HH%' THEN 'H' WHEN alarm_code like 'HL%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('HH1','HL1','HH2','HL2') LIMIT 1),'N') AS temp_in3_alarm
+        , IFNULL((SELECT (CASE WHEN alarm_code like '%H' THEN 'H' WHEN alarm_code like '%L%' THEN 'L' ELSE 'N' END) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code IN ('PH','PL') LIMIT 1),'N') AS temp_avg_alarm
+        , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code = '6' LIMIT 1) AS point_temp_alarm
+        , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code = '2' LIMIT 1) AS power_status_alarm
+        , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code in ('3','4') LIMIT 1) AS co2_alarm
+        , (SELECT COUNT(1) FROM s_b_alarm_inco al WHERE al.house_id = mc.house_id AND al.alarm_code = '5' LIMIT 1) AS lux_alarm
+        ,  CONCAT(mc.farm_id,"-",mc.house_id,"-",mc.batch_no) batch_no
+        , ifnull(if(truncate(p.point_alarm, 1)=-99, '-', truncate(p.point_alarm, 1)),"-") point_alarm
+        , ifnull(if(truncate(mc.high_temp_warning, 1)=-99, '-', truncate(mc.high_temp_warning, 1)),"-") high_temp_warning
+        , ifnull(if(truncate(mc.low_temp_warning, 1)=-99, '-', truncate(mc.low_temp_warning, 1)),"-") low_temp_warning
+        , ifnull(if(truncate(mc.high_lux_warning, 1)=-99, '-', truncate(mc.high_lux_warning, 1)),"-") high_lux_warning
+        , ifnull(if(truncate(mc.low_lux_warning, 1)=-99, '-', truncate(mc.low_lux_warning, 1)),"-") low_lux_warning
+        , ifnull(if(truncate(mc.high_co2_warning, 1)=-99, '-', truncate(mc.high_co2_warning, 1)),"-") high_co2_warning
+        , ifnull(if(truncate(mc.feed, 1)=-99, '-', truncate(mc.feed, 1)),"-") feed
+        , ifnull(if(truncate(mc.high_humidity_warning, 1)=-99, '-', truncate(mc.high_humidity_warning, 1)),"-") high_humidity_warning
+        , ifnull(if(truncate(mc.low_humidity_warning, 1)=-99, '-', truncate(mc.low_humidity_warning, 1)),"-") low_humidity_warning
+        , ifnull(if(truncate(mc.high_negative_pressure_warning, 1)=-99, '-', truncate(mc.high_negative_pressure_warning, 1)),"-") high_negative_pressure_warning
+        , ifnull(if(truncate(mc.low_negative_pressure_warning, 1)=-99, '-', truncate(mc.low_negative_pressure_warning, 1)),"-") low_negative_pressure_warning
+        , ifnull(if(truncate(mc.ammonia_1, 1)=-99, '-', truncate(mc.ammonia_1, 1)),"-") ammonia_1
+        , ifnull(if(truncate(mc.ammonia_2, 1)=-99, '-', truncate(mc.ammonia_2, 1)),"-") ammonia_2
+        , ifnull(if(truncate(mc.ammonia_3, 1)=-99, '-', truncate(mc.ammonia_3, 1)),"-") ammonia_3
+        , ifnull(if(truncate(mc.ammonia_4, 1)=-99, '-', truncate(mc.ammonia_4, 1)),"-") ammonia_4
+        , DATE_FORMAT(mc.collect_datetime,'%Y/%m/%d') collect_date
+        , ifnull(h.sensor_count,-99) sensor_count
+        , g1.code_name vaporization_namme
+        , ifnull(if(truncate(mc.vent_mode_1, 1)='-99', '-', mc.vent_mode_1),"-") vent_mode_1
+        , ifnull(if(truncate(mc.dev_set_temp, 1)=-99, '-', truncate(mc.dev_set_temp, 1)),"-") dev_set_temp
+        , ifnull(if(truncate(mc.dev_heat_temp, 1)=-99, '-', truncate(mc.dev_heat_temp, 1)),"-") dev_heat_temp
+        , ifnull(if(truncate(mc.dev_cool_temp, 1)=-99, '-', truncate(mc.dev_cool_temp, 1)),"-") dev_cool_temp
+        , ifnull(if(truncate(mc.dev_set_humidity, 1)=-99, '-', truncate(mc.dev_set_humidity, 1)),"-") dev_set_humidity
+        , ifnull(if(truncate(mc.dev_set_pressure, 1)=-99, '-', truncate(mc.dev_set_pressure, 1)),"-") dev_set_pressure
+        , h.house_type
+        FROM s_b_monitor_curr mc
+        LEFT JOIN s_d_code c
+        ON mc.refrigeration= c.biz_code and c.code_type = 'KGZT'
+        LEFT JOIN s_d_code d
+        ON mc.heating= d.biz_code and d.code_type = 'KGZT'
+        LEFT JOIN s_d_code g1
+        ON mc.vaporization= g1.biz_code and g1.code_type = 'KGZT'
+        LEFT JOIN s_d_code e
+        ON mc.fenestella= e.biz_code and e.code_type = 'KGZT'
+        LEFT JOIN s_d_code g
+        ON mc.alarm_code = g.biz_code and g.code_type = 'ALARM_CODE'
+        LEFT JOIN s_d_farm f
+        ON mc.farm_id= f.id
+        LEFT JOIN s_d_house h
+        ON mc.house_id= h.id
+        LEFT JOIN (select farm_id,house_id,max(point_alarm) point_alarm from s_b_house_alarm group by farm_id,house_id) p
+        ON mc.farm_id = p.farm_id
+        and mc.house_id = p.house_id
+        LEFT JOIN s_d_organization o
+        ON f.id = o.organization_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_id from s_b_monitor_curr where show_flag=1 group by farm_id) sbmcf
+        ON sbmcf.farm_id = mc.farm_id
+        LEFT JOIN (select AVG(ifnull(if(truncate(outside_temp, 1)=-99, null, truncate(outside_temp, 1)),null)) outside_temp,farm_add3 from s_b_monitor_curr LEFT JOIN s_d_farm sdf ON  farm_id= sdf.id where show_flag=1 group by farm_add3) sbmc
+        ON sbmc.farm_add3 = f.farm_add3
+        LEFT JOIN (select bc.farm_id,bc.variety_id,bc.status,bc.is_enable from s_b_batch_curr bc where bc.status = 1 and bc.is_enable = 1 group by bc.farm_id) sdbc
+        ON mc.farm_id = sdbc.farm_id
+        LEFT JOIN s_d_goods sg
+        ON sdbc.variety_id = sg.good_id
+        WHERE mc.show_flag=1
+        <if test="user_id != null and user_id !=''">
+            AND EXISTS (select DISTINCT obj_id from v_user vu where vu.id=#{user_id} and vu.obj_type=2 and (vu.obj_id = mc.farm_id or vu.obj_id = mc.house_id))
+        </if>
+        <if test="farmId != null">
+            AND mc.farm_id IN (
+            <foreach collection="farmId" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="houseId != null">
+            AND mc.house_id in (
+            <foreach collection="houseId" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="isShowEmptyHouse != null and isShowEmptyHouse == 'false'">
+            and mc.batch_no is not null
+        </if>
+        <if test="isShowEmptyHouse = null">
+            and mc.batch_no is not null
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id=#{org_id}
+        </if>
+        <if test="appFlag != null and appFlag != ''">
+            AND date_add(mc.collect_datetime,INTERVAL 30 MINUTE) > now()
+        </if>
+        ORDER BY f.farm_name_chs,h.house_name
+    </select>
+
+    <select id="selectAlarmCounts" resultType="pd" useCache="false">
+        select count(*) as num
+        from s_b_alarm_inco
+        where farm_id = ${farmId}
+        and house_id in (${houseId})
+        <if test="deal_status != null and deal_status != ''">
+            and deal_status = #{deal_status}
+        </if>
+    </select>
+
+    <select id="SP_MONITOR" useCache="false">
+        CALL SP_MONITOR()
+    </select>
+
+    <!-- 查询当前登入用户所对应的肉鸡品种类别 -->
+    <select id="selectCategoryType" resultType="pd" useCache="false">
+            SELECT
+            c.biz_code,
+            c.code_name
+            from (select c.biz_code,c.code_name from s_d_code c where code_type = 'breed_type') c
+            left join s_d_goods g
+            on g.category_type = c.biz_code
+            left join s_b_batch_curr bc
+            on bc.variety_id = g.good_id
+            left join s_d_farm f
+            on f.id = bc.farm_id
+            left join v_user u
+            on u.obj_type = 2
+            and u.obj_id = f.id
+            where 1=1
+            and g.M_category =10
+            and u.id = #{user_id}
+            group by c.biz_code
+    </select>
+
+    <!-- 生产监控 -->
+    <!-- 查询肉鸡(农场) -->
+    <select id="selectByRoujiNongchang" resultType="pd" useCache="false">
+        SELECT
+        nc.province,
+        nc.org_id,
+        nc.farm_id,
+        nc.farm_name_chs,
+        nc.farm_user_real_name,
+        nc.farm_user_mobile_1,
+        nc.farm_type,
+        sum(if(nc.house_id >0,1,0)) as house_count,
+        nc.is_mix,
+        max(nc.batch_no) as batch_no,
+        max(nc.age) as age,
+        nc.variety_id,
+        sum(nc.send_child_count) as send_child_count,
+        sum(nc.female_death) as female_death,
+        sum(nc.male_death) as male_death,
+        sum(nc.female_culling) as female_culling,
+        sum(nc.male_culling) as male_culling,
+        sum(nc.female_cur_cd) as female_cur_cd,
+        sum(nc.male_cur_cd) as male_cur_cd,
+        round((sum(nc.female_death)+sum(nc.female_culling))/(sum(nc.female_death)+sum(nc.female_culling)+sum(nc.female_cur_amount))*100,2) as female_cur_cd_rate,
+        round((sum(nc.male_death)+sum(nc.male_culling))/sum(nc.male_cur_amount)*100,2) as male_cur_cd_rate,
+        round(sum(nc.female_avg_weed_out*nc.female_cur_amount)/sum(nc.female_cur_amount),2) as female_avg_weed_out,
+        round(sum(nc.female_total_weed_out*nc.female_cur_amount)/sum(nc.female_cur_amount),2) as female_total_weed_out,
+        round(sum(nc.cur_feed),1) as cur_feed,
+        round((sum(nc.act_feed_daliy*nc.cur_feed)/sum(nc.cur_feed)),1)  as act_feed_daliy,
+        round(max(nc.female_feed_daliy),1) as female_feed_daliy,
+        round(max(nc.female_total_feed),1) as female_total_feed,
+        round(sum(nc.cur_water),1) as cur_water,
+        round(sum(nc.water_feed_rate),1) as water_feed_rate,
+        round((sum(nc.female_cur_weight*nc.female_cur_amount)/sum(nc.female_cur_amount)),1)   as female_cur_weight,
+        round((sum(nc.male_cur_weight*nc.male_cur_amount)/sum(nc.male_cur_amount)),1)  as male_cur_weight,
+        round(sum(nc.female_weight*nc.female_cur_amount)/sum(nc.female_cur_amount),2) as female_weight,
+        round(sum(nc.female_cur_amount),1) as female_cur_amount,
+        round(sum(nc.male_cur_amount),1) as male_cur_amount,
+        sum(nc.female_total_cd) as pile_female_cur_cd,
+        round(sum(nc.female_total_cd)/sum(nc.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(nc.total_feed)/(max(nc.age)*sum(nc.female_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(nc.pile_cur_water)/sum(nc.total_feed),2) as pile_water_feed_rate,
+        max(nc.female_avg_weed_out_high_alarm) as female_avg_weed_out_high_alarm,
+        max(nc.female_avg_weed_out_low_alarm) as female_avg_weed_out_low_alarm,
+        max(nc.female_avg_weed_out_high_warm) as female_avg_weed_out_high_warm,
+        max(nc.female_avg_weed_out_low_warm) as female_avg_weed_out_low_warm,
+        max(nc.female_cur_cd_rate_flag) as female_cur_cd_rate_flag,
+        max(nc.female_weight_high_alarm) as female_weight_high_alarm,
+        max(nc.female_weight_low_alarm) as female_weight_low_alarm,
+        max(nc.female_weight_high_warm) as female_weight_high_warm,
+        max(nc.female_weight_low_warm) as female_weight_low_warm,
+        max(nc.female_cur_weight_flag) as female_cur_weight_flag,
+        max(nc.female_feed_daliy_high_alarm) as female_feed_daliy_high_alarm,
+        max(nc.female_feed_daliy_low_alarm) as female_feed_daliy_low_alarm,
+        max(nc.female_feed_daliy_high_warm) as female_feed_daliy_high_warm,
+        max(nc.female_feed_daliy_low_warm) as female_feed_daliy_low_warm,
+        max(nc.act_feed_daliy_flag) as act_feed_daliy_flag,
+        max(nc.female_total_weed_out_high_alarm) as female_total_weed_out_high_alarm,
+        max(nc.female_total_weed_out_low_alarm) as female_total_weed_out_low_alarm,
+        max(nc.female_total_weed_out_high_warm) as female_total_weed_out_high_warm,
+        max(nc.female_total_weed_out_low_warm) as female_total_weed_out_low_warm,
+        max(nc.pile_female_cur_cd_rate_flag) as pile_female_cur_cd_rate_flag,
+        max(nc.female_total_feed_high_alarm) as female_total_feed_high_alarm,
+        max(nc.female_total_feed_low_alarm) as female_total_feed_low_alarm,
+        max(nc.female_total_feed_high_warm) as female_total_feed_high_warm,
+        max(nc.female_total_feed_low_warm) as female_total_feed_low_warm,
+        max(nc.pile_act_feed_daliy_flag) as pile_act_feed_daliy_flag
+        FROM
+        (SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        ifnull(u2.user_real_name,' ') as farm_user_real_name,
+        ifnull(u2.user_mobile_1,' ') as farm_user_mobile_1,
+        ifnull(u3.user_real_name,' ') as house_user_real_name,
+        ifnull(u3.user_mobile_1,' ') as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        c.is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        sum(d.female_death) as female_death,
+        sum(d.male_death) as male_death,
+        sum(d.female_culling) as female_culling,
+        sum(d.male_culling) as male_culling,
+        sum(d.female_cur_cd) as female_cur_cd,
+        sum(d.male_cur_cd) as male_cur_cd,
+        round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate,
+        round(sum(d.male_cur_cd_rate)/sum(case when d.male_cur_cd_rate is not null then 1 else 0 end)*100,2) as male_cur_cd_rate,
+        round(max(gs.female_avg_weed_out),2) as female_avg_weed_out,
+        round(max(gs.female_total_weed_out),2) as female_total_weed_out,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(max(gs.female_feed_daliy),1) as female_feed_daliy,
+        round(max(gs.female_total_feed),1) as female_total_feed,
+        round(sum(d.cur_water),1) as cur_water,
+        round(sum(d.water_feed_rate),1) as water_feed_rate,
+        round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)   as female_cur_weight,
+        round((sum(d.male_cur_weight)/sum(case when d.male_cur_weight is not null then 1 else 0 end)),1)  as male_cur_weight,
+        round(max(gs.female_weight) ,1) as female_weight,
+        round(sum(d.female_cur_amount),1) as female_cur_amount,
+        round(sum(d.male_cur_amount),1) as male_cur_amount,
+        d.total_feed,
+        d.female_total_cd,
+        d1.pile_cur_water,
+        round(m.female_avg_weed_out_high_alarm,2) as female_avg_weed_out_high_alarm,
+        round(m.female_avg_weed_out_low_alarm,2) as female_avg_weed_out_low_alarm,
+        round(m.female_avg_weed_out_high_warm,2) as female_avg_weed_out_high_warm,
+        round(m.female_avg_weed_out_low_warm,2) as female_avg_weed_out_low_warm,
+        if(m.female_avg_weed_out_high_alarm is null or max(gs.female_avg_weed_out) =0,0,if((ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0) >=m.female_avg_weed_out_high_warm and m.female_avg_weed_out_high_alarm >ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)),1,if(ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=m.female_avg_weed_out_high_alarm,2,0))) as female_cur_cd_rate_flag,
+        round(m.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(m.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(m.female_weight_high_warm,0) as female_weight_high_warm,
+        round(m.female_weight_low_warm,0) as female_weight_low_warm,
+        if(m.female_weight_high_alarm is null or max(gs.female_weight) =0,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) >=m.female_weight_high_warm and m.female_weight_high_alarm >ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)) or
+        (m.female_weight_low_warm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>m.female_weight_low_alarm)),1,if((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=m.female_weight_high_alarm or m.female_weight_low_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)),2,0))) as female_cur_weight_flag,
+        round(m.female_feed_daliy_high_alarm,2) as female_feed_daliy_high_alarm,
+        round(m.female_feed_daliy_low_alarm,2) as female_feed_daliy_low_alarm,
+        round(m.female_feed_daliy_high_warm,2) as female_feed_daliy_high_warm,
+        round(m.female_feed_daliy_low_warm,2) as female_feed_daliy_low_warm,
+        if(m.female_feed_daliy_high_alarm is null or max(gs.female_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=m.female_feed_daliy_high_warm and m.female_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (m.female_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>m.female_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=m.female_feed_daliy_high_alarm or m.female_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        round(m.female_total_weed_out_high_alarm,2) as female_total_weed_out_high_alarm,
+        round(m.female_total_weed_out_low_alarm,2) as female_total_weed_out_low_alarm,
+        round(m.female_total_weed_out_high_warm,2) as female_total_weed_out_high_warm,
+        round(m.female_total_weed_out_low_warm,2) as female_total_weed_out_low_warm,
+        if(m.female_total_weed_out_high_alarm is null or max(gs.female_total_weed_out) =0,0,if((ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0) >=m.female_total_weed_out_high_warm and m.female_total_weed_out_high_alarm >ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)),1,if(ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)>=m.female_total_weed_out_high_alarm,2,0))) as pile_female_cur_cd_rate_flag,
+        round(m.female_total_feed_high_alarm,2) as female_total_feed_high_alarm,
+        round(m.female_total_feed_low_alarm,2) as female_total_feed_low_alarm,
+        round(m.female_total_feed_high_warm,2) as female_total_feed_high_warm,
+        round(m.female_total_feed_low_warm,2) as female_total_feed_low_warm,
+        if(m.female_total_feed_high_alarm is null or max(gs.female_total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) >=m.female_total_feed_high_warm and m.female_total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)) or
+        (m.female_total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>m.female_total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>=m.female_total_feed_high_alarm or m.female_total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 3
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.house_code = d.house_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id,sum(a.cur_water) as pile_cur_water from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_meat_setting_sub m
+        on m.variety_id = aa.variety_id
+        and m.grow_age = d.age
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.female_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id,c.house_code) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_meat_std gs
+        on gs.variety_id = aa.variety_id
+        and gs.grow_age = d.age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        <if test="category_type != null and category_type != ''">
+            and g.category_type = #{category_type}
+        </if>
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by aa.province_id,o.parent_id,aa.farm_id,aa.house_code,
+        c.is_mix) nc
+        group by nc.province_id,nc.org_id,nc.farm_id,
+        nc.is_mix
+        order by nc.province,nc.farm_id
+    </select>
+
+    <!-- 查询肉鸡(栋舍) -->
+    <select id="selectByRoujiDongshe" resultType="pd" useCache="false">
+        SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        ifnull(u2.user_real_name,' ') as farm_user_real_name,
+        ifnull(u2.user_mobile_1,' ') as farm_user_mobile_1,
+        ifnull(u3.user_real_name,' ') as house_user_real_name,
+        ifnull(u3.user_mobile_1,' ') as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        c.is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        sum(d.female_death) as female_death,
+        sum(d.male_death) as male_death,
+        sum(d.female_culling) as female_culling,
+        sum(d.male_culling) as male_culling,
+        sum(d.female_cur_cd) as female_cur_cd,
+        sum(d.male_cur_cd) as male_cur_cd,
+        round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate,
+        round(sum(d.male_cur_cd_rate)/sum(case when d.male_cur_cd_rate is not null then 1 else 0 end)*100,2) as male_cur_cd_rate,
+        round(max(gs.female_avg_weed_out),2) as female_avg_weed_out,
+        round(max(gs.female_total_weed_out),2) as female_total_weed_out,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(max(gs.female_feed_daliy),1) as female_feed_daliy,
+        round(max(gs.female_total_feed),1) as female_total_feed,
+        round(sum(d.cur_water),1) as cur_water,
+        round(sum(d.water_feed_rate),1) as water_feed_rate,
+        round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)   as female_cur_weight,
+        round((sum(d.male_cur_weight)/sum(case when d.male_cur_weight is not null then 1 else 0 end)),1)  as male_cur_weight,
+        round(max(gs.female_weight) ,1) as female_weight,
+        round(sum(d.female_cur_amount),1) as female_cur_amount,
+        round(sum(d.male_cur_amount),1) as male_cur_amount,
+        sum(d.female_total_cd) as pile_female_cur_cd,
+        round(sum(d.female_total_cd)/sum(c.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(d1.pile_cur_water)/sum(d.total_feed),2) as pile_water_feed_rate,
+        round(m.female_avg_weed_out_high_alarm,2) as female_avg_weed_out_high_alarm,
+        round(m.female_avg_weed_out_low_alarm,2) as female_avg_weed_out_low_alarm,
+        round(m.female_avg_weed_out_high_warm,2) as female_avg_weed_out_high_warm,
+        round(m.female_avg_weed_out_low_warm,2) as female_avg_weed_out_low_warm,
+        if(m.female_avg_weed_out_high_alarm is null or max(gs.female_avg_weed_out) =0,0,if((ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0) >=m.female_avg_weed_out_high_warm and m.female_avg_weed_out_high_alarm >ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)),1,if(ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=m.female_avg_weed_out_high_alarm,2,0))) as female_cur_cd_rate_flag,
+        round(m.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(m.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(m.female_weight_high_warm,0) as female_weight_high_warm,
+        round(m.female_weight_low_warm,0) as female_weight_low_warm,
+        if(m.female_weight_high_alarm is null or max(gs.female_weight) =0,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) >=m.female_weight_high_warm and m.female_weight_high_alarm >ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)) or
+        (m.female_weight_low_warm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>m.female_weight_low_alarm)),1,if((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=m.female_weight_high_alarm or m.female_weight_low_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)),2,0))) as female_cur_weight_flag,
+        round(m.female_feed_daliy_high_alarm,2) as female_feed_daliy_high_alarm,
+        round(m.female_feed_daliy_low_alarm,2) as female_feed_daliy_low_alarm,
+        round(m.female_feed_daliy_high_warm,2) as female_feed_daliy_high_warm,
+        round(m.female_feed_daliy_low_warm,2) as female_feed_daliy_low_warm,
+        if(m.female_feed_daliy_high_alarm is null or max(gs.female_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=m.female_feed_daliy_high_warm and m.female_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (m.female_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>m.female_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=m.female_feed_daliy_high_alarm or m.female_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        round(m.female_total_weed_out_high_alarm,2) as female_total_weed_out_high_alarm,
+        round(m.female_total_weed_out_low_alarm,2) as female_total_weed_out_low_alarm,
+        round(m.female_total_weed_out_high_warm,2) as female_total_weed_out_high_warm,
+        round(m.female_total_weed_out_low_warm,2) as female_total_weed_out_low_warm,
+        if(m.female_total_weed_out_high_alarm is null or max(gs.female_total_weed_out) =0,0,if((ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0) >=m.female_total_weed_out_high_warm and m.female_total_weed_out_high_alarm >ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)),1,if(ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)>=m.female_total_weed_out_high_alarm,2,0))) as pile_female_cur_cd_rate_flag,
+        round(m.female_total_feed_high_alarm,2) as female_total_feed_high_alarm,
+        round(m.female_total_feed_low_alarm,2) as female_total_feed_low_alarm,
+        round(m.female_total_feed_high_warm,2) as female_total_feed_high_warm,
+        round(m.female_total_feed_low_warm,2) as female_total_feed_low_warm,
+        if(m.female_total_feed_high_alarm is null or max(gs.female_total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) >=m.female_total_feed_high_warm and m.female_total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)) or
+        (m.female_total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>m.female_total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>=m.female_total_feed_high_alarm or m.female_total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 3
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.house_code = d.house_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id, sum(a.cur_water) as pile_cur_water from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_meat_setting_sub m
+        on m.variety_id = aa.variety_id
+        and m.grow_age = d.age
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.female_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id,c.house_code) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_meat_std gs
+        on gs.variety_id = aa.variety_id
+        and gs.grow_age = d.age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        <if test="category_type != null and category_type != ''">
+            and g.category_type = #{category_type}
+        </if>
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by aa.province_id,o.parent_id,aa.farm_id,aa.house_code,
+        c.is_mix
+        order by aa.province,aa.farm_id,aa.house_code
+    </select>
+
+    <!-- 查询蛋鸡(农场) -->
+    <select id="selectByDanjiNongchang" resultType="pd" useCache="false">
+        SELECT
+        nc.province,
+        nc.org_id,
+        nc.farm_id,
+        nc.farm_name_chs,
+        nc.farm_user_real_name,
+        nc.farm_user_mobile_1,
+        nc.farm_type,
+        sum(if(nc.house_id >0,1,0)) as house_count,
+        max(nc.batch_no) as batch_no,
+        nc.is_mix,
+        max(nc.age) as age,
+        nc.variety_id,
+        sum(nc.send_child_count) as send_child_count,
+        sum(nc.death_count) as death_count,
+        sum(nc.culling_count) as culling_count,
+        sum(nc.cur_cd_count) as cur_cd_count,
+        round((sum(nc.death_count)+sum(nc.culling_count))/(sum(nc.death_count)+sum(nc.culling_count)+sum(nc.cur_cd_count))*100,2) as cur_cd_rate,
+        round(sum(nc.cur_feed),1) as cur_feed,
+        round((sum(nc.act_feed_daliy*nc.cur_feed)/sum(nc.cur_feed)),1)  as act_feed_daliy,
+        round(sum(nc.cur_water/1000),1) as cur_water,
+        round(max(nc.female_week_avg_weed_out),1) as female_week_avg_weed_out,
+        round(max(nc.female_week_total_weed_out),1) as female_week_total_weed_out,
+        round(sum(nc.laying_cur_amount),1) as laying_cur_amount,
+        round(sum(nc.rs_female_laying_avg_count),1) as rs_female_laying_avg_count,
+        round(sum(nc.act_cl_laying_rate*nc.laying_cur_amount)/sum(nc.laying_cur_amount),2) as act_cl_laying_rate,
+        round(sum(nc.cl_laying_rate*nc.laying_cur_amount)/sum(nc.laying_cur_amount),2) as cl_laying_rate,
+        sum(nc.sum_laying_qual_cur_wight) as sum_laying_qual_cur_wight,
+        round(sum(nc.laying_qual_cur_wight),1) as laying_qual_cur_wight,
+        round(max(nc.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(nc.bz_total_feed),1) as bz_total_feed,
+        round(sum(nc.cur_water),1) as cur_water,
+        round(sum(nc.water_feed_rate),1) as water_feed_rate,
+        round((sum(nc.female_cur_weight*nc.total_cur_amount)/sum(nc.total_cur_amount)),1)   as female_cur_weight,
+        round((sum(nc.female_weight*nc.total_cur_amount)/sum(nc.total_cur_amount)),1) as female_weight,
+        round(sum(nc.total_cur_amount),1)  as total_cur_amount,
+        sum(nc.female_total_cd) as pile_female_cur_cd,
+        round(sum(nc.female_total_cd)/sum(nc.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(nc.total_feed)/(max(nc.age)*sum(nc.total_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(nc.pile_cur_water)/sum(nc.total_feed),2) as pile_water_feed_rate,
+        sum(nc.laying_total_amount) as pile_laying_cur_amount,
+        round(sum(nc.rs_female_laying_total_count),1) as rs_female_laying_total_count,
+        sum(nc.pile_laying_qual_cur_wight) as pile_laying_qual_cur_wight,
+        --         round(sum(d.laying_qual_cur_wight/1000 * d.laying_cur_amount),1)
+        max(nc.female_week_avg_weed_out_high_alarm) as female_week_avg_weed_out_high_alarm,
+        max(nc.female_week_avg_weed_out_low_alarm) as female_week_avg_weed_out_low_alarm,
+        max(nc.female_week_avg_weed_out_high_warm) as female_week_avg_weed_out_high_warm,
+        max(nc.female_week_avg_weed_out_low_warm) as female_week_avg_weed_out_low_warm,
+        max(nc.female_cur_cd_rate_flag) as female_cur_cd_rate_flag,
+        max(nc.female_weight_high_alarm) as female_weight_high_alarm,
+        max(nc.female_weight_low_alarm) as female_weight_low_alarm,
+        max(nc.female_weight_high_warm) as female_weight_high_warm,
+        max(nc.female_weight_low_warm) as female_weight_low_warm,
+        max(nc.female_cur_weight_flag) as female_cur_weight_flag,
+        max(nc.rs_laying_rate_high_alarm) as rs_laying_rate_high_alarm,
+        max(nc.rs_laying_rate_low_alarm) as rs_laying_rate_low_alarm,
+        max(nc.rs_laying_rate_high_warm) as rs_laying_rate_high_warm,
+        max(nc.rs_laying_rate_low_warm) as rs_laying_rate_low_warm,
+        max(nc.act_cl_laying_rate_flag) as act_cl_laying_rate_flag,
+        max(nc.rs_female_laying_total_count_high_alarm) as rs_female_laying_total_count_high_alarm,
+        max(nc.rs_female_laying_total_count_low_alarm) as rs_female_laying_total_count_low_alarm,
+        max(nc.rs_female_laying_total_count_high_warm) as rs_female_laying_total_count_high_warm,
+        max(nc.rs_female_laying_total_count_low_warm) as rs_female_laying_total_count_low_warm,
+        max(nc.pile_laying_cur_amount_flag) as pile_laying_cur_amount_flag,
+        max(nc.rs_female_laying_avg_count_high_alarm) as rs_female_laying_avg_count_high_alarm,
+        max(nc.rs_female_laying_avg_count_low_alarm) as rs_female_laying_avg_count_low_alarm,
+        max(nc.rs_female_laying_avg_count_high_warm) as rs_female_laying_avg_count_high_warm,
+        max(nc.rs_female_laying_avg_count_low_warm) as rs_female_laying_avg_count_low_warm,
+        max(nc.laying_cur_amount_flag) as laying_cur_amount_flag,
+        max(nc.total_feed_high_alarm) as total_feed_high_alarm,
+        max(nc.total_feed_low_alarm) as total_feed_low_alarm,
+        max(nc.total_feed_high_warm) as total_feed_high_warm,
+        max(nc.total_feed_low_warm) as total_feed_low_warm,
+        max(nc.act_feed_daliy_flag) as act_feed_daliy_flag,
+        max(nc.female_week_total_weed_out_high_alarm) as female_week_total_weed_out_high_alarm,
+        max(nc.female_week_total_weed_out_low_alarm) as female_week_total_weed_out_low_alarm,
+        max(nc.female_week_total_weed_out_high_warm) as female_week_total_weed_out_high_warm,
+        max(nc.female_week_total_weed_out_low_warm) as female_week_total_weed_out_low_warm,
+        max(nc.pile_female_cur_cd_rate_flag) as pile_female_cur_cd_rate_flag,
+        max(nc.total_feed_high_alarm) as total_feed_high_alarm,
+        max(nc.total_feed_low_alarm) as total_feed_low_alarm,
+        max(nc.total_feed_high_warm) as total_feed_high_warm,
+        max(nc.total_feed_low_warm) as total_feed_low_warm,
+        max(nc.pile_act_feed_daliy_flag) as pile_act_feed_daliy_flag
+        FROM
+        (SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        ifnull(u2.user_real_name,' ') as farm_user_real_name,
+        ifnull(u2.user_mobile_1,' ') as farm_user_mobile_1,
+        ifnull(u3.user_real_name,' ') as house_user_real_name,
+        ifnull(u3.user_mobile_1,' ') as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        c.is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        sum(d.female_death +  d.male_death) as death_count,
+        sum(d.female_culling+ d.male_culling) as culling_count,
+        sum(d.female_cur_cd + d.male_cur_cd) as cur_cd_count,
+        round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as cur_cd_rate,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(sum(d.cur_water/1000),1) as cur_water,
+        round(max(es.female_week_avg_weed_out),1) as female_week_avg_weed_out,
+        round(max(es.female_week_total_weed_out),2) as female_week_total_weed_out,
+        round(sum(d.laying_cur_amount),1) as laying_cur_amount,
+        round(max(es.rs_female_laying_avg_count),1) as rs_female_laying_avg_count,
+        round(sum(d.act_cl_laying_rate),1) as act_cl_laying_rate,
+        round(max(es.cl_laying_rate),1) as cl_laying_rate,
+        round(sum(d.laying_qual_cur_wight/1000 * d.laying_cur_amount),1) as sum_laying_qual_cur_wight,
+        round(sum(d.laying_qual_cur_wight),1) as laying_qual_cur_wight,
+        round(max(es.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(es.total_feed),1) as bz_total_feed,
+        round(sum(d.water_feed_rate),1) as water_feed_rate,
+        round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)  as female_cur_weight,
+        round(max(es.female_weight) ,1) as female_weight,
+        round(sum(d.total_cur_amount),1)  as total_cur_amount,
+        d.total_feed,
+        d.female_total_cd,
+        d1.pile_cur_water,
+        d.laying_total_amount,
+        round(max(es.rs_female_laying_total_count),1) as rs_female_laying_total_count,
+        d1.pile_laying_qual_cur_wight,
+        round(bs.female_week_avg_weed_out_high_alarm,2) as female_week_avg_weed_out_high_alarm,
+        round(bs.female_week_avg_weed_out_low_alarm,2) as female_week_avg_weed_out_low_alarm,
+        round(bs.female_week_avg_weed_out_high_warm,2) as female_week_avg_weed_out_high_warm,
+        round(bs.female_week_avg_weed_out_low_warm,2) as female_week_avg_weed_out_low_warm,
+        if(bs.female_week_avg_weed_out_high_alarm is null or max(es.female_week_avg_weed_out) =0,0,if((ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_warm and bs.female_week_avg_weed_out_high_alarm > ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)),1,
+        if(ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_alarm,2,0))) as female_cur_cd_rate_flag,
+        round(bs.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(bs.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(bs.female_weight_high_warm,0) as female_weight_high_warm,
+        round(bs.female_weight_low_warm,0) as female_weight_low_warm,
+        if(bs.female_weight_high_alarm is null or max(es.female_weight) =0,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_warm and bs.female_weight_high_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0))
+        or(bs.female_weight_low_warm>=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>bs.female_weight_low_alarm)),1,
+        if(ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_alarm or bs.female_weight_low_alarm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0),2,0))) as female_cur_weight_flag,
+        round(bs.rs_laying_rate_high_alarm,2) as rs_laying_rate_high_alarm,
+        round(bs.rs_laying_rate_low_alarm,2) as rs_laying_rate_low_alarm,
+        round(bs.rs_laying_rate_high_warm,2) as rs_laying_rate_high_warm,
+        round(bs.rs_laying_rate_low_warm,2) as rs_laying_rate_low_warm,
+        if(bs.rs_laying_rate_low_alarm is null or max(es.cl_laying_rate) =0,0,if((bs.rs_laying_rate_low_warm>=ifnull(sum(d.act_cl_laying_rate),0) and ifnull(sum(d.act_cl_laying_rate),0)>bs.rs_laying_rate_low_alarm),1,
+        if(bs.rs_laying_rate_low_alarm >=ifnull(sum(d.act_cl_laying_rate),0),2,0))) as act_cl_laying_rate_flag,
+        round(bs.rs_female_laying_avg_count_high_alarm,2) as rs_female_laying_avg_count_high_alarm,
+        round(bs.rs_female_laying_avg_count_low_alarm,2) as rs_female_laying_avg_count_low_alarm,
+        round(bs.rs_female_laying_avg_count_high_warm,2) as rs_female_laying_avg_count_high_warm,
+        round(bs.rs_female_laying_avg_count_low_warm,2) as rs_female_laying_avg_count_low_warm,
+        if(bs.rs_female_laying_avg_count_low_alarm is null or max(es.rs_female_laying_avg_count) =0,0,if((bs.rs_female_laying_avg_count_low_warm>=ifnull(sum(d.laying_cur_amount),0) and ifnull(sum(d.laying_cur_amount),0)>bs.rs_female_laying_avg_count_low_alarm),1,
+        if(bs.rs_female_laying_avg_count_low_alarm >=ifnull(sum(d.laying_cur_amount),0),2,0))) as laying_cur_amount_flag,
+        round(bs.rs_female_laying_total_count_high_alarm,2) as rs_female_laying_total_count_high_alarm,
+        round(bs.rs_female_laying_total_count_low_alarm,2) as rs_female_laying_total_count_low_alarm,
+        round(bs.rs_female_laying_total_count_high_warm,2) as rs_female_laying_total_count_high_warm,
+        round(bs.rs_female_laying_total_count_low_warm,2) as rs_female_laying_total_count_low_warm,
+        if(bs.rs_female_laying_total_count_low_alarm is null or max(es.rs_female_laying_total_count) =0,0,if((bs.rs_female_laying_total_count_low_warm>=ifnull(sum(d.laying_cur_amount),0) and ifnull(sum(d.laying_cur_amount),0)>bs.rs_female_laying_total_count_low_alarm),1,
+        if(bs.rs_female_laying_total_count_low_alarm >=ifnull(sum(d.laying_cur_amount),0),2,0))) as pile_laying_cur_amount_flag,
+        round(bs.avg_feed_daliy_high_alarm,2) as avg_feed_daliy_high_alarm,
+        round(bs.avg_feed_daliy_low_alarm,2) as avg_feed_daliy_low_alarm,
+        round(bs.avg_feed_daliy_high_warm,2) as avg_feed_daliy_high_warm,
+        round(bs.avg_feed_daliy_low_warm,2) as avg_feed_daliy_low_warm,
+        if(bs.avg_feed_daliy_high_alarm is null or max(es.avg_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=bs.avg_feed_daliy_high_warm and bs.avg_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (bs.avg_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>bs.avg_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=bs.avg_feed_daliy_high_alarm or bs.avg_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        round(bs.female_week_total_weed_out_high_alarm,2) as female_week_total_weed_out_high_alarm,
+        round(bs.female_week_total_weed_out_low_alarm,2) as female_week_total_weed_out_low_alarm,
+        round(bs.female_week_total_weed_out_high_warm,2) as female_week_total_weed_out_high_warm,
+        round(bs.female_week_total_weed_out_low_warm,2) as female_week_total_weed_out_low_warm,
+        if(bs.female_week_total_weed_out_high_alarm is null or max(es.female_week_total_weed_out) =0,0,if((ifnull(round(sum(d.female_total_cd)/sum(d.total_cur_amount),2),0) >=bs.female_week_total_weed_out_high_warm and bs.female_week_total_weed_out_high_alarm >ifnull(round(sum(d.female_total_cd)/sum(d.total_cur_amount),2),0)),1,if(ifnull(round(sum(d.female_total_cd)/sum(d.total_cur_amount),2),0)>=bs.female_week_total_weed_out_high_alarm,2,0))) as pile_female_cur_cd_rate_flag,
+        round(bs.total_feed_high_alarm,2) as total_feed_high_alarm,
+        round(bs.total_feed_low_alarm,2) as total_feed_low_alarm,
+        round(bs.total_feed_high_warm,2) as total_feed_high_warm,
+        round(bs.total_feed_low_warm,2) as total_feed_low_warm,
+        if(bs.total_feed_high_alarm is null or max(es.total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0) >=bs.total_feed_high_warm and bs.total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)) or
+        (bs.total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)>bs.total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)>=bs.total_feed_high_alarm or bs.total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 2
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.farm_id = d.farm_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id, sum(a.cur_water) as pile_cur_water,round(sum(a.laying_qual_cur_wight/1000 * a.laying_cur_amount),1) as pile_laying_qual_cur_wight from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_lay_egg_setting_sub bs
+        on bs.variety_id = aa.variety_id
+        and bs.grow_week_age = round(ifnull(d.age,0)/7,0)
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.female_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id,c.house_code) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_lay_egg_std es
+        on es.variety_id = aa.variety_id
+        and es.grow_week_age = d.growth_week_age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by aa.province_id,o.parent_id,aa.farm_id,aa.house_code,
+        c.is_mix) nc
+        group by nc.province_id,nc.org_id,nc.farm_id,
+        nc.is_mix
+        order by nc.province,nc.farm_id
+    </select>
+
+    <!-- 查询蛋鸡(栋舍) -->
+    <select id="selectByDanjiDongshe" resultType="pd" useCache="false">
+        SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        ifnull(u2.user_real_name,' ') as farm_user_real_name,
+        ifnull(u2.user_mobile_1,' ') as farm_user_mobile_1,
+        ifnull(u3.user_real_name,' ') as house_user_real_name,
+        ifnull(u3.user_mobile_1,' ') as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        c.is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        sum(d.female_death +  d.male_death) as death_count,
+        sum(d.female_culling+ d.male_culling) as culling_count,
+        sum(d.female_cur_cd + d.male_cur_cd) as cur_cd_count,
+        round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as cur_cd_rate,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(sum(d.cur_water/1000),1) as cur_water,
+        round(max(es.female_week_avg_weed_out),1) as female_week_avg_weed_out,
+        round(max(es.female_week_total_weed_out),2) as female_week_total_weed_out,
+        round(sum(d.laying_cur_amount),1) as laying_cur_amount,
+        round(max(es.rs_female_laying_avg_count),1) as rs_female_laying_avg_count,
+        round(sum(d.act_cl_laying_rate),1) as act_cl_laying_rate,
+        round(max(es.cl_laying_rate),1) as cl_laying_rate,
+        round(sum(d.laying_qual_cur_wight/1000 * d.laying_cur_amount),1) as sum_laying_qual_cur_wight,
+        round(sum(d.laying_qual_cur_wight),1) as laying_qual_cur_wight,
+        round(max(es.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(es.total_feed),1) as bz_total_feed,
+        round(sum(d.water_feed_rate),1) as water_feed_rate,
+        round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)  as female_cur_weight,
+        round(max(es.female_weight) ,1) as female_weight,
+        round(sum(d.total_cur_amount),1)  as total_cur_amount,
+        sum(d.female_total_cd) as pile_female_cur_cd,
+        round(sum(d.female_total_cd)/sum(c.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(d1.pile_cur_water)/sum(d.total_feed),2) as pile_water_feed_rate,
+        d.laying_total_amount as pile_laying_cur_amount,
+        round(max(es.rs_female_laying_total_count),1) as rs_female_laying_total_count,
+        d1.pile_laying_qual_cur_wight as pile_laying_qual_cur_wight,
+        round(bs.female_week_avg_weed_out_high_alarm,2) as female_week_avg_weed_out_high_alarm,
+        round(bs.female_week_avg_weed_out_low_alarm,2) as female_week_avg_weed_out_low_alarm,
+        round(bs.female_week_avg_weed_out_high_warm,2) as female_week_avg_weed_out_high_warm,
+        round(bs.female_week_avg_weed_out_low_warm,2) as female_week_avg_weed_out_low_warm,
+        if(bs.female_week_avg_weed_out_high_alarm is null or max(es.female_week_avg_weed_out) =0,0,if((ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_warm and bs.female_week_avg_weed_out_high_alarm > ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)),1,
+        if(ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_alarm,2,0))) as female_cur_cd_rate_flag,
+        round(bs.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(bs.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(bs.female_weight_high_warm,0) as female_weight_high_warm,
+        round(bs.female_weight_low_warm,0) as female_weight_low_warm,
+        if(bs.female_weight_high_alarm is null or max(es.female_weight) =0,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_warm and bs.female_weight_high_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0))
+        or(bs.female_weight_low_warm>=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>bs.female_weight_low_alarm)),1,
+        if(ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_alarm or bs.female_weight_low_alarm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0),2,0))) as female_cur_weight_flag,
+        round(bs.rs_laying_rate_high_alarm,2) as rs_laying_rate_high_alarm,
+        round(bs.rs_laying_rate_low_alarm,2) as rs_laying_rate_low_alarm,
+        round(bs.rs_laying_rate_high_warm,2) as rs_laying_rate_high_warm,
+        round(bs.rs_laying_rate_low_warm,2) as rs_laying_rate_low_warm,
+        if(bs.rs_laying_rate_low_alarm is null or max(es.cl_laying_rate) =0,0,if((bs.rs_laying_rate_low_warm>=ifnull(sum(d.act_cl_laying_rate),0) and ifnull(sum(d.act_cl_laying_rate),0)>bs.rs_laying_rate_low_alarm),1,
+        if(bs.rs_laying_rate_low_alarm >=ifnull(sum(d.act_cl_laying_rate),0),2,0))) as act_cl_laying_rate_flag,
+        round(bs.rs_female_laying_avg_count_high_alarm,2) as rs_female_laying_avg_count_high_alarm,
+        round(bs.rs_female_laying_avg_count_low_alarm,2) as rs_female_laying_avg_count_low_alarm,
+        round(bs.rs_female_laying_avg_count_high_warm,2) as rs_female_laying_avg_count_high_warm,
+        round(bs.rs_female_laying_avg_count_low_warm,2) as rs_female_laying_avg_count_low_warm,
+        if(bs.rs_female_laying_avg_count_low_alarm is null or max(es.rs_female_laying_avg_count) =0,0,if((bs.rs_female_laying_avg_count_low_warm>=ifnull(sum(d.laying_cur_amount),0) and ifnull(sum(d.laying_cur_amount),0)>bs.rs_female_laying_avg_count_low_alarm),1,
+        if(bs.rs_female_laying_avg_count_low_alarm >=ifnull(sum(d.laying_cur_amount),0),2,0))) as laying_cur_amount_flag,
+        round(bs.rs_female_laying_total_count_high_alarm,2) as rs_female_laying_total_count_high_alarm,
+        round(bs.rs_female_laying_total_count_low_alarm,2) as rs_female_laying_total_count_low_alarm,
+        round(bs.rs_female_laying_total_count_high_warm,2) as rs_female_laying_total_count_high_warm,
+        round(bs.rs_female_laying_total_count_low_warm,2) as rs_female_laying_total_count_low_warm,
+        if(bs.rs_female_laying_total_count_low_alarm is null or max(es.rs_female_laying_total_count) =0,0,if((bs.rs_female_laying_total_count_low_warm>=ifnull(sum(d.laying_cur_amount),0) and ifnull(sum(d.laying_cur_amount),0)>bs.rs_female_laying_total_count_low_alarm),1,
+        if(bs.rs_female_laying_total_count_low_alarm >=ifnull(sum(d.laying_cur_amount),0),2,0))) as pile_laying_cur_amount_flag,
+        round(bs.avg_feed_daliy_high_alarm,2) as avg_feed_daliy_high_alarm,
+        round(bs.avg_feed_daliy_low_alarm,2) as avg_feed_daliy_low_alarm,
+        round(bs.avg_feed_daliy_high_warm,2) as avg_feed_daliy_high_warm,
+        round(bs.avg_feed_daliy_low_warm,2) as avg_feed_daliy_low_warm,
+        if(bs.avg_feed_daliy_high_alarm is null or max(es.avg_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=bs.avg_feed_daliy_high_warm and bs.avg_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (bs.avg_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>bs.avg_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=bs.avg_feed_daliy_high_alarm or bs.avg_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        round(bs.female_week_total_weed_out_high_alarm,2) as female_week_total_weed_out_high_alarm,
+        round(bs.female_week_total_weed_out_low_alarm,2) as female_week_total_weed_out_low_alarm,
+        round(bs.female_week_total_weed_out_high_warm,2) as female_week_total_weed_out_high_warm,
+        round(bs.female_week_total_weed_out_low_warm,2) as female_week_total_weed_out_low_warm,
+        if(bs.female_week_total_weed_out_high_alarm is null or max(es.female_week_total_weed_out) =0,0,if((ifnull(round(sum(d.female_total_cd)/sum(d.total_cur_amount),2),0) >=bs.female_week_total_weed_out_high_warm and bs.female_week_total_weed_out_high_alarm >ifnull(round(sum(d.female_total_cd)/sum(d.total_cur_amount),2),0)),1,if(ifnull(round(sum(d.female_total_cd)/sum(d.total_cur_amount),2),0)>=bs.female_week_total_weed_out_high_alarm,2,0))) as pile_female_cur_cd_rate_flag,
+        round(bs.total_feed_high_alarm,2) as total_feed_high_alarm,
+        round(bs.total_feed_low_alarm,2) as total_feed_low_alarm,
+        round(bs.total_feed_high_warm,2) as total_feed_high_warm,
+        round(bs.total_feed_low_warm,2) as total_feed_low_warm,
+        if(bs.total_feed_high_alarm is null or max(es.total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0) >=bs.total_feed_high_warm and bs.total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)) or
+        (bs.total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)>bs.total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)>=bs.total_feed_high_alarm or bs.total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.total_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 2
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.farm_id = d.farm_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id, sum(a.cur_water) as pile_cur_water,round(sum(a.laying_qual_cur_wight/1000 * a.laying_cur_amount),1) as pile_laying_qual_cur_wight from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_lay_egg_setting_sub bs
+        on bs.variety_id = aa.variety_id
+        and bs.grow_week_age = round(ifnull(d.age,0)/7,0)
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.female_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_lay_egg_std es
+        on es.variety_id = aa.variety_id
+        and es.grow_week_age = d.growth_week_age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by aa.province_id,o.parent_id,aa.farm_id,aa.house_code,
+        c.is_mix
+        order by aa.province,aa.farm_id,aa.house_code
+    </select>
+
+    <!-- 查询育成(农场) -->
+    <select id="selectByYuchengNongchang" resultType="pd" useCache="false">
+        (SELECT
+        nc.province,
+        nc.org_id,
+        nc.farm_id,
+        nc.farm_name_chs,
+        nc.farm_user_real_name,
+        nc.farm_user_mobile_1,
+        nc.farm_type,
+        sum(if(nc.house_id >0,1,0)) as house_count,
+        max(nc.batch_no) as batch_no,
+        nc.is_mix,
+        max(nc.age) as age,
+        nc.variety_id,
+        sum(nc.send_child_count) as send_child_count,
+        sum(nc.female_death) as female_death,
+        sum(nc.male_death) as male_death,
+        sum(nc.female_culling) as female_culling,
+        sum(nc.male_culling) as male_culling,
+        sum(nc.female_cur_cd) as female_cur_cd,
+        sum(nc.male_cur_cd) as male_cur_cd,
+        round((sum(nc.female_death)+sum(nc.female_culling))/(sum(nc.female_death)+sum(nc.female_culling)+sum(nc.female_cur_amount))*100,2) as female_cur_cd_rate,
+        round((sum(nc.male_death)+sum(nc.male_culling))/sum(nc.male_cur_amount)*100,2) as male_cur_cd_rate,
+        round(sum(nc.female_avg_weed_out*nc.female_cur_amount)/sum(nc.female_cur_amount),2) as female_avg_weed_out,
+        round(sum(nc.female_week_total_weed_out*nc.female_cur_amount)/sum(nc.female_cur_amount),2) as female_week_total_weed_out,
+        round(sum(nc.cur_feed),1) as cur_feed,
+        round((sum(nc.act_feed_daliy*nc.cur_feed)/sum(nc.cur_feed)),1)  as act_feed_daliy,
+        round(max(nc.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(nc.bz_total_feed),1) as bz_total_feed,
+        round(sum(nc.cur_water),1) as cur_water,
+        round(sum(nc.water_feed_rate),1) as water_feed_rate,
+        round((sum(nc.female_cur_weight*nc.female_cur_amount)/sum(nc.female_cur_amount)),1)   as female_cur_weight,
+        round((sum(nc.male_cur_weight*nc.male_cur_amount)/sum(nc.male_cur_amount)),1)  as male_cur_weight,
+        round((sum(nc.female_weight*nc.female_cur_amount)/sum(nc.female_cur_amount)),1) as female_weight,
+        round(sum(nc.female_cur_amount),1) as female_cur_amount,
+        round(sum(nc.male_cur_amount),1) as male_cur_amount,
+        sum(nc.female_total_cd) as pile_female_cur_cd,
+        round(sum(nc.female_total_cd)/sum(nc.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(nc.total_feed)/(max(nc.age)*sum(nc.female_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(nc.pile_cur_water)/sum(nc.total_feed),2) as pile_water_feed_rate,
+        max(nc.female_week_avg_weed_out_high_alarm) as female_week_avg_weed_out_high_alarm,
+        max(nc.female_week_avg_weed_out_low_alarm) as female_week_avg_weed_out_low_alarm,
+        max(nc.female_week_avg_weed_out_high_warm) as female_week_avg_weed_out_high_warm,
+        max(nc.female_week_avg_weed_out_low_warm) as female_week_avg_weed_out_low_warm,
+        max(nc.female_cur_cd_rate_flag) as female_cur_cd_rate_flag,
+        max(nc.female_weight_high_alarm) as female_weight_high_alarm,
+        max(nc.female_weight_low_alarm) as female_weight_low_alarm,
+        max(nc.female_weight_high_warm) as female_weight_high_warm,
+        max(nc.female_weight_low_warm) as female_weight_low_warm,
+        max(nc.female_cur_weight_flag) as female_cur_weight_flag,
+        max(nc.avg_feed_daliy_high_alarm) as avg_feed_daliy_high_alarm,
+        max(nc.avg_feed_daliy_low_alarm) as avg_feed_daliy_low_alarm,
+        max(nc.avg_feed_daliy_high_warm) as avg_feed_daliy_high_warm,
+        max(nc.avg_feed_daliy_low_warm) as avg_feed_daliy_low_warm,
+        max(nc.act_feed_daliy_flag) as act_feed_daliy_flag,
+        max(nc.female_week_total_weed_out_high_alarm) as female_week_total_weed_out_high_alarm,
+        max(nc.female_week_total_weed_out_low_alarm) as female_week_total_weed_out_low_alarm,
+        max(nc.female_week_total_weed_out_high_warm) as female_week_total_weed_out_high_warm,
+        max(nc.female_week_total_weed_out_low_warm) as female_week_total_weed_out_low_warm,
+        max(nc.pile_female_cur_cd_rate_flag) as pile_female_cur_cd_rate_flag,
+        max(nc.total_feed_high_alarm) as total_feed_high_alarm,
+        max(nc.total_feed_low_alarm) as total_feed_low_alarm,
+        max(nc.total_feed_high_warm) as total_feed_high_warm,
+        max(nc.total_feed_low_warm) total_feed_low_warm,
+        max(nc.pile_act_feed_daliy_flag) as pile_act_feed_daliy_flag
+        FROM
+        (SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        ifnull(u2.user_real_name,' ') as farm_user_real_name,
+        ifnull(u2.user_mobile_1,' ') as farm_user_mobile_1,
+        ifnull(u3.user_real_name,' ') as house_user_real_name,
+        ifnull(u3.user_mobile_1,' ') as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        c.is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        sum(d.female_death) as female_death,
+        sum(d.male_death) as male_death,
+        sum(d.female_culling) as female_culling,
+        sum(d.male_culling) as male_culling,
+        sum(d.female_cur_cd) as female_cur_cd,
+        sum(d.male_cur_cd) as male_cur_cd,
+        round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate,
+        round(sum(d.male_cur_cd_rate)/sum(case when d.male_cur_cd_rate is not null then 1 else 0 end)*100,2) as male_cur_cd_rate,
+        round(max(gs.female_week_avg_weed_out),1) as female_avg_weed_out,
+        round(max(gs.female_week_total_weed_out),1) as female_week_total_weed_out,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(max(gs.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(gs.total_feed),1) as bz_total_feed,
+        round(sum(d.cur_water),1) as cur_water,
+        round(sum(d.water_feed_rate),1) as water_feed_rate,
+        round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)   as female_cur_weight,
+        round((sum(d.male_cur_weight)/sum(case when d.male_cur_weight is not null then 1 else 0 end)),1)  as male_cur_weight,
+        round(max(gs.female_weight) ,1) as female_weight,
+        round(sum(d.female_cur_amount),1) as female_cur_amount,
+        round(sum(d.male_cur_amount),1) as male_cur_amount,
+        d.total_feed,
+        d.female_total_cd,
+        d1.pile_cur_water,
+        round(bs.female_week_avg_weed_out_high_alarm,2) as female_week_avg_weed_out_high_alarm,
+        round(bs.female_week_avg_weed_out_low_alarm,2) as female_week_avg_weed_out_low_alarm,
+        round(bs.female_week_avg_weed_out_high_warm,2) as female_week_avg_weed_out_high_warm,
+        round(bs.female_week_avg_weed_out_low_warm,2) as female_week_avg_weed_out_low_warm,
+        if(bs.female_week_avg_weed_out_high_alarm is null or max(gs.female_week_avg_weed_out) =0,0,if((ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_warm and bs.female_week_avg_weed_out_high_alarm > ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)),1,
+        if(ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_alarm,2,0))) as female_cur_cd_rate_flag,
+        round(bs.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(bs.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(bs.female_weight_high_warm,0) as female_weight_high_warm,
+        round(bs.female_weight_low_warm,0) as female_weight_low_warm,
+        if(bs.female_weight_high_alarm is null or max(gs.female_weight) =0,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_warm and bs.female_weight_high_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0))
+        or(bs.female_weight_low_warm>=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>bs.female_weight_low_alarm)),1,
+        if(ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_alarm or bs.female_weight_low_alarm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0),2,0))) as female_cur_weight_flag,
+        round(bs.avg_feed_daliy_high_alarm,2) as avg_feed_daliy_high_alarm,
+        round(bs.avg_feed_daliy_low_alarm,2) as avg_feed_daliy_low_alarm,
+        round(bs.avg_feed_daliy_high_warm,2) as avg_feed_daliy_high_warm,
+        round(bs.avg_feed_daliy_low_warm,2) as avg_feed_daliy_low_warm,
+        if(bs.avg_feed_daliy_high_alarm is null or max(gs.avg_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=bs.avg_feed_daliy_high_warm and bs.avg_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (bs.avg_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>bs.avg_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=bs.avg_feed_daliy_high_alarm or bs.avg_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        round(bs.female_week_total_weed_out_high_alarm,2) as female_week_total_weed_out_high_alarm,
+        round(bs.female_week_total_weed_out_low_alarm,2) as female_week_total_weed_out_low_alarm,
+        round(bs.female_week_total_weed_out_high_warm,2) as female_week_total_weed_out_high_warm,
+        round(bs.female_week_total_weed_out_low_warm,2) as female_week_total_weed_out_low_warm,
+        if(bs.female_week_total_weed_out_high_alarm is null or max(gs.female_week_total_weed_out) =0,0,if((ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0) >=bs.female_week_total_weed_out_high_warm and bs.female_week_total_weed_out_high_alarm >ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)),1,if(ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)>=bs.female_week_total_weed_out_high_alarm,2,0))) as pile_female_cur_cd_rate_flag,
+        round(bs.total_feed_high_alarm,2) as total_feed_high_alarm,
+        round(bs.total_feed_low_alarm,2) as total_feed_low_alarm,
+        round(bs.total_feed_high_warm,2) as total_feed_high_warm,
+        round(bs.total_feed_low_warm,2) as total_feed_low_warm,
+        if(bs.total_feed_high_alarm is null or max(gs.total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) >=bs.total_feed_high_warm and bs.total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)) or
+        (bs.total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>bs.total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>=bs.total_feed_high_alarm or bs.total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 1
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.farm_id = d.farm_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id, sum(a.cur_water) as pile_cur_water from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_growing_setting_sub bs
+        on bs.variety_id = aa.variety_id
+        and bs.grow_week_age = round(ifnull(d.age,0)/7,0)
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.female_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_growing_std gs
+        on gs.variety_id = aa.variety_id
+        and gs.grow_week_age = d.growth_week_age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by c.is_mix,aa.province_id,o.parent_id,d.farm_id,aa.house_code) nc
+        group by nc.is_mix,nc.province_id,nc.org_id,nc.farm_id
+        order by nc.is_mix,nc.province,nc.farm_id)
+
+        union all
+
+        (SELECT
+        nc.province,
+        nc.org_id,
+        nc.farm_id,
+        nc.farm_name_chs,
+        nc.farm_user_real_name,
+        nc.farm_user_mobile_1,
+        nc.farm_type,
+        sum(if(nc.house_id >0,1,0)) as house_count,
+        max(nc.batch_no) as batch_no,
+        nc.is_mix,
+        max(nc.age) as age,
+        nc.variety_id,
+        sum(nc.send_child_count) as send_child_count,
+        <!--      sum(d.female_death) as female_death, -->
+        sum(nc.female_death) as female_death,
+        nc.male_death,
+        <!--      sum(d.female_culling) as female_culling, -->
+        sum(nc.female_culling) as female_culling,
+        nc.male_culling,
+        <!--      sum(d.female_cur_cd) as female_cur_cd, -->
+        sum(nc.female_cur_cd) as female_cur_cd,
+        nc.male_cur_cd,
+        <!--      round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate, -->
+        round((sum(nc.female_death)+sum(nc.female_culling))/(sum(nc.female_death)+sum(nc.female_culling)+sum(nc.female_cur_amount))*100,2) as female_cur_cd_rate,
+        nc.male_cur_cd_rate,
+        nc.female_avg_weed_out,
+        nc.female_week_total_weed_out,
+        nc.cur_feed,
+        nc.act_feed_daliy,
+        max(nc.avg_feed_daliy) as avg_feed_daliy,
+        max(nc.bz_total_feed) as bz_total_feed,
+        nc.cur_water,
+        nc.water_feed_rate,
+        <!--      round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)   as female_cur_weight, -->
+        round((sum(nc.female_cur_weight*nc.female_cur_amount)/sum(nc.female_cur_amount)),1)   as female_cur_weight,
+        nc.male_cur_weight,
+        round((sum(nc.female_weight*nc.female_cur_amount)/sum(nc.female_cur_amount)),1) as female_weight,
+        <!--      round(sum(d.female_cur_amount),1) as female_cur_amount, -->
+        round(sum(nc.female_cur_amount),1) as female_cur_amount,
+        nc.male_cur_amount,
+        sum(nc.male_total_cd) as pile_female_cur_cd,
+        round(sum(nc.male_total_cd)/sum(nc.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(nc.total_feed)/(max(nc.age)*sum(nc.female_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(nc.pile_cur_water)/sum(nc.total_feed),2) as pile_water_feed_rate,
+        max(nc.female_week_avg_weed_out_high_alarm) as female_week_avg_weed_out_high_alarm,
+        max(nc.female_week_avg_weed_out_low_alarm) as female_week_avg_weed_out_low_alarm,
+        max(nc.female_week_avg_weed_out_high_warm) as female_week_avg_weed_out_high_warm,
+        max(nc.female_week_avg_weed_out_low_warm) as female_week_avg_weed_out_low_warm,
+        nc.female_cur_cd_rate_flag,
+        max(nc.female_weight_high_alarm) as female_weight_high_alarm,
+        max(nc.female_weight_low_alarm) as female_weight_low_alarm,
+        max(nc.female_weight_high_warm) as female_weight_high_warm,
+        max(nc.female_weight_low_warm) as female_weight_low_warm,
+        max(nc.female_cur_weight_flag) as female_cur_weight_flag,
+        max(nc.avg_feed_daliy_high_alarm) as avg_feed_daliy_high_alarm,
+        max(nc.avg_feed_daliy_low_alarm) as avg_feed_daliy_low_alarm,
+        max(nc.avg_feed_daliy_high_warm) as avg_feed_daliy_high_warm,
+        max(nc.avg_feed_daliy_low_warm) as avg_feed_daliy_low_warm,
+        max(nc.act_feed_daliy_flag) as act_feed_daliy_flag,
+        max(nc.female_week_total_weed_out_high_alarm) as female_week_total_weed_out_high_alarm,
+        max(nc.female_week_total_weed_out_low_alarm) as female_week_total_weed_out_low_alarm,
+        max(nc.female_week_total_weed_out_high_warm) as female_week_total_weed_out_high_warm,
+        max(nc.female_week_total_weed_out_low_warm) as female_week_total_weed_out_low_warm,
+        max(nc.pile_female_cur_cd_rate_flag) as pile_female_cur_cd_rate_flag,
+        max(nc.total_feed_high_alarm) as total_feed_high_alarm,
+        max(nc.total_feed_low_alarm) as total_feed_low_alarm,
+        max(nc.total_feed_high_warm) as total_feed_high_warm,
+        max(nc.total_feed_low_warm) total_feed_low_warm,
+        max(nc.pile_act_feed_daliy_flag) as pile_act_feed_daliy_flag
+        FROM
+        (SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        ifnull(u2.user_real_name,' ') as farm_user_real_name,
+        ifnull(u2.user_mobile_1,' ') as farm_user_mobile_1,
+        ifnull(u3.user_real_name,' ') as house_user_real_name,
+        ifnull(u3.user_mobile_1,' ') as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        2 as is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        <!--      sum(d.female_death) as female_death, -->
+        sum(d.male_death) as female_death,
+        0 as male_death,
+        <!--      sum(d.female_culling) as female_culling, -->
+        sum(d.male_culling) as female_culling,
+        0 as male_culling,
+        <!--      sum(d.female_cur_cd) as female_cur_cd, -->
+        sum(d.male_cur_cd) as female_cur_cd,
+        0 as male_cur_cd,
+        <!--      round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate, -->
+        round(sum(d.male_cur_cd_rate)/sum(case when d.male_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate,
+        0 as male_cur_cd_rate,
+        0 as female_avg_weed_out,
+        0 as female_week_total_weed_out,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(max(gs.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(gs.total_feed),1) as bz_total_feed,
+        0 as cur_water,
+        0 as water_feed_rate,
+        <!--      round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)   as female_cur_weight, -->
+        round((sum(d.male_cur_weight)/sum(case when d.male_cur_weight is not null then 1 else 0 end)),1)  as female_cur_weight,
+        0 as male_cur_weight,
+        round(max(gs.male_weight) ,1) as female_weight,
+        <!--      round(sum(d.female_cur_amount),1) as female_cur_amount, -->
+        round(sum(d.male_cur_amount),1) as female_cur_amount,
+        0 as male_cur_amount,
+        d.total_feed,
+        d.male_total_cd,
+        d1.pile_cur_water,
+        round(bs.female_week_avg_weed_out_high_alarm,2) as female_week_avg_weed_out_high_alarm,
+        round(bs.female_week_avg_weed_out_low_alarm,2) as female_week_avg_weed_out_low_alarm,
+        round(bs.female_week_avg_weed_out_high_warm,2) as female_week_avg_weed_out_high_warm,
+        round(bs.female_week_avg_weed_out_low_warm,2) as female_week_avg_weed_out_low_warm,
+        0 as female_cur_cd_rate_flag,
+        round(bs.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(bs.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(bs.female_weight_high_warm,0) as female_weight_high_warm,
+        round(bs.female_weight_low_warm,0) as female_weight_low_warm,
+        0 as female_cur_weight_flag,
+        -- if(bs.female_weight_high_alarm is null,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_warm and bs.female_weight_high_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0))
+        -- or(bs.female_weight_low_warm>=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>bs.female_weight_low_alarm)),1,
+        -- if(ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_alarm or bs.female_weight_low_alarm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0),2,0))) as female_cur_weight_flag,
+        round(bs.avg_feed_daliy_high_alarm,2) as avg_feed_daliy_high_alarm,
+        round(bs.avg_feed_daliy_low_alarm,2) as avg_feed_daliy_low_alarm,
+        round(bs.avg_feed_daliy_high_warm,2) as avg_feed_daliy_high_warm,
+        round(bs.avg_feed_daliy_low_warm,2) as avg_feed_daliy_low_warm,
+        if(bs.avg_feed_daliy_high_alarm is null or max(avg_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=bs.avg_feed_daliy_high_warm and bs.avg_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (bs.avg_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>bs.avg_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=bs.avg_feed_daliy_high_alarm or bs.avg_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        ifnull(bs.female_week_total_weed_out_high_alarm,2) as female_week_total_weed_out_high_alarm,
+        ifnull(bs.female_week_total_weed_out_low_alarm,2) as female_week_total_weed_out_low_alarm,
+        ifnull(bs.female_week_total_weed_out_high_warm,2) as female_week_total_weed_out_high_warm,
+        ifnull(bs.female_week_total_weed_out_low_warm,2) as female_week_total_weed_out_low_warm,
+        0 as pile_female_cur_cd_rate_flag,
+        round(bs.total_feed_high_alarm,2) as total_feed_high_alarm,
+        round(bs.total_feed_low_alarm,2) as total_feed_low_alarm,
+        round(bs.total_feed_high_warm,2) as total_feed_high_warm,
+        round(bs.total_feed_low_warm,2) as total_feed_low_warm,
+        if(bs.total_feed_high_alarm is null or max(total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) >=bs.total_feed_high_warm and bs.total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)) or
+        (bs.total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>bs.total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>=bs.total_feed_high_alarm or bs.total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 1
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.farm_id = d.farm_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id, sum(a.cur_water) as pile_cur_water from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_growing_setting_sub bs
+        on bs.variety_id = aa.variety_id
+        and bs.grow_week_age = round(ifnull(d.age,0)/7,0)
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.male_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_growing_std gs
+        on gs.variety_id = aa.variety_id
+        and gs.grow_week_age = d.growth_week_age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        and c.is_mix=0
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by c.is_mix,aa.province_id,o.parent_id,d.farm_id,aa.house_code) nc
+        group by nc.is_mix,nc.province_id,nc.org_id,nc.farm_id
+        order by nc.is_mix,nc.province,nc.farm_id)
+    </select>
+
+    <!-- 查询育成(栋舍) -->
+    <select id="selectByYuchengDongshe" resultType="pd" useCache="false">
+        (SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        u2.user_real_name as farm_user_real_name,
+        u2.user_mobile_1 as farm_user_mobile_1,
+        u3.user_real_name as house_user_real_name,
+        u3.user_mobile_1 as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        c.is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        sum(d.female_death) as female_death,
+        sum(d.male_death) as male_death,
+        sum(d.female_culling) as female_culling,
+        sum(d.male_culling) as male_culling,
+        sum(d.female_cur_cd) as female_cur_cd,
+        sum(d.male_cur_cd) as male_cur_cd,
+        round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate,
+        round(sum(d.male_cur_cd_rate)/sum(case when d.male_cur_cd_rate is not null then 1 else 0 end)*100,2) as male_cur_cd_rate,
+        round(max(gs.female_week_avg_weed_out),1) as female_avg_weed_out,
+        round(max(gs.female_week_total_weed_out),1) as female_week_total_weed_out,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(max(gs.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(gs.total_feed),1) as bz_total_feed,
+        round(sum(d.cur_water),1) as cur_water,
+        round(sum(d.water_feed_rate),1) as water_feed_rate,
+        round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)   as female_cur_weight,
+        round((sum(d.male_cur_weight)/sum(case when d.male_cur_weight is not null then 1 else 0 end)),1)  as male_cur_weight,
+        round(max(gs.female_weight) ,1) as female_weight,
+        round(sum(d.female_cur_amount),1) as female_cur_amount,
+        round(sum(d.male_cur_amount),1) as male_cur_amount,
+        sum(d.female_total_cd) as pile_female_cur_cd,
+        round(sum(d.female_total_cd)/sum(c.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(d1.pile_cur_water)/sum(d.total_feed),2) as pile_water_feed_rate,
+        round(bs.female_week_avg_weed_out_high_alarm,2) as female_week_avg_weed_out_high_alarm,
+        round(bs.female_week_avg_weed_out_low_alarm,2) as female_week_avg_weed_out_low_alarm,
+        round(bs.female_week_avg_weed_out_high_warm,2) as female_week_avg_weed_out_high_warm,
+        round(bs.female_week_avg_weed_out_low_warm,2) as female_week_avg_weed_out_low_warm,
+        if(bs.female_week_avg_weed_out_high_alarm is null or max(gs.female_week_avg_weed_out) =0,0,if((ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_warm and bs.female_week_avg_weed_out_high_alarm > ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)),1,
+        if(ifnull(round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2),0)>=bs.female_week_avg_weed_out_high_alarm,2,0))) as female_cur_cd_rate_flag,
+        round(bs.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(bs.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(bs.female_weight_high_warm,0) as female_weight_high_warm,
+        round(bs.female_weight_low_warm,0) as female_weight_low_warm,
+        if(bs.female_weight_high_alarm is null or max(gs.female_weight) =0,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_warm and bs.female_weight_high_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0))
+        or(bs.female_weight_low_warm>=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>bs.female_weight_low_alarm)),1,
+        if(ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_alarm or bs.female_weight_low_alarm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0),2,0))) as female_cur_weight_flag,
+        round(bs.avg_feed_daliy_high_alarm,2) as avg_feed_daliy_high_alarm,
+        round(bs.avg_feed_daliy_low_alarm,2) as avg_feed_daliy_low_alarm,
+        round(bs.avg_feed_daliy_high_warm,2) as avg_feed_daliy_high_warm,
+        round(bs.avg_feed_daliy_low_warm,2) as avg_feed_daliy_low_warm,
+        if(bs.avg_feed_daliy_high_alarm is null or max(gs.avg_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=bs.avg_feed_daliy_high_warm and bs.avg_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (bs.avg_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>bs.avg_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=bs.avg_feed_daliy_high_alarm or bs.avg_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        round(bs.female_week_total_weed_out_high_alarm,2) as female_week_total_weed_out_high_alarm,
+        round(bs.female_week_total_weed_out_low_alarm,2) as female_week_total_weed_out_low_alarm,
+        round(bs.female_week_total_weed_out_high_warm,2) as female_week_total_weed_out_high_warm,
+        round(bs.female_week_total_weed_out_low_warm,2) as female_week_total_weed_out_low_warm,
+        if(bs.female_week_total_weed_out_high_alarm is null or max(gs.female_week_total_weed_out) =0,0,if((ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0) >=bs.female_week_total_weed_out_high_warm and bs.female_week_total_weed_out_high_alarm >ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)),1,if(ifnull(round(sum(d.female_total_cd)/sum(d.female_cur_amount),2),0)>=bs.female_week_total_weed_out_high_alarm,2,0))) as pile_female_cur_cd_rate_flag,
+        round(bs.total_feed_high_alarm,2) as total_feed_high_alarm,
+        round(bs.total_feed_low_alarm,2) as total_feed_low_alarm,
+        round(bs.total_feed_high_warm,2) as total_feed_high_warm,
+        round(bs.total_feed_low_warm,2) as total_feed_low_warm,
+        if(bs.total_feed_high_alarm is null or max(gs.total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) >=bs.total_feed_high_warm and bs.total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)) or
+        (bs.total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>bs.total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>=bs.total_feed_high_alarm or bs.total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 1
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.farm_id = d.farm_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id, sum(a.cur_water) as pile_cur_water from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_growing_setting_sub bs
+        on bs.variety_id = aa.variety_id
+        and bs.grow_week_age = round(ifnull(d.age,0)/7,0)
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.female_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_growing_std gs
+        on gs.variety_id = aa.variety_id
+        and gs.grow_week_age = d.growth_week_age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by c.is_mix,aa.province_id,o.parent_id,d.farm_id,aa.house_code
+        order by c.is_mix,aa.province,d.farm_id,aa.house_code)
+
+        union all
+
+        (SELECT
+        aa.province_id,
+        aa.province,
+        o.parent_id as org_id,
+        aa.farm_id,
+        aa.farm_name_chs,
+        ifnull(u2.user_real_name,' ') as farm_user_real_name,
+        ifnull(u2.user_mobile_1,' ') as farm_user_mobile_1,
+        ifnull(u3.user_real_name,' ') as house_user_real_name,
+        ifnull(u3.user_mobile_1,' ') as house_user_mobile_1,
+        aa.farm_type,
+        aa.house_code as house_id,
+        aa.house_name,
+        max(aa.batch_no) as batch_no,
+        2 as is_mix,
+        max(d.age) as age,
+        aa.variety_id,
+        c.send_child_count,
+        <!--      sum(d.female_death) as female_death, -->
+        sum(d.male_death) as female_death,
+        0 as male_death,
+        <!--      sum(d.female_culling) as female_culling, -->
+        sum(d.male_culling) as female_culling,
+        0 as male_culling,
+        <!--      sum(d.female_cur_cd) as female_cur_cd, -->
+        sum(d.male_cur_cd) as female_cur_cd,
+        0 as male_cur_cd,
+        <!--      round(sum(d.female_cur_cd_rate)/sum(case when d.female_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate, -->
+        round(sum(d.male_cur_cd_rate)/sum(case when d.male_cur_cd_rate is not null then 1 else 0 end)*100,2) as female_cur_cd_rate,
+        0 as male_cur_cd_rate,
+        0 as female_avg_weed_out,
+        0 as female_week_total_weed_out,
+        round(sum(d.cur_feed),1) as cur_feed,
+        round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1)  as act_feed_daliy,
+        round(max(gs.avg_feed_daliy),1) as avg_feed_daliy,
+        round(max(gs.total_feed),1) as bz_total_feed,
+        0 as cur_water,
+        0 as water_feed_rate,
+        <!--      round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1)   as female_cur_weight, -->
+        round((sum(d.male_cur_weight)/sum(case when d.male_cur_weight is not null then 1 else 0 end)),1)  as female_cur_weight,
+        0 as male_cur_weight,
+        round(max(gs.male_weight) ,1) as female_weight,
+        <!--      round(sum(d.female_cur_amount),1) as female_cur_amount, -->
+        round(sum(d.male_cur_amount),1) as female_cur_amount,
+        0 as male_cur_amount,
+        sum(d.male_total_cd) as pile_female_cur_cd,
+        round(sum(d.male_total_cd)/sum(c.send_child_count)*100,2) as pile_female_cur_cd_rate,
+        round(sum(d.total_feed)/(max(d.age)*sum(d.male_cur_amount))*1000,1) as pile_act_feed_daliy,
+        round(sum(d1.pile_cur_water)/sum(d.total_feed),2) as pile_water_feed_rate,
+        round(bs.female_week_avg_weed_out_high_alarm,2) as female_week_avg_weed_out_high_alarm,
+        round(bs.female_week_avg_weed_out_low_alarm,2) as female_week_avg_weed_out_low_alarm,
+        round(bs.female_week_avg_weed_out_high_warm,2) as female_week_avg_weed_out_high_warm,
+        round(bs.female_week_avg_weed_out_low_warm,2) as female_week_avg_weed_out_low_warm,
+        0 as female_cur_cd_rate_flag,
+        round(bs.female_weight_high_alarm,0) as female_weight_high_alarm,
+        round(bs.female_weight_low_alarm,0) as female_weight_low_alarm,
+        round(bs.female_weight_high_warm,0) as female_weight_high_warm,
+        round(bs.female_weight_low_warm,0) as female_weight_low_warm,
+        0 as female_cur_weight_flag,
+        -- if(bs.female_weight_high_alarm is null,0,if(((ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_warm and bs.female_weight_high_alarm > ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0))
+        -- or(bs.female_weight_low_warm>=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>bs.female_weight_low_alarm)),1,
+        -- if(ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0)>=bs.female_weight_high_alarm or bs.female_weight_low_alarm >=ifnull(round((sum(d.female_cur_weight)/sum(case when d.female_cur_weight is not null then 1 else 0 end)),1),0),2,0))) as female_cur_weight_flag,
+        round(bs.avg_feed_daliy_high_alarm,2) as avg_feed_daliy_high_alarm,
+        round(bs.avg_feed_daliy_low_alarm,2) as avg_feed_daliy_low_alarm,
+        round(bs.avg_feed_daliy_high_warm,2) as avg_feed_daliy_high_warm,
+        round(bs.avg_feed_daliy_low_warm,2) as avg_feed_daliy_low_warm,
+        if(bs.avg_feed_daliy_high_alarm is null or max(avg_feed_daliy) =0,0,if(((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) >=bs.avg_feed_daliy_high_warm and bs.avg_feed_daliy_high_alarm >ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)) or
+        (bs.avg_feed_daliy_low_warm >=ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0) and ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>bs.avg_feed_daliy_low_alarm)),1,if((ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)>=bs.avg_feed_daliy_high_alarm or bs.avg_feed_daliy_low_alarm > ifnull(round((sum(d.act_feed_daliy)/sum(case when d.act_feed_daliy is not null then 1 else 0 end)),1),0)),2,0))) as act_feed_daliy_flag,
+        ifnull(bs.female_week_total_weed_out_high_alarm,2) as female_week_total_weed_out_high_alarm,
+        ifnull(bs.female_week_total_weed_out_low_alarm,2) as female_week_total_weed_out_low_alarm,
+        ifnull(bs.female_week_total_weed_out_high_warm,2) as female_week_total_weed_out_high_warm,
+        ifnull(bs.female_week_total_weed_out_low_warm,2) as female_week_total_weed_out_low_warm,
+        0 as pile_female_cur_cd_rate_flag,
+        round(bs.total_feed_high_alarm,2) as total_feed_high_alarm,
+        round(bs.total_feed_low_alarm,2) as total_feed_low_alarm,
+        round(bs.total_feed_high_warm,2) as total_feed_high_warm,
+        round(bs.total_feed_low_warm,2) as total_feed_low_warm,
+        if(bs.total_feed_high_alarm is null or max(total_feed) =0,0,if(((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) >=bs.total_feed_high_warm and bs.total_feed_high_alarm >ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)) or
+        (bs.total_feed_low_warm >=ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0) and ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>bs.total_feed_low_alarm)),1,if((ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)>=bs.total_feed_high_alarm or bs.total_feed_low_alarm > ifnull(round(sum(d.total_feed)/(max(d.age)*sum(d.female_cur_amount))*1000,1),0)),2,0))) as pile_act_feed_daliy_flag
+        FROM
+        (select province_id,province,farm_id,farm_name_chs,farm_type,house_code,house_name,batch_no,operation_date,variety_id from (
+        select a1.id as province_id,a1.name as province,a.id as farm_id,a.farm_name_chs,a.farm_type,b.house_code,b.house_name,b.batch_no,b.operation_date,b.variety_id from s_b_batch_curr b
+        LEFT JOIN s_d_farm a
+        on a.id = b.farm_id
+        left join s_d_area_china a1
+        on a1.id=a.farm_add1
+        where a.freeze_status = 0
+        and b.status =1
+        --         and a.farm_type = 1
+        order by operation_date desc ) dd
+        group by province_id,farm_id,house_code,batch_no) aa
+        left join
+        (select * from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d
+        on aa.farm_id = d.farm_id
+        and substring_index(d.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN (select a.house_id,a.batch_id, sum(a.cur_water) as pile_cur_water from (select * from rpt_breed_detail
+        where date_format(sysdate(),"%Y%m%d") > date_format(growth_date,"%Y%m%d")
+        order by house_id,age desc ) a
+        group by house_id,substring_index(a.batch_id,'-',-1)) d1
+        on aa.house_code = d1.house_id
+        and substring_index(d1.batch_id,'-',-1) = aa.batch_no
+        LEFT JOIN s_b_growing_setting_sub bs
+        on bs.variety_id = aa.variety_id
+        and bs.grow_week_age = round(ifnull(d.age,0)/7,0)
+        left JOIN (select substring_index(c.batch_id,'-',-1) as batch_no,farm_id,c.house_code,c.is_mix,c.male_count as send_child_count from s_b_batch_change c
+        where c.operation_type = 2
+        group by substring_index(c.batch_id,'-',-1),farm_id) c
+        ON  c.batch_no = aa.batch_no
+        and c.farm_id = aa.farm_id
+        and c.house_code = aa.house_code
+        LEFT JOIN s_d_house h
+        ON d.farm_id = h.farm_id
+        AND d.house_id = h.id
+        LEFT JOIN s_b_growing_std gs
+        on gs.variety_id = aa.variety_id
+        and gs.grow_week_age = d.growth_week_age
+        left join s_d_organization o
+        on aa.farm_id = o.id
+        LEFT JOIN v_user u
+        ON u.obj_id = aa.farm_id
+        AND u.obj_type = 2
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u2
+        ON u2.obj_id = aa.farm_id
+        AND u2.obj_type = 2
+        and u2.role_temp_id = 101
+        LEFT JOIN (select * from (select v.id,v.user_real_name,v.user_mobile_1,v.obj_type,v.obj_id,v.role_temp_id from v_user v order by v.role_temp_id,v.obj_id,v.create_time desc) v group by v.role_temp_id,v.obj_id) u3
+        ON u3.obj_id = aa.house_code
+        AND u3.obj_type = 2
+        and u3.role_temp_id = 201
+        LEFT JOIN s_d_goods g
+        on g.good_id = aa.variety_id
+        WHERE 1=1
+        and g.M_category=#{m_category}
+        and c.is_mix=0
+        <if test="user_id != null and user_id != ''">
+            and u.id = #{user_id}
+        </if>
+        <if test="org_id != null and org_id != ''">
+            and o.parent_id= #{org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and d.farm_id= #{farm_id}
+        </if>
+        <if test="isShowEmptyHouse == 'false'">
+            and d.age is not null
+        </if>
+        group by c.is_mix,aa.province_id,o.parent_id,d.farm_id,aa.house_code
+        order by c.is_mix,aa.province,d.farm_id,aa.house_code)
+    </select>
+
+</mapper>

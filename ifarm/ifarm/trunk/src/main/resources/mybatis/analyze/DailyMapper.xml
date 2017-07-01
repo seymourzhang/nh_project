@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DailyMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <update id="batchCurUpdate" parameterType="pd">
+        update s_b_breed_detail
+        set
+            male_death_pm       = ${death_num_male}
+            , female_death_pm     = ${death_num_female}
+            , male_culling_pm     = ${culling_num_male}
+            , female_culling_pm   = ${culling_num_female}
+            , male_cur_cd         = ${maleCurCd}
+            , female_cur_cd       = ${femaleCurCd}
+            , male_cur_weight     = ${body_weight_male}
+            , female_cur_weight   = ${body_weight_female}
+            , male_mistake        = ${gender_error_male}
+            , female_mistake      = ${gender_error_female}
+            , feed_name           = #{feed_code_female}
+            , female_cur_feed     = ${feed_weight_female}
+            , female_cur_water    = ${water_capacity_female}
+            , laying_cur_amount   = ${layer_amount}
+            , laying_qual_cur_amount   = ${layer_qual_amount}
+            , laying_qual_cur_wight   = ${layer_qual_weight}
+            , female_cur_evenness = ${uniformity}
+            , male_cur_amount     = (SELECT male_count
+                                     FROM s_b_batch_curr
+                                     WHERE batch_id = #{BreedBatchId} AND house_code = ${HouseId}) + ${maleDiff}
+            , female_cur_amount   = (SELECT female_count
+                                     FROM s_b_batch_curr
+                                     WHERE batch_id = #{BreedBatchId} AND house_code = ${HouseId}) + ${femaleDiff}
+            , modify_date         = curdate()
+            , modify_time         = now()
+        where age = ${DayAge} and house_code = ${HouseId} and batch_id = #{BreedBatchId}
+    </update>
+
+    <update id="batchOldUpdate" parameterType="pd">
+        update s_b_breed_detail
+        set
+        male_death_pm       = ${death_num_male}
+        , female_death_pm     = ${death_num_female}
+        , male_culling_pm     = ${culling_num_male}
+        , female_culling_pm   = ${culling_num_female}
+        , male_cur_cd         = ${maleCurCd}
+        , female_cur_cd       = ${femaleCurCd}
+        , male_cur_weight     = ${body_weight_male}
+        , female_cur_weight   = ${body_weight_female}
+        , male_mistake        = ${gender_error_male}
+        , female_mistake      = ${gender_error_female}
+        , feed_name           = #{feed_code_female}
+        , female_cur_feed     = ${feed_weight_female}
+        , female_cur_water    = ${water_capacity_female}
+        , laying_cur_amount   = ${layer_amount}
+        , laying_qual_cur_amount   = ${layer_qual_amount}
+        , laying_qual_cur_wight   = ${layer_qual_weight}
+        , female_cur_evenness = ${uniformity}
+        , male_cur_amount     = male_cur_amount + ${maleDiff}
+        , female_cur_amount   = female_cur_amount + ${femaleDiff}
+        , modify_date         = curdate()
+        , modify_time         = now()
+        where age = ${DayAge} and house_code = ${HouseId} and batch_id = #{BreedBatchId}
+    </update>
+
+    <update id="batchOldSave" parameterType="pd">
+        update s_b_breed_detail
+        set
+            male_cur_amount     = male_cur_amount + (${maleDiff})
+            , female_cur_amount = female_cur_amount + (${femaleDiff})
+            , male_ytd_amount   = male_ytd_amount + (${maleDiff})
+            , female_ytd_amount   = female_ytd_amount + (${femaleDiff})
+            , modify_date = (CASE when date(growth_date) &lt;= date(curdate()) then curdate() else modify_date end)
+            , modify_time = (CASE when date(growth_date) &lt;= date(curdate()) then now() else modify_time end)
+        where age &gt; ${DayAge} and house_code = ${HouseId} and batch_id = #{BreedBatchId}
+    </update>
+
+    <update id="batchCurSave" parameterType="pd">
+        UPDATE s_b_breed_detail
+        SET
+          male_cur_amount     = (SELECT male_count
+                                 FROM s_b_batch_curr
+                                 WHERE batch_id = #{BreedBatchId} AND house_code = ${HouseId}) + ${maleDiff}
+          , female_cur_amount = (SELECT female_count
+                                 FROM s_b_batch_curr
+                                 WHERE batch_id = #{BreedBatchId} AND house_code = ${HouseId}) + ${femaleDiff}
+          , male_ytd_amount   = (SELECT male_count
+                                 FROM s_b_batch_curr
+                                 WHERE batch_id = #{BreedBatchId} AND house_code = ${HouseId}) + ${maleDiff}
+          , female_ytd_amount = (SELECT female_count
+                                 FROM s_b_batch_curr
+                                 WHERE batch_id = #{BreedBatchId} AND house_code = ${HouseId}) + ${femaleDiff}
+        WHERE age &gt; ${DayAge} AND house_code = ${HouseId} AND batch_id = #{BreedBatchId};
+    </update>
+
+    <insert id="insertDaily" parameterType="pd" flushCache="false">
+        INSERT INTO s_b_batch_change (service_id,
+                              batch_id,
+                              house_code,
+                              house_name,
+                              farm_id,
+                              operation_date,
+                              grow_age,
+                              male_weight,
+                              male_count,
+                              female_weight,
+                              female_count,
+                              weed_out_total_count,
+                              weed_out_total_weight,
+                              weed_out_avg_price,
+                              breed_days,
+                              market_date,
+                              variety_id,
+                              variety,
+                              corporation_id,
+                              corporation,
+                              bak,
+                              operation_type,
+                              create_person,
+                              create_date,
+                              create_time,
+                              modify_person,
+                              modify_date,
+                              modify_time)
+        VALUE (${service_id},
+                #{BreedBatchId},
+                ${HouseId},
+                #{HouseName},
+                ${FarmId},
+                #{operation_date},
+                ${DayAge},
+                null,
+                ${male_count},
+                null,
+                ${female_count},
+                null, null, null, null, null, null, null, null, null,
+                #{bak},
+                #{operation_type},
+                ${user_id},
+                #{create_date},
+                #{create_time},
+                ${user_id},
+                #{modify_date},
+                #{modify_time}
+                );
+    </insert>
+
+    <update id="updateCurrCount" parameterType="pd" flushCache="false">
+        update s_b_batch_curr set male_count = male_count + ${maleDiff},
+                                    female_count = female_count + ${femaleDiff},
+                                    modify_date = curdate(),
+                                    modify_time = now(),
+                                    modify_person = ${user_id}
+        where house_code = ${HouseId} and batch_id = #{BreedBatchId}
+    </update>
+
+    <select id="selectDailyByHouse" parameterType="pd" useCache="false">
+        select batch_id
+              , house_code
+              , growth_date
+              , age
+              , growth_week_age
+              , (growth_week_age - (select min(gwa.growth_week_age) from s_b_breed_detail gwa where laying_cur_amount &lt;&gt; 0 and gwa.batch_id = #{BreedBatchId})) + 1 laying_week_age
+              , male_death_pm
+              , female_death_pm
+              , male_culling_pm
+              , female_culling_pm
+              , male_cur_weight
+              , female_cur_weight
+              , male_mistake
+              , female_mistake
+              , feed_name
+              , female_cur_feed
+              , female_cur_water
+              , laying_cur_amount
+              , female_cur_evenness
+          from s_b_breed_detail
+          where batch_id = #{BreedBatchId}
+              and house_code = ${houseId}
+              and growth_date = #{SpecialDate}
+    </select>
+
+    <select id="selectDate" parameterType="pd" resultType="pd">
+        SELECT
+              DATE_FORMAT(min(ac.operation_date), "%Y-%m-%d") AS lairage,
+              DATE_FORMAT(max(bd.growth_date), "%Y-%m-%d") AS marketed_date
+        FROM s_b_breed_detail bd
+          LEFT JOIN s_b_batch_change ac
+            ON ac.batch_id = bd.batch_id and ac.house_code = bd.house_code
+        WHERE bd.batch_id = #{BreedBatchId} and bd.house_code = ${HouseId}
+    </select>
+
+    <select id="selectBySpecialDate" parameterType="pd" resultType="pd">
+        SELECT
+          sbbc.operation_date AS lairage,
+          sb.male_count,
+          sb.female_count,
+          sb.male_count + sb.female_count total_count,
+          CASE sb.status
+              WHEN 0
+                THEN sb.operation_date
+              WHEN 1
+                THEN sb.market_date
+              ELSE NULL END       AS marketed_date,
+        (sbbd.growth_week_age - (select min(gwa.growth_week_age) from s_b_breed_detail gwa where laying_cur_amount &lt;&gt; 0 and gwa.batch_id = sbbd.batch_id)) + 1 as layWeekAge,
+        sbbd.age - (select min(gwa.age) from s_b_breed_detail gwa where laying_cur_amount &lt;&gt; 0 and gwa.batch_id = sbbd.batch_id) + 1 lay_day_age,
+        truncate((1 - ifnull((select sum(d.male_cur_cd + d.female_cur_cd)
+                                from s_b_breed_detail d
+                                where d.batch_id = sbbd.batch_id
+                                  and d.house_code = sbbd.house_code
+                                  and d.age &lt;= sbbd.age) / (SELECT (c.female_ytd_amount + c.male_ytd_amount)
+                                                                            FROM s_b_breed_detail c
+                                                                            WHERE c.batch_id = sbbd.batch_id AND
+                                                                            c.house_code = sbbd.house_code AND
+                                                                            c.growth_week_age = sbbd.growth_week_age
+                                                                            HAVING min(c.age)),0)) * 100, 1) AS survival_rate,
+        truncate((1 - ifnull((SELECT sum(a.male_cur_cd + a.female_cur_cd)
+                                  FROM s_b_breed_detail a
+                                     WHERE a.batch_id = sbbd.batch_id AND a.house_code = sbbd.house_code AND
+                                      a.growth_week_age &lt;= sbbd.growth_week_age) / (SELECT (c.female_ytd_amount + c.male_ytd_amount)
+                                                                                          FROM s_b_breed_detail c
+                                                                                       WHERE c.batch_id = sbbd.batch_id AND
+                                                                                       c.house_code = sbbd.house_code AND
+                                                                                       c.growth_week_age = sbbd.growth_week_age
+                                                                                       HAVING min(c.age)),0)) * 100,
+            1)                                                                                       AS survival_week_rate,
+          sbbd.*
+        FROM s_b_breed_detail sbbd
+          LEFT JOIN (SELECT
+               min(ac.operation_date) AS operation_date,
+               ac.batch_id
+             FROM s_b_batch_change ac
+             WHERE ac.house_code = ${HouseId} AND ac.batch_id = #{BreedBatchId}) sbbc
+          ON sbbc.batch_id = sbbd.batch_id
+          LEFT JOIN (SELECT *
+             FROM s_b_batch_curr bc
+             WHERE bc.house_code = ${HouseId} AND bc.batch_id = #{BreedBatchId}) sb
+          ON sb.batch_id = sbbd.batch_id
+          LEFT JOIN rpt_breed_detail rptbd on rptbd.house_id = sbbd.house_code
+                                                AND rptbd.batch_id = sbbd.batch_id
+                                                AND rptbd.age = sbbd.age
+        WHERE sbbd.house_code = ${HouseId} AND sbbd.batch_id = #{BreedBatchId}
+            <if test="SpecialDate != null and SpecialDate != ''">
+                AND sbbd.growth_date = #{SpecialDate}
+            </if>
+            <if test="SpecialDate == null and SpecialDate == ''">
+                AND sbbd.growth_date = curdate()
+            </if>
+            <if test="DayAge != null and DayAge != ''">
+                AND sbbd.age = ${DayAge}
+            </if>
+    </select>
+
+    <select id="selectDailyReport" parameterType="pd" resultType="pd">
+        SELECT
+          age,
+          total_cur_amount,
+          female_cur_cd,
+          truncate(female_cur_cd_rate * 100, 1) female_cur_cd_rate,
+          male_cur_cd,
+          truncate(male_cur_cd_rate * 100, 1) male_cur_cd_rate,
+          truncate(act_feed_daliy, 1) act_feed_daliy,
+          truncate(cur_water_daily, 1) cur_water_daily,
+          truncate(female_cur_weight, 1) female_cur_weight,
+          truncate(male_cur_weight, 1) male_cur_weight,
+          truncate(laying_cur_amount, 0) laying_cur_amount,
+          truncate(act_cl_laying_rate * 100, 1) lay_rate,
+          truncate(act_evenness, 1) act_evenness,
+          female_cur_amount,
+          male_cur_amount
+        FROM rpt_breed_detail
+        where batch_id = #{BreedBatchId} and house_id = ${HouseId}
+        <if test="WeekAgeBegin != null or WeekAgeBegin != null">
+              and growth_week_age between ${WeekAgeBegin} and ${WeekAgeEnd}
+        </if>
+        ORDER BY age DESC
+        <if test="RecentThirtyDays != null">
+            limit ${RecentThirtyDays}
+        </if>
+    </select>
+
+    <select id="selectWeekReport" parameterType="pd" resultType="pd">
+        select
+        w.growth_week_age,
+        truncate(ifnull(w.female_week_cd + w.male_week_cd, 0), 0) cur_cd,
+        truncate(ifnull(w.female_total_cd / w.female_in_amount*100, 0), 1) cur_cd_rate,
+        truncate(ifnull(w.total_feed, 0), 0)              intake_acc,
+        truncate(ifnull(w.act_feed_daliy, 0), 1)            intake_sig,
+        truncate(ifnull(w.cur_week_water, 0), 1)            water_week,
+        truncate(ifnull(w.act_water_daliy, 0), 1)        water_sig,
+        truncate(ifnull(w.laying_week_amount, 0), 0)              week_layer_num,
+        truncate(ifnull(w.act_cl_laying_rate, 0), 1)   week_layer_rate,
+        truncate(ifnull(w.female_week_weight, 0), 1)            male_body_weight,
+        truncate(ifnull(w.male_week_weight, 0), 1)            female_body_weight,
+        truncate(ifnull(w.female_act_evenness, 0), 1)           female_act_evenness,
+        female_week_amount,
+        male_week_amount
+        FROM rpt_breed_detail_week w
+        LEFT JOIN v_user u
+        ON u.obj_id = w.farm_id
+        AND u.obj_type = 2
+        WHERE u.id = ${UserId}
+        <if test="org_id != null and org_id != ''">
+            and w.company_id = ${org_id}
+        </if>
+        <if test="farm_id != null and farm_id != ''">
+            and w.farm_id = ${farm_id}
+        </if>
+        <if test="HouseId != null and HouseId != ''">
+            and w.house_id = ${HouseId}
+        </if>
+        <if test="BreedBatchId != null and BreedBatchId != ''">
+            and w.batch_id = #{BreedBatchId}
+        </if>
+        order by w.growth_week_age desc
+    </select>
+</mapper>

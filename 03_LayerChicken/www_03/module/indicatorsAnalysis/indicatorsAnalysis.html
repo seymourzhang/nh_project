@@ -1,0 +1,21 @@
+
+<ion-tabs class="tabs-icon-only tabs-positive tabs-top AndroidBlueTab" id="tabView">
+    <div style="width: 10%;height: 100%;background: #439AFC;">
+      <a ui-sref="home" id="backBtn" class="AndroidbackBtn" style="position: absolute;left: 0%; width: 60px; background: #439AFC;text-align:center;">
+        <img src="img/newFolder/public/BackArrow.png" style="position: relative; left: 0%; top:0%;height: 100%;width: 50%;">
+      </a>
+    </div>
+    <ion-tab title="体重"  href="#/indicatorsAnalysis/weight">
+      <ion-nav-view name="indicatorsAnalysis-weight"  id="weightView"></ion-nav-view>
+    </ion-tab>
+    <ion-tab title="水料比"  href="#/indicatorsAnalysis/waterAndFeed">
+      <ion-nav-view name="indicatorsAnalysis-waterAndFeed"  id="waterAndFeedView"></ion-nav-view>
+    </ion-tab>
+    <ion-tab title="采食饮水"  href="#/indicatorsAnalysis/ingestionAndWater">
+      <ion-nav-view name="indicatorsAnalysis-ingestionAndWater"  id="ingestionAndWaterView"></ion-nav-view>
+    </ion-tab>
+    <ion-tab title="死淘率"  href="#/indicatorsAnalysis/deathAndCulling">
+      <ion-nav-view name="indicatorsAnalysis-deathAndCulling"  id="deathAndCullingView"></ion-nav-view>
+    </ion-tab>
+    
+</ion-tabs>

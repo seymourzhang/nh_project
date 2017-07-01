@@ -1,0 +1,1 @@
+alter table s_b_farm_settle_sub add COLUMN f_m_flag int comment '0 Ä¸ ,1 ¹« ,2 ¹«+Ä¸';

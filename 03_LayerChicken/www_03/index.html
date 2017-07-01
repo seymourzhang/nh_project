@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+		<title></title>
+
+		<link href="lib/ionic/css/ionic.css" rel="stylesheet">
+		<link href="css/style.css" rel="stylesheet">
+
+		<!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
+		<link href="css/ionic.app.css" rel="stylesheet">
+		-->
+
+		<!-- ionic/angularjs js -->
+		<script src="lib/ionic/js/ionic.bundle.js"></script>
+		<!-- cordova script (this will be a 404 during development) -->
+		<script src="cordova.js"></script>
+		<script src="js/common/ng-cordova.min.js"></script>
+
+
+		<link rel="stylesheet" href="lib/angular-ui-grid/ui-grid.css" type="text/css">
+	    <link rel="stylesheet" href="lib/angular-ui-grid/ui-grid.min.css" type="text/css">
+	    <script src="lib/angular-ui-grid/ui-grid.js"></script>
+	    <script src="lib/angular-ui-grid/ui-grid.min.js"></script>
+	    <script src="lib/angular-touch/angular-touch.js"></script>
+	    
+	    <script src="lib/ionic-datepicker1.2.1/dist/ionic-datepicker.bundle.min.js"></script>
+	    <link href="css/ionic_datepicker.css" rel="stylesheet">
+		<script src="js/echarts-3.4.0/echarts.min.js"></script>
+
+
+	</head>
+	<body ng-app="myApp" ng-controller="myCtrl">
+		<ion-nav-view></ion-nav-view>
+
+		<script src="js/common/md5-min.js"></script>
+		
+		<script src="js/echarts-3.4.0/echarts.min.js"></script>
+
+		<!-- 公共模块 -->
+		<script src="js/common/md5-min.js"></script>
+		
+
+		<script src="js/common/nh_alarm.js"></script>
+		<script src="js/common/nh_common.js"></script>
+		<script src="js/common/nh_echart.js"></script>
+		<script src="js/common/nh_Sparraw.js"></script>
+
+
+		<!-- 基础模块 -->
+		<script src="js/biz_common.js"></script>
+		<script src="js/biz_constant.js"></script>
+		<script src="js/app.js"></script>
+		<script src="js/controller.js"></script>
+		<script src="js/services.js"></script>
+		<script src="js/config.js"></script>
+
+
+
+		<!-- 登陆模块 -->
+		<script src="module/landing/landingProtocol/landingProtocolController.js"></script>
+		<script src="module/landing/landingPage/landingPageController.js"></script>
+		<script src="module/landing/forgotPassword/forgotPasswordController.js"></script>
+		<script src="module/landing/disclaimer/disclaimerController.js"></script>
+		<script src="module/landing/userList/userListController.js"></script>
+		<script src="module/home/homeController.js"></script>
+		<!-- 信息维护模块 -->
+		<script src="module/basicInfo/infoSafeguard/infoSafeguardController.js"></script>
+		<script src="module/basicInfo/userInfo/useRegisteredController.js"></script>
+		<script src="module/basicInfo/farmInfo/farmRegisteredController.js"></script>
+		<script src="module/basicInfo/houseInfo/buildingTableController.js"></script>
+		<script src="module/basicInfo/houseInfo/updateBuildingInfoController.js"></script>
+		<script src="module/basicInfo/houseInfo/addbuildingController.js"></script>
+		<script src="module/basicInfo/userInfo/employeesTableController.js"></script>
+		<script src="module/basicInfo/userInfo/updateEmployeesInfoController.js"></script>
+		<script src="module/basicInfo/userInfo/addEmployeesController.js"></script>
+		<script src="module/basicInfo/modifyUserInfo/modifyUserInfoController.js"></script>
+		<!-- 关于模块 -->
+		<script src="module/about/contactUs/contactUsController.js"></script>
+		<script src="module/about/functionIntroduce/functionIntroduceController.js"></script>
+		<script src="module/about/feedBack/feedBackController.js"></script>
+		<script src="module/about/aboutController.js"></script>
+		<!-- 环境监测模块 -->
+		<script src="module/envMonitoring/envMonitoringTable/envMonitoringTableController.js"></script>
+		<script src="module/envMonitoring/envMonitoringController.js"></script>
+		<script src="module/envMonitoring/alarmLogDelay/alarmLogDelayController.js"></script>
+		<script src="module/envMonitoring/tempChart/tempChartController.js"></script>
+		<script src="module/envMonitoring/alarmStatistics/alarmStatisticsController.js"></script>
+		<script src="module/envMonitoring/alarmLog/alarmLogController.js"></script>
+		<script src="module/envMonitoring/alarmSettings/alarmSettingsController.js"></script>
+		<script src="module/envMonitoring/voiceSettings/voiceSettingsController.js"></script>
+		<!-- 生产报表模块 -->
+		<script src="module/dailyTable/dailyTableController.js"></script>
+		<script src="module/dailyTable/dailyReport/dailyReportController.js"></script>
+		<script src="module/dailyTable/weekly/weeklyController.js"></script>
+		<script src="module/dailyTable/productionDaily/productionDailyController.js"></script>
+		<!-- 销售报表模块 -->
+		<script src="module/salesTable/eggSellsReportTable/eggSellsReportTableController.js"></script>
+		<script src="module/salesTable/eggSellsReport/eggSellsReportController.js"></script>
+		<script src="module/salesTable/eggSellsList/eggSellsListController.js"></script>
+		<script src="module/salesTable/salesAnalyze/salesAnalyzeController.js"></script>
+		<!-- 数据分析模块 -->
+		<script src="module/dataAnalyseTable/dataAnalyseTableController.js"></script>
+		<script src="module/dataAnalyseTable/eggWeigLayRate/eggWeigLayRateController.js"></script>
+		<script src="module/dataAnalyseTable/coluCurve/coluCurveController.js"></script>
+		<script src="module/dataAnalyseTable/eggWeigLay/eggWeigLayController.js"></script>
+		<script src="module/dataAnalyseTable/onlyChickEggs/onlyChickEggsController.js"></script>
+		<script src="module/dataAnalyseTable/onlyChickEggsDemo/onlyChickEggsDemoController.js"></script>
+		<script src="module/dataAnalyseTable/reportFeedWaterRate/reportFeedWaterRateController.js"></script>
+		<script src="module/dataAnalyseTable/reportEggWeightFeed/reportEggWeightFeedController.js"></script>
+		<script src="module/dataAnalyseTable/waterFeed/waterFeedController.js"></script>
+		<script src="module/dataAnalyseTable/cullDeathRate/cullDeathRateController.js"></script>
+		<script src="module/dataAnalyseTable/chickenWeightAnalyze/chickenWeightAnalyzeController.js"></script>
+
+		<!-- 农场管理模块 -->
+		<script src="module/farmManage/batchManage/batchManageController.js"></script>
+		<script src="module/farmManage/newBatch/newBatchController.js"></script>
+		<script src="module/farmManage/productPerformStander/productPerformStanderController.js"></script>
+		<script src="module/farmManage/historyDataImport/historyDataImportController.js"></script>
+		<!-- 消息列表 -->
+		<script src="module/home/messList/messListController.js"></script>
+		<script src="module/home/messDetails/messDetailsController.js"></script>
+		<!-- 我的页面 -->
+		<script src="module/home/myView/myViewController.js"></script>
+
+		<!-- 入雏 -->
+		<script src="module/docPlaceAffirm/docPlaceAffirmController.js"></script>
+		<!-- 出栏 -->
+		<script src="module/breedAffirm/breedAffirmController.js"></script>
+		<!-- 结算 -->
+		<script src="module/batchClear/batchClearController.js"></script>
+
+
+
+
+
+
+		<!-- 报表模块 -->
+		<script src="module/reportIndex/reportIndexController.js"></script>
+		<script src="module/reportIndex/daily/reportIndex-daily.js"></script>
+		<script src="module/reportIndex/week/reportIndex-week.js"></script>
+		<!-- 指标分析 -->
+		<script src="module/indicatorsAnalysis/indicatorsAnalysisController.js"></script>
+		<script src="module/indicatorsAnalysis/weight/weightController.js"></script>
+		<script src="module/indicatorsAnalysis/waterAndFeed/waterAndFeedController.js"></script>
+		<script src="module/indicatorsAnalysis/ingestionAndWater/ingestionAndWaterController.js"></script>
+		<script src="module/indicatorsAnalysis/deathAndCulling/deathAndCullingController.js"></script>
+		<!-- 产蛋分析 -->
+		<script src="module/eggAnalysis/eggAnalysisController.js"></script>
+		<script src="module/eggAnalysis/layingRate/layingRateController.js"></script>
+		<script src="module/eggAnalysis/eggWeight/eggWeightController.js"></script>
+		<script src="module/eggAnalysis/feedEgg/feedEggController.js"></script>
+		<script src="module/eggAnalysis/onlyChickenLaying/onlyChickenLayingController.js"></script>
+
+		<script src="module/chickenAssists/apparentTempCalc/apparentTempCalcController.js"></script>
+		<script src="module/chickenAssists/ventCompute/ventComputeController.js"></script>
+		<script src="module/chickenAssists/ventConclusion/ventConclusionController.js"></script>
+
+		<!-- 环控分析 -->
+		<script src="module/envAnalysis/envAnalyIndexController.js"></script>
+		<script src="module/envAnalysis/tempHumi/tempHumiController.js"></script>
+		<script src="module/envAnalysis/tempDiff/tempDiffController.js"></script>
+		<script src="module/envAnalysis/shock/shockController.js"></script>
+
+
+		<script src="module/warnCount/warnTabIndexController.js"></script>
+		<script src="module/warnCount/envWarnChart/envWarnChartController.js"></script>
+		<script src="module/warnCount/warnStatistics/warnStatisticsController.js"></script>
+
+
+
+
+		<script src="module/about/tips/tipsController.js"></script>
+
+
+		<script src="module/textTableIndex/textTableIndexController.js"></script>
+		<script src="module/textTableIndex/breedDiary/textTableIndex-breedDiary.js"></script>
+		<script src="module/textTableIndex/mediRecord/textTableIndex-mediRecord.js"></script>
+
+
+
+
+	</body>
+</html>

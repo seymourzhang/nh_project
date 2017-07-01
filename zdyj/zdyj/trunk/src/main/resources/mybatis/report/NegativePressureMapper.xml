@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="NegativePressureMapper">
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+	<select id="NegativePressureDaily" resultType="pd" useCache="false">
+	SELECT farm_id,
+			house_id,
+			date,
+			right(time,2) as time,
+			batch_no,
+			ROUND(negative_pressure,1) negative_pressure,
+			ROUND(high_alarm_negative_pressure,1) high_alarm_negative_pressure
+	FROM rpt_monitor_daily
+	where 1=1
+		<if test="farmId != null and farmId !=''">
+			and farm_id = #{farmId}
+		</if>
+		<if test="houseId != null and houseId !=''">
+			and house_id = #{houseId}
+		</if>
+		<if test="batchId != null and batchId !=''">
+			and batch_no = #{batchId}
+		</if>
+		<if test="beginTime != null and endTime != null">
+			AND (`date` BETWEEN #{beginTime} AND #{endTime} )
+		</if>
+	</select>
+	<select id="NegativePressureMonth" resultType="pd" useCache="false">
+	SELECT farm_id,
+			house_id,
+			year,
+			month,
+			date,
+			batch_no,
+			ROUND(negative_pressure,1) negative_pressure,
+			ROUND(high_alarm_negative_pressure,1) high_alarm_negative_pressure
+	FROM rpt_monitor_month
+	where 1=1
+		<if test="farmId != null and farmId !=''">
+			and farm_id = #{farmId}
+		</if>
+		<if test="houseId != null and houseId !=''">
+			and house_id = #{houseId}
+		</if>
+		<if test="batchId != null and batchId !=''">
+			and batch_no = #{batchId}
+		</if>
+		<if test="beginTime != null and endTime != null">
+			AND (`date` BETWEEN #{beginTime} AND #{endTime} )
+		</if>
+		ORDER BY DATE 
+	</select>
+
+</mapper>

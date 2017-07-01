@@ -1,0 +1,4198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WorkBook xmlVersion="20151125" releaseVersion="8.0.0">
+<TableDataMap>
+<TableData name="ds1" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select dd.batch_no
+,dd.farm_id
+,dd.house_code
+,dd.growth_week_age
+,dd.user_id
+,dd.parent_id
+,dd.母鸡实际成活率
+,dd.母鸡成活率达标率
+,dd.母鸡周死淘率
+,dd.母实际均匀度
+,dd.母鸡均匀度达标率
+,dd.实际母均重
+,dd.母鸡体重达标率
+,dd.标准母均重
+,dd.实际母鸡只累计耗料
+,dd.母鸡累计达标率
+,dd.公鸡实际成活率
+,dd.公鸡周死淘率
+,dd.公实际均匀度
+,dd.公鸡均匀度达标率
+,dd.实际公均重
+,dd.公鸡体重达标率
+,dd.标准公均重
+,dd.实际公鸡只累计耗料
+,dd.公鸡累计达标率
+from (SELECT 
+    h1.*,
+    h1.母鸡死淘累计/h1.母鸡进鸡数 as 母鸡累计死淘率,
+    1 - h1.母鸡死淘累计/h1.母鸡进鸡数 as 母鸡实际成活率,
+    (1 - h1.母鸡死淘累计/h1.母鸡进鸡数)/(母鸡标准成活率/100) as 母鸡成活率达标率,
+    (h1.母鸡周平均死淘 - h1.母鸡周死淘率 + 1)/h1.母鸡周平均死淘 as 母鸡周死淘率达标率,
+    1 - h1.公鸡死淘累计/h1.公鸡进鸡数 as 公鸡实际成活率,
+    h1.公鸡死淘累计/h1.公鸡进鸡数 as 公鸡累计死淘率,
+    h1.实际只耗料/h1.标准只耗料 as 达标率,
+    h1.母鸡累计耗料/h1.母鸡进鸡数 as 实际母鸡只累计耗料,
+    h1.公鸡累计耗料/h1.公鸡进鸡数 as 实际公鸡只累计耗料,
+    (h1.母鸡累计耗料/h1.母鸡进鸡数)/(h1.标准只累计耗料/1000) as 母鸡累计达标率,
+    (h1.公鸡累计耗料/h1.公鸡进鸡数)/(h1.标准只累计耗料/1000) as 公鸡累计达标率,
+    h1.实际母均重/h1.标准母均重 as 母鸡体重达标率,
+	h1.实际公均重/h1.标准公均重 as 公鸡体重达标率,
+    h1.实际母均重 - h1.标准母均重 as 母鸡体重标准差,
+    h1.实际公均重 - h1.标准公均重 as 公鸡体重标准差,
+    (h1.母实际均匀度/(case when h1.母实际均匀度 > 0 then 1 ELSE 0 end))/ h1.标准均匀度 as 母鸡均匀度达标率,
+	(h1.公实际均匀度/(case when h1.公实际均匀度 > 0 then 1 ELSE 0 end))/ h1.标准均匀度 as 公鸡均匀度达标率,   /*((h1.母实际均匀度 + h1.公实际均匀度)/((case when h1.母实际均匀度 > 0 then 1 ELSE 0 end) + (case when h1.公实际均匀度 > 0 then 1 ELSE 0 end)))/ h1.标准均匀度 as 均匀度达标率,*/
+    h1.累计产蛋数 / h1.入舍母鸡总产蛋数 as 入舍母鸡合格蛋达标率,
+    h1.累计耗料 / h1.累计产蛋数 as 蛋耗料,
+    h1.周产蛋数 / h1.入舍母鸡周平均产蛋数 as 周平均产蛋达标率
+FROM(
+SELECT
+    n1.*
+    , (SELECT SUM(IFNULL(tmp.female_cur_cd,0) + IFNULL(tmp.female_mistake,0))
+       FROM s_b_breed_detail tmp
+       WHERE n1.batch_id=tmp.batch_id
+          AND tmp.growth_week_age<=n1.growth_week_age) as 母鸡死淘累计
+  , (SELECT SUM(IFNULL(tmp.male_cur_cd,0) + IFNULL(tmp.male_mistake,0))
+       FROM s_b_breed_detail tmp
+       WHERE n1.batch_id=tmp.batch_id
+             AND tmp.growth_week_age<=n1.growth_week_age) as 公鸡死淘累计
+  , (SELECT SUM(tmp.female_cur_feed)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 母鸡累计耗料
+  , (SELECT SUM(tmp.male_cur_feed)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 公鸡累计耗料
+  , (SELECT SUM(tmp.male_cur_feed + tmp.female_cur_feed)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计耗料		
+  ,(SELECT SUM(tmp.laying_cur_amount)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计产蛋数
+  ,(SELECT SUM(tmp.laying_qual_cur_amount)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计合格蛋数
+  ,(SELECT SUM(tmp.laying_cur_wight)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计产蛋重量
+  ,(SELECT SUM(tmp.laying_qual_cur_wight)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计合格蛋重量
+  ,n2.female_life as 母鸡标准成活率
+  ,n2.avg_feed_daliy as 标准只耗料
+  ,n2.total_feed as 标准只累计耗料
+  ,n2.female_min_std_weight as 标准母均重
+  ,n2.female_max_std_weight as 标准公均重
+  ,n2.evenness as 标准均匀度
+  ,n2.female_week_avg_weed_out as 母鸡周平均死淘
+  ,n3.cl_laying_rate as 存栏产蛋率标准
+  ,n3.rs_laying_rate as 入舍产蛋率标准
+  ,n3.rs_female_laying_avg_count as 入舍母鸡周平均产蛋数
+  ,n3.rs_female_laying_total_count as 入舍母鸡总产蛋数
+  FROM (
+    SELECT
+      m1.*,
+      m3.female_cur_amount                                          AS 母鸡存栏数,
+      m3.male_cur_amount                                            AS 公鸡存栏数,
+      (m3.female_cur_amount + m3.male_cur_amount)                   AS 总存栏量,
+      m1.母鸡死淘小计 / m3.female_cur_amount                              AS 母鸡周死淘率,
+      m1.公鸡死淘小计 / m3.male_cur_amount                                AS 公鸡周死淘率,
+      m1.本周耗料量 / (m3.female_cur_amount + m3.male_cur_amount) * 1000 AS 实际只耗料,
+      m1.当周饮水量 / (m3.female_cur_amount + m3.male_cur_amount) * 1000 AS 当周饮水量毫升,
+      m1.当周饮水量 / m1.本周耗料量                                           AS 水料比
+    FROM (
+           SELECT
+             o.id,
+             o.parent_id,
+             u.id user_id,
+             f.farm_name_chs,
+             t1.farm_id,
+             t1.house_code,
+             h.house_name,
+             t1.batch_id,
+             c.batch_no,
+             f.feed_type,
+             h.house_type,
+             DATE_FORMAT(min(t1.growth_date), "%Y-%m-%d")     AS begin_growth_date,
+             DATE_FORMAT(max(t1.growth_date), "%Y-%m-%d")     AS end_growth_date,
+             t1.growth_week_age                                          ,
+             t1.laying_week_age                               AS 生产周龄,
+             SUM(t1.female_death_am + t1.female_death_pm)     AS 母鸡死亡数,
+             SUM(t1.female_culling_am + t1.female_culling_pm) AS 母鸡淘汰数,
+             SUM(t1.female_mistake)                           AS 母鸡鉴别错误数,
+             SUM(t1.female_cur_cd) + SUM(t1.female_mistake)   AS 母鸡死淘小计,
+             SUM(t1.male_death_am + t1.male_death_pm)         AS 公鸡死亡数,
+             SUM(t1.male_culling_am + t1.male_culling_pm)     AS 公鸡淘汰数,
+             SUM(t1.male_mistake)                             AS 公鸡鉴别错误数,
+             SUM(t1.male_cur_cd) + SUM(t1.male_mistake)       AS 公鸡死淘小计,
+             (SELECT tmp.female_ytd_amount FROM s_b_breed_detail tmp
+WHERE t1.batch_id = tmp.batch_id
+AND tmp.growth_date = (SELECT a.operation_date FROM s_b_batch_change a WHERE a.batch_id = t1.batch_id AND a.operation_type = 2))                                     母鸡进鸡数,
+             (SELECT tmp.male_ytd_amount FROM s_b_breed_detail tmp
+WHERE t1.batch_id = tmp.batch_id
+AND tmp.growth_date = (SELECT a.operation_date FROM s_b_batch_change a WHERE a.batch_id = t1.batch_id AND a.operation_type = 2))                                 公鸡进鸡数,
+             SUM(t1.male_cur_feed + t1.female_cur_feed)       AS 本周耗料量,
+             SUM(t1.male_cur_water + t1.female_cur_water)     AS 当周饮水量,
+             SUM(t1.female_cur_weight) / SUM(CASE WHEN t1.female_cur_weight IS NOT NULL AND t1.female_cur_weight > 0
+               THEN 1
+                                             ELSE 0 END)      AS 实际母均重,
+             SUM(t1.male_cur_weight) / SUM(CASE WHEN t1.male_cur_weight IS NOT NULL AND t1.male_cur_weight > 0
+               THEN 1
+                                           ELSE 0 END)        AS 实际公均重,
+             SUM(t1.female_cur_evenness) /
+             SUM(CASE WHEN t1.female_cur_evenness IS NOT NULL AND t1.female_cur_evenness > 0
+               THEN 1
+                 ELSE 0 END)                                  AS 母实际均匀度,
+             SUM(t1.male_cur_evenness) /
+             SUM(CASE WHEN t1.male_cur_evenness IS NOT NULL AND t1.female_cur_evenness > 0
+               THEN 1
+                 ELSE 0 END)                                  AS 公实际均匀度,
+             sum(ifnull(t5.male_dj, 0))                       AS 公鸡调鸡数,
+             sum(ifnull(t5.female_dj, 0))                     AS 母鸡调鸡数,
+             sum(t1.laying_cur_amount)                        AS 周产蛋数,
+             sum(t1.laying_qual_cur_amount)                   AS 周合格蛋数,
+             SUM(t1.laying_cur_wight)                         AS 周产蛋重量,
+             SUM(t1.laying_qual_cur_wight)                    AS 周合格蛋重量
+           FROM (select b1.* from s_b_batch_curr b1
+                 INNER JOIN
+                (
+                select c1.farm_id,c1.batch_no from s_b_batch_curr c1
+                INNER JOIN(
+                select max(create_time) as create_time,farm_id from s_b_batch_curr
+                GROUP BY farm_id) c2
+                on c1.farm_id = c2.farm_id
+                and c1.create_time = c2.create_time) b2
+                on b1.farm_id = b2.farm_id
+                and b1.batch_no=b2.batch_no) c
+             JOIN s_b_breed_detail t1
+               ON c.batch_id = t1.batch_id
+                  AND t1.growth_date <= (CASE WHEN c.`status` = 1
+               THEN sysdate()
+                                         WHEN c.`status` = 0
+                                           THEN c.operation_date END)
+             and t1.create_time <> t1.modify_time
+             LEFT JOIN s_d_farm f
+               ON t1.farm_id = f.id
+               AND f.freeze_status=0
+             LEFT JOIN s_d_organization o
+               ON o.id = f.farm_code
+               AND o.freeze_status=0
+             LEFT JOIN v_user u
+             ON o.id = u.obj_id
+             AND u.obj_type=2
+             LEFT JOIN s_d_house h
+               ON t1.house_code = h.id
+                  AND t1.farm_id = h.farm_id
+                  AND h.freeze_status=0
+             LEFT JOIN s_d_organization o1
+               ON o1.id = h.house_code
+               AND o1.freeze_status=0
+             LEFT JOIN v_user u1
+             ON o1.id = u1.obj_id
+             AND u1.obj_type=2
+             LEFT JOIN (SELECT
+                          a.farm_id,
+                          a.house_code,
+                          a.batch_id,
+                          a.operation_date,
+                          sum(a.female_count) AS female_dj,
+                          sum(a.male_count)   AS male_dj
+                        FROM s_b_batch_change a
+                        WHERE a.operation_type = 3
+                        GROUP BY a.farm_id, a.house_code, a.batch_id, a.operation_date) t5
+               ON t1.batch_id = t5.batch_id
+                  AND t1.growth_date = t5.operation_date
+           WHERE u1.id='${user_id}' and h.house_type = 1 
+           ${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+           GROUP BY o.id,
+             o.parent_id,
+             f.farm_name_chs,
+             t1.farm_id,
+             t1.house_code,
+             h.house_name,
+             t1.batch_id,
+             t1.growth_week_age,
+             t1.laying_week_age) m1
+      LEFT JOIN s_b_breed_detail m2
+        ON m1.batch_id = m2.batch_id
+           AND m1.begin_growth_date = m2.growth_date
+      LEFT JOIN s_b_breed_detail m3
+        ON m1.batch_id = m3.batch_id
+           AND m1.end_growth_date = m3.growth_date
+  ) n1
+LEFT JOIN s_b_growing_std n2
+  ON n1.feed_type = n2.variety_id
+      AND n1.growth_week_age = n2.grow_week_age
+LEFT JOIN s_b_lay_egg_std n3
+  ON n1.feed_type = n3.variety_id
+      AND n1.生产周龄 = n3.lay_egg_week_age
+) h1
+INNER JOIN 
+(select
+             t1.batch_id,
+             max(t1.growth_week_age) as growth_week_age
+             FROM s_b_batch_curr c
+             JOIN s_b_breed_detail t1
+               ON c.batch_id = t1.batch_id
+                  AND t1.growth_date <= (CASE WHEN c.`status` = 1
+               THEN sysdate()
+                                         WHEN c.`status` = 0
+                                           THEN c.operation_date END)
+                  and t1.create_time <> t1.modify_time
+GROUP BY t1.batch_id) h2
+ON h2.batch_id = h1.batch_id
+and h2.growth_week_age = h1.growth_week_age) dd
+
+
+union
+
+select 
+'' as batch_no,
+c.farm_name_chs as farm_id,
+a.house_name as house_code,
+
+'' as growth_week_age,
+u.id as user_id,
+o.parent_id,
+'' as 母鸡实际成活率,
+'' as 母鸡成活率达标率,
+'' as 母鸡周死淘率,
+'' as 母实际均匀度,
+'' as 母鸡均匀度达标率,
+'' as 实际母均重,
+'' as 母鸡体重达标率,
+'' as 标准母均重,
+'' as 实际母鸡只累计耗料,
+'' as 母鸡累计达标率,
+'' as 公鸡实际成活率,
+'' as 公鸡周死淘率,
+'' as 公实际均匀度,
+'' as 公鸡均匀度达标率,
+'' as 实际公均重,
+'' as 公鸡体重达标率,
+'' as 标准公均重,
+'' as 实际公鸡只累计耗料,
+'' as 公鸡累计达标率
+ from s_d_house a
+LEFT JOIN s_d_farm c
+on a.farm_id = c.farm_code
+left join s_d_organization o
+on c.farm_code = o.id
+inner JOIN v_user u
+ON a.farm_id = u.obj_id
+and u.id = '${user_id}' and u.obj_type=2
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+where not EXISTS  ( select 1 from (select b1.* from s_b_batch_curr b1
+                 INNER JOIN
+                (
+                select c1.farm_id,c1.batch_no from s_b_batch_curr c1
+                INNER JOIN(
+                select max(create_time) as create_time,farm_id from s_b_batch_curr
+                GROUP BY farm_id) c2
+                on c1.farm_id = c2.farm_id
+                and c1.create_time = c2.create_time) b2
+                on b1.farm_id = b2.farm_id
+                and b1.batch_no=b2.batch_no) b where a.house_code = b.house_code)
+and a.house_type = 1
+
+union
+
+select 
+substring_index(b.batch_id,'-',-1) as batch_no,  
+c.farm_name_chs as farm_id,
+a.house_name as house_code,
+
+'' as growth_week_age,
+u.id as user_id,
+o.parent_id,
+'' as 母鸡实际成活率,
+'' as 母鸡成活率达标率,
+'' as 母鸡周死淘率,
+'' as 母实际均匀度,
+'' as 母鸡均匀度达标率,
+'' as 实际母均重,
+'' as 母鸡体重达标率,
+'' as 标准母均重,
+'' as 实际母鸡只累计耗料,
+'' as 母鸡累计达标率,
+'' as 公鸡实际成活率,
+'' as 公鸡周死淘率,
+'' as 公实际均匀度,
+'' as 公鸡均匀度达标率,
+'' as 实际公均重,
+'' as 公鸡体重达标率,
+'' as 标准公均重,
+'' as 实际公鸡只累计耗料,
+'' as 公鸡累计达标率
+ from s_d_house a
+LEFT JOIN s_d_farm c
+on a.farm_id = c.farm_code
+left join s_d_organization o
+on c.farm_code = o.id
+inner JOIN v_user u
+ON a.farm_id = u.obj_id
+and u.id = '${user_id}' and u.obj_type=2
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+INNER JOIN ( select b.house_code,b.batch_id from (
+select a.house_code,a.house_name,a.farm_id,a.batch_id,min(create_time) as create_time,min(modify_time) as modify_time from s_b_breed_detail a
+group by a.house_code,a.house_name,a.farm_id,a.batch_id) b
+where b.create_time = b.modify_time) b 
+on a.house_code = b.house_code
+and a.house_type = 1]]></Query>
+</TableData>
+<TableData name="产蛋" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[28]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select 
+farm_id,
+batch_no,
+house_code,
+user_id,
+parent_id,
+生产周龄,
+母鸡存栏数,
+公鸡存栏数,
+日死淘率,
+累计死淘率,
+累计合格蛋数 / 母鸡进鸡数 as 累计合格蛋数,
+入舍母鸡合格蛋达标率,
+蛋耗料,
+周平均产蛋率,
+周平均产蛋达标率,
+合格蛋均重
+from (SELECT 
+    h1.*,
+    h1.母鸡死淘累计/h1.母鸡进鸡数 as 母鸡累计死淘率,
+    (h1.母鸡累计死淘率标准/100-(h1.母鸡死淘累计/h1.母鸡进鸡数)+1)/h1.母鸡累计死淘率标准 as 母鸡累计死淘达标率,
+    1 - h1.母鸡死淘累计/h1.母鸡进鸡数 as 母鸡实际成活率,
+    (1 - h1.母鸡死淘累计/h1.母鸡进鸡数)/(母鸡标准成活率/100) as 母鸡成活率达标率,
+    h1.公鸡死淘累计/h1.公鸡进鸡数 as 公鸡累计死淘率,
+    (h1.母鸡死淘累计 + h1.公鸡死淘累计)/(h1.母鸡进鸡数 + h1.公鸡进鸡数)  as 累计死淘率,
+    h1.实际只耗料/h1.标准只耗料 as 达标率,
+    h1.累计耗料/(h1.母鸡进鸡数 + h1.公鸡进鸡数) as 实际只累计耗料,
+    h1.累计耗料/(h1.母鸡进鸡数 + h1.公鸡进鸡数)/h1.标准只累计耗料 as 累计达标率,
+    h1.实际母均重 - h1.标准母均重 as 母鸡体重标准差,
+    h1.实际公均重 - h1.标准公均重 as 公鸡体重标准差,
+    ((h1.母实际均匀度 + h1.公实际均匀度)/((case when h1.母实际均匀度 > 0 then 1 ELSE 0 end) + (case when h1.公实际均匀度 > 0 then 1 ELSE 0 end)))/ h1.标准均匀度 as 均匀度达标率,
+    h1.累计合格蛋数 / h1.母鸡进鸡数/ h1.入舍母鸡总产蛋数 as 入舍母鸡合格蛋达标率,
+    h1.累计耗料*1000/ h1.累计合格蛋数 as 蛋耗料,
+    h1.周产蛋数 / h1.母鸡存栏数 / (DATEDIFF(h1.end_growth_date,h1.begin_growth_date)+1) / (h1.存栏产蛋率/100) as 周平均产蛋达标率,
+    ((h1.母鸡日死淘率标准/100) - h1.日死淘率 + 1) / h1.母鸡日死淘率标准 as  日死淘达标率,
+    h1.周产蛋数 / h1.母鸡存栏数 / (DATEDIFF(h1.end_growth_date,h1.begin_growth_date)+1) AS 周平均产蛋率,
+    h1.周合格蛋重量/h1.周合格蛋数 AS 合格蛋均重
+FROM(
+SELECT
+    n1.*
+    , (SELECT SUM(IFNULL(tmp.female_cur_cd,0) + IFNULL(tmp.female_mistake,0))
+       FROM s_b_breed_detail tmp
+       WHERE n1.batch_id=tmp.batch_id
+          AND tmp.growth_week_age<=n1.growth_week_age) as 母鸡死淘累计
+  , (SELECT SUM(IFNULL(tmp.male_cur_cd,0) + IFNULL(tmp.male_mistake,0))
+       FROM s_b_breed_detail tmp
+       WHERE n1.batch_id=tmp.batch_id
+             AND tmp.growth_week_age<=n1.growth_week_age) as 公鸡死淘累计
+  , (SELECT SUM(tmp.male_cur_feed + tmp.female_cur_feed)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计耗料
+  ,(SELECT SUM(tmp.laying_cur_amount)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计产蛋数
+  ,(SELECT SUM(tmp.laying_qual_cur_amount)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计合格蛋数
+  ,(SELECT SUM(tmp.laying_cur_wight)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计产蛋重量
+  ,(SELECT SUM(tmp.laying_qual_cur_wight)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计合格蛋重量
+  ,n3.female_life as 母鸡标准成活率
+  ,n2.avg_feed_daliy as 标准只耗料
+  ,n2.total_feed as 标准只累计耗料
+  ,n2.female_min_std_weight as 标准母均重
+  ,n2.female_max_std_weight as 标准公均重
+  ,n2.evenness as 标准均匀度
+  ,n3.cl_laying_rate as 存栏产蛋率标准
+  ,n3.rs_laying_rate as 入舍产蛋率标准
+  ,n3.rs_female_laying_avg_count as 入舍母鸡周平均产蛋数
+  ,n3.rs_female_laying_total_count as 入舍母鸡总产蛋数
+  ,n3.female_week_total_weed_out as 母鸡累计死淘率标准
+  ,n3.female_week_avg_weed_out /7 as 母鸡日死淘率标准
+  ,n3.cl_laying_rate as 存栏产蛋率
+  FROM (
+    SELECT
+      m1.*,
+      ifnull(m3.female_cur_amount,m1.母鸡进鸡数)      AS 母鸡存栏数,
+      ifnull(m3.male_cur_amount,m1.公鸡进鸡数)       AS 公鸡存栏数,
+      (ifnull(m4.female_cur_amount,m1.母鸡进鸡数) + ifnull(m4.male_cur_amount,m1.公鸡进鸡数)) as 上周总存栏量,
+      m3.female_cur_amount                                          AS 本周母鸡存栏数,
+      m3.male_cur_amount                                            AS 本周存栏数,
+      (m3.female_cur_amount + m3.male_cur_amount)                   AS 本周总存栏量,
+      m1.母鸡死淘小计 / m3.female_cur_amount                              AS 母鸡周死淘率,
+      m1.公鸡死淘小计 / m3.male_cur_amount                                AS 公鸡周死淘率,
+      (m1.母鸡死淘小计 +  m1.公鸡死淘小计) / (ifnull(m4.female_cur_amount,m1.母鸡进鸡数) + ifnull(m4.male_cur_amount,m1.公鸡进鸡数)) / (DATEDIFF(end_growth_date,begin_growth_date)+1)  as 日死淘率, 
+      m1.本周耗料量 / (m3.female_cur_amount + m3.male_cur_amount) * 1000 AS 实际只耗料,
+      m1.当周饮水量 / (m3.female_cur_amount + m3.male_cur_amount) * 1000 AS 当周饮水量毫升,
+      m1.当周饮水量 / m1.本周耗料量                                           AS 水料比
+    FROM (
+           SELECT
+             o.id,
+             o.parent_id,
+             u.id user_id,
+             f.farm_name_chs,
+             t1.farm_id,
+             t1.house_code,
+             h.house_name,
+             t1.batch_id,
+             c.batch_no,
+             f.feed_type,
+             h.house_type,
+             DATE_FORMAT(min(t1.growth_date), "%Y-%m-%d")     AS begin_growth_date,
+             DATE_FORMAT(max(t1.growth_date), "%Y-%m-%d")     AS end_growth_date,
+             t1.growth_week_age                                          ,
+             t1.laying_week_age                               AS 生产周龄,
+             SUM(t1.female_death_am + t1.female_death_pm)     AS 母鸡死亡数,
+             SUM(t1.female_culling_am + t1.female_culling_pm) AS 母鸡淘汰数,
+             SUM(t1.female_mistake)                           AS 母鸡鉴别错误数,
+             SUM(t1.female_cur_cd) + SUM(t1.female_mistake)   AS 母鸡死淘小计,
+             SUM(t1.male_death_am + t1.male_death_pm)         AS 公鸡死亡数,
+             SUM(t1.male_culling_am + t1.male_culling_pm)     AS 公鸡淘汰数,
+             SUM(t1.male_mistake)                             AS 公鸡鉴别错误数,
+             SUM(t1.male_cur_cd) + SUM(t1.male_mistake)       AS 公鸡死淘小计,
+          (SELECT tmp.female_ytd_amount FROM s_b_breed_detail tmp
+WHERE t1.batch_id = tmp.batch_id
+AND tmp.growth_date = (SELECT a.operation_date FROM s_b_batch_change a WHERE a.batch_id = t1.batch_id AND a.operation_type = 2))                                     母鸡进鸡数,
+             (SELECT tmp.male_ytd_amount FROM s_b_breed_detail tmp
+WHERE t1.batch_id = tmp.batch_id
+AND tmp.growth_date = (SELECT a.operation_date FROM s_b_batch_change a WHERE a.batch_id = t1.batch_id AND a.operation_type = 2))                                    公鸡进鸡数,
+             SUM(t1.male_cur_feed + t1.female_cur_feed)       AS 本周耗料量,
+             SUM(t1.male_cur_water + t1.female_cur_water)     AS 当周饮水量,
+             SUM(t1.female_cur_weight) / SUM(CASE WHEN t1.female_cur_weight IS NOT NULL AND t1.female_cur_weight > 0
+               THEN 1
+                                             ELSE 0 END)      AS 实际母均重,
+             SUM(t1.male_cur_weight) / SUM(CASE WHEN t1.male_cur_weight IS NOT NULL AND t1.male_cur_weight > 0
+               THEN 1
+                                           ELSE 0 END)        AS 实际公均重,
+             SUM(t1.female_cur_evenness) /
+             SUM(CASE WHEN t1.female_cur_evenness IS NOT NULL AND t1.female_cur_evenness > 0
+               THEN 1
+                 ELSE 0 END)                                  AS 母实际均匀度,
+             SUM(t1.male_cur_evenness) /
+             SUM(CASE WHEN t1.male_cur_evenness IS NOT NULL AND t1.female_cur_evenness > 0
+               THEN 1
+                 ELSE 0 END)                                  AS 公实际均匀度,
+             sum(ifnull(t5.male_dj, 0))                       AS 公鸡调鸡数,
+             sum(ifnull(t5.female_dj, 0))                     AS 母鸡调鸡数,
+             sum(t1.laying_cur_amount)                        AS 周产蛋数,
+             sum(t1.laying_qual_cur_amount)                   AS 周合格蛋数,
+             SUM(t1.laying_cur_wight*t1.laying_cur_amount)    AS 周产蛋重量,
+             SUM(t1.laying_qual_cur_wight*t1.laying_qual_cur_amount)  AS 周合格蛋重量
+           FROM (select b1.* from s_b_batch_curr b1
+                 INNER JOIN
+                (
+                select c1.farm_id,c1.batch_no from s_b_batch_curr c1
+                INNER JOIN(
+                select max(create_time) as create_time,farm_id from s_b_batch_curr
+                GROUP BY farm_id) c2
+                on c1.farm_id = c2.farm_id
+                and c1.create_time = c2.create_time) b2
+                on b1.farm_id = b2.farm_id
+                and b1.batch_no=b2.batch_no) c
+             JOIN s_b_breed_detail t1
+               ON c.batch_id = t1.batch_id
+                  AND t1.growth_date <= (CASE WHEN c.`status` = 1
+               THEN sysdate()
+                                         WHEN c.`status` = 0
+                                           THEN c.operation_date END)
+             and t1.create_time <> t1.modify_time
+             LEFT JOIN s_d_farm f
+               ON t1.farm_id = f.id
+               AND f.freeze_status=0
+             LEFT JOIN s_d_organization o
+               ON o.id = f.farm_code
+               AND o.freeze_status=0
+             LEFT JOIN v_user u
+             ON o.id = u.obj_id
+              AND u.obj_type=2
+              and u.id = '${user_id}'
+             LEFT JOIN s_d_house h
+               ON t1.house_code = h.id
+                  AND t1.farm_id = h.farm_id
+                  AND h.freeze_status=0
+              LEFT JOIN s_d_organization o1
+               ON o1.id = h.house_code
+               AND o1.freeze_status=0
+             LEFT JOIN v_user u1
+             ON o1.id = u1.obj_id
+              AND u1.obj_type=2
+              and u1.id = '${user_id}'
+             LEFT JOIN (SELECT
+                          a.farm_id,
+                          a.house_code,
+                          a.batch_id,
+                          a.operation_date,
+                          sum(a.female_count) AS female_dj,
+                          sum(a.male_count)   AS male_dj
+                        FROM s_b_batch_change a
+                        WHERE a.operation_type = 3
+                        GROUP BY a.farm_id, a.house_code, a.batch_id, a.operation_date) t5
+               ON t1.batch_id = t5.batch_id
+                  AND t1.growth_date = t5.operation_date
+           WHERE u1.id='${user_id}' and h.house_type = 2 
+           ${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+           GROUP BY o.id,
+             o.parent_id,
+             f.farm_name_chs,
+             t1.farm_id,
+             t1.house_code,
+             h.house_name,
+             t1.batch_id,
+             t1.growth_week_age,
+             t1.laying_week_age) m1
+      LEFT JOIN s_b_breed_detail m2
+        ON m1.batch_id = m2.batch_id
+           AND m1.begin_growth_date = m2.growth_date
+      LEFT JOIN s_b_breed_detail m3
+        ON m1.batch_id = m3.batch_id
+           AND m1.end_growth_date = m3.growth_date
+      LEFT JOIN s_b_breed_detail m4
+        ON m1.batch_id = m4.batch_id
+           AND m1.begin_growth_date = DATE_ADD(m4.growth_date,INTERVAL 1 day)
+  ) n1
+LEFT JOIN s_b_growing_std n2
+  ON n1.feed_type = n2.variety_id
+      AND n1.growth_week_age = n2.grow_week_age
+LEFT JOIN s_b_lay_egg_std n3
+  ON n1.feed_type = n3.variety_id
+      AND n1.生产周龄 = n3.lay_egg_week_age
+) h1
+INNER JOIN 
+(select
+             t1.batch_id,
+             max(t1.growth_week_age) as growth_week_age
+             FROM s_b_batch_curr c
+             JOIN s_b_breed_detail t1
+               ON c.batch_id = t1.batch_id
+                  AND t1.growth_date <= (CASE WHEN c.`status` = 1
+               THEN sysdate()
+                                         WHEN c.`status` = 0
+                                           THEN c.operation_date END)
+                  and t1.create_time <> t1.modify_time
+GROUP BY t1.batch_id) h2
+ON h2.batch_id = h1.batch_id
+and h2.growth_week_age = h1.growth_week_age) dd
+
+
+union
+
+select c.farm_code as farm_id,
+'' batch_no,
+a.house_code as house_code,
+u.id as user_id,
+o.parent_id,
+'' 生产周龄,
+'' 母鸡存栏数,
+'' 公鸡存栏数,
+'' 日死淘率,
+'' 累计死淘率,
+'' 累计合格蛋数,
+'' 入舍母鸡合格蛋达标率,
+'' 蛋耗料,
+'' 周平均产蛋率,
+'' 周平均产蛋达标率,
+'' 合格蛋均重
+ from s_d_house a
+LEFT JOIN s_d_farm c
+on a.farm_id = c.farm_code
+left join s_d_organization o
+on c.farm_code = o.id
+inner JOIN v_user u
+ON a.farm_id = u.obj_id
+and u.id = '${user_id}' and u.obj_type=2
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+where not EXISTS  ( select 1 from (select b1.* from s_b_batch_curr b1
+                 INNER JOIN
+                (
+                select c1.farm_id,c1.batch_no from s_b_batch_curr c1
+                INNER JOIN(
+                select max(create_time) as create_time,farm_id from s_b_batch_curr
+                GROUP BY farm_id) c2
+                on c1.farm_id = c2.farm_id
+                and c1.create_time = c2.create_time) b2
+                on b1.farm_id = b2.farm_id
+                and b1.batch_no=b2.batch_no) b where a.house_code = b.house_code)
+and a.house_type = 2
+and a.freeze_status = 0
+union
+select c.farm_code as farm_id,
+substring_index(b.batch_id,'-',-1) as batch_no,
+a.house_code as house_code,
+u.id as user_id,
+o.parent_id,
+'' 生产周龄,
+'' 母鸡存栏数,
+'' 公鸡存栏数,
+'' 日死淘率,
+'' 累计死淘率,
+'' 累计合格蛋数,
+'' 入舍母鸡合格蛋达标率,
+'' 蛋耗料,
+'' 周平均产蛋率,
+'' 周平均产蛋达标率,
+'' 合格蛋均重
+ from s_d_house a
+LEFT JOIN s_d_farm c
+on a.farm_id = c.farm_code
+left join s_d_organization o
+on c.farm_code = o.id
+inner JOIN v_user u
+ON a.farm_id = u.obj_id
+and u.id = '${user_id}' and u.obj_type=2
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+INNER JOIN ( select b.house_code,b.batch_id from (
+select a.house_code,a.house_name,a.farm_id,a.batch_id,min(create_time) as create_time,min(modify_time) as modify_time,max(create_time) as m_create_time,max(modify_time) as m_modify_time  from s_b_breed_detail a
+group by a.house_code,a.house_name,a.farm_id,a.batch_id) b
+where b.create_time = b.modify_time
+and b.m_create_time = b.m_modify_time) b
+on a.house_code = b.house_code
+and a.house_type = 2
+and a.freeze_status = 0]]></Query>
+</TableData>
+<TableData name="ds2" class="com.fr.data.impl.DBTableData">
+<Parameters/>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select dd.batch_no
+,dd.farm_id
+,dd.house_code
+,dd.growth_week_age
+,dd.母鸡实际成活率
+,dd.母鸡成活率达标率
+,dd.母鸡周死淘率
+,dd.母实际均匀度
+,dd.母鸡均匀度达标率
+,dd.实际母均重
+,dd.母鸡体重达标率
+,dd.标准母均重
+,dd.实际母鸡只累计耗料
+,dd.母鸡累计达标率
+,dd.公鸡实际成活率
+,dd.公鸡周死淘率
+,dd.公实际均匀度
+,dd.公鸡均匀度达标率
+,dd.实际公均重
+,dd.公鸡体重达标率
+,dd.标准公均重
+,dd.实际公鸡只累计耗料
+,dd.公鸡累计达标率
+from (SELECT 
+    h1.*,
+    h1.母鸡死淘累计/h1.母鸡进鸡数 as 母鸡累计死淘率,
+    1 - h1.母鸡死淘累计/h1.母鸡进鸡数 as 母鸡实际成活率,
+    (1 - h1.母鸡死淘累计/h1.母鸡进鸡数)/(母鸡标准成活率/100) as 母鸡成活率达标率,
+    (h1.母鸡周平均死淘 - h1.母鸡周死淘率 + 1)/h1.母鸡周平均死淘 as 母鸡周死淘率达标率,
+    1 - h1.公鸡死淘累计/h1.公鸡进鸡数 as 公鸡实际成活率,
+    h1.公鸡死淘累计/h1.公鸡进鸡数 as 公鸡累计死淘率,
+    h1.实际只耗料/h1.标准只耗料 as 达标率,
+    h1.母鸡累计耗料/h1.母鸡进鸡数 as 实际母鸡只累计耗料,
+    h1.公鸡累计耗料/h1.公鸡进鸡数 as 实际公鸡只累计耗料,
+    (h1.母鸡累计耗料/h1.母鸡进鸡数)/(h1.标准只累计耗料/1000) as 母鸡累计达标率,
+    (h1.公鸡累计耗料/h1.公鸡进鸡数)/(h1.标准只累计耗料/1000) as 公鸡累计达标率,
+    h1.实际母均重/h1.标准母均重 as 母鸡体重达标率,
+	h1.实际公均重/h1.标准公均重 as 公鸡体重达标率,
+    h1.实际母均重 - h1.标准母均重 as 母鸡体重标准差,
+    h1.实际公均重 - h1.标准公均重 as 公鸡体重标准差,
+    (h1.母实际均匀度/(case when h1.母实际均匀度 > 0 then 1 ELSE 0 end))/ h1.标准均匀度 as 母鸡均匀度达标率,
+	(h1.公实际均匀度/(case when h1.公实际均匀度 > 0 then 1 ELSE 0 end))/ h1.标准均匀度 as 公鸡均匀度达标率,   /*((h1.母实际均匀度 + h1.公实际均匀度)/((case when h1.母实际均匀度 > 0 then 1 ELSE 0 end) + (case when h1.公实际均匀度 > 0 then 1 ELSE 0 end)))/ h1.标准均匀度 as 均匀度达标率,*/
+    h1.累计产蛋数 / h1.入舍母鸡总产蛋数 as 入舍母鸡合格蛋达标率,
+    h1.累计耗料 / h1.累计产蛋数 as 蛋耗料,
+    h1.周产蛋数 / h1.入舍母鸡周平均产蛋数 as 周平均产蛋达标率
+FROM(
+SELECT
+    n1.*
+    , (SELECT SUM(IFNULL(tmp.female_cur_cd,0) + IFNULL(tmp.female_mistake,0))
+       FROM s_b_breed_detail tmp
+       WHERE n1.batch_id=tmp.batch_id
+          AND tmp.growth_week_age<=n1.growth_week_age) as 母鸡死淘累计
+  , (SELECT SUM(IFNULL(tmp.male_cur_cd,0) + IFNULL(tmp.male_mistake,0))
+       FROM s_b_breed_detail tmp
+       WHERE n1.batch_id=tmp.batch_id
+             AND tmp.growth_week_age<=n1.growth_week_age) as 公鸡死淘累计
+  , (SELECT SUM(tmp.female_cur_feed)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 母鸡累计耗料
+  , (SELECT SUM(tmp.male_cur_feed)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 公鸡累计耗料
+  , (SELECT SUM(tmp.male_cur_feed + tmp.female_cur_feed)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计耗料		
+  ,(SELECT SUM(tmp.laying_cur_amount)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计产蛋数
+  ,(SELECT SUM(tmp.laying_qual_cur_amount)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计合格蛋数
+  ,(SELECT SUM(tmp.laying_cur_wight)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计产蛋重量
+  ,(SELECT SUM(tmp.laying_qual_cur_wight)
+     FROM s_b_breed_detail tmp
+     WHERE n1.batch_id=tmp.batch_id
+           AND tmp.growth_week_age<=n1.growth_week_age) as 累计合格蛋重量
+  ,n2.female_life as 母鸡标准成活率
+  ,n2.avg_feed_daliy as 标准只耗料
+  ,n2.total_feed as 标准只累计耗料
+  ,n2.female_min_std_weight as 标准母均重
+  ,n2.female_max_std_weight as 标准公均重
+  ,n2.evenness as 标准均匀度
+  ,n2.female_week_avg_weed_out as 母鸡周平均死淘
+  ,n3.cl_laying_rate as 存栏产蛋率标准
+  ,n3.rs_laying_rate as 入舍产蛋率标准
+  ,n3.rs_female_laying_avg_count as 入舍母鸡周平均产蛋数
+  ,n3.rs_female_laying_total_count as 入舍母鸡总产蛋数
+  FROM (
+    SELECT
+      m1.*,
+      m3.female_cur_amount                                          AS 母鸡存栏数,
+      m3.male_cur_amount                                            AS 公鸡存栏数,
+      (m3.female_cur_amount + m3.male_cur_amount)                   AS 总存栏量,
+      m1.母鸡死淘小计 / m3.female_cur_amount                              AS 母鸡周死淘率,
+      m1.公鸡死淘小计 / m3.male_cur_amount                                AS 公鸡周死淘率,
+      m1.本周耗料量 / (m3.female_cur_amount + m3.male_cur_amount) * 1000 AS 实际只耗料,
+      m1.当周饮水量 / (m3.female_cur_amount + m3.male_cur_amount) * 1000 AS 当周饮水量毫升,
+      m1.当周饮水量 / m1.本周耗料量                                           AS 水料比
+    FROM (
+           SELECT
+             o.id,
+             o.parent_id,
+             u.id user_id,
+             f.farm_name_chs,
+             t1.farm_id,
+             t1.house_code,
+             h.house_name,
+             t1.batch_id,
+             c.batch_no,
+             f.feed_type,
+             h.house_type,
+             DATE_FORMAT(min(t1.growth_date), "%Y-%m-%d")     AS begin_growth_date,
+             DATE_FORMAT(max(t1.growth_date), "%Y-%m-%d")     AS end_growth_date,
+             t1.growth_week_age                                          ,
+             t1.laying_week_age                               AS 生产周龄,
+             SUM(t1.female_death_am + t1.female_death_pm)     AS 母鸡死亡数,
+             SUM(t1.female_culling_am + t1.female_culling_pm) AS 母鸡淘汰数,
+             SUM(t1.female_mistake)                           AS 母鸡鉴别错误数,
+             SUM(t1.female_cur_cd) + SUM(t1.female_mistake)   AS 母鸡死淘小计,
+             SUM(t1.male_death_am + t1.male_death_pm)         AS 公鸡死亡数,
+             SUM(t1.male_culling_am + t1.male_culling_pm)     AS 公鸡淘汰数,
+             SUM(t1.male_mistake)                             AS 公鸡鉴别错误数,
+             SUM(t1.male_cur_cd) + SUM(t1.male_mistake)       AS 公鸡死淘小计,
+             (SELECT tmp.female_ytd_amount FROM s_b_breed_detail tmp
+WHERE t1.batch_id = tmp.batch_id
+AND tmp.growth_date = (SELECT a.operation_date FROM s_b_batch_change a WHERE a.batch_id = t1.batch_id AND a.operation_type = 2))                                     母鸡进鸡数,
+             (SELECT tmp.male_ytd_amount FROM s_b_breed_detail tmp
+WHERE t1.batch_id = tmp.batch_id
+AND tmp.growth_date = (SELECT a.operation_date FROM s_b_batch_change a WHERE a.batch_id = t1.batch_id AND a.operation_type = 2))                                 公鸡进鸡数,
+             SUM(t1.male_cur_feed + t1.female_cur_feed)       AS 本周耗料量,
+             SUM(t1.male_cur_water + t1.female_cur_water)     AS 当周饮水量,
+             SUM(t1.female_cur_weight) / SUM(CASE WHEN t1.female_cur_weight IS NOT NULL AND t1.female_cur_weight > 0
+               THEN 1
+                                             ELSE 0 END)      AS 实际母均重,
+             SUM(t1.male_cur_weight) / SUM(CASE WHEN t1.male_cur_weight IS NOT NULL AND t1.male_cur_weight > 0
+               THEN 1
+                                           ELSE 0 END)        AS 实际公均重,
+             SUM(t1.female_cur_evenness) /
+             SUM(CASE WHEN t1.female_cur_evenness IS NOT NULL AND t1.female_cur_evenness > 0
+               THEN 1
+                 ELSE 0 END)                                  AS 母实际均匀度,
+             SUM(t1.male_cur_evenness) /
+             SUM(CASE WHEN t1.male_cur_evenness IS NOT NULL AND t1.female_cur_evenness > 0
+               THEN 1
+                 ELSE 0 END)                                  AS 公实际均匀度,
+             sum(ifnull(t5.male_dj, 0))                       AS 公鸡调鸡数,
+             sum(ifnull(t5.female_dj, 0))                     AS 母鸡调鸡数,
+             sum(t1.laying_cur_amount)                        AS 周产蛋数,
+             sum(t1.laying_qual_cur_amount)                   AS 周合格蛋数,
+             SUM(t1.laying_cur_wight)                         AS 周产蛋重量,
+             SUM(t1.laying_qual_cur_wight)                    AS 周合格蛋重量
+           FROM s_b_batch_curr c
+             JOIN s_b_breed_detail t1
+               ON c.batch_id = t1.batch_id
+                  AND t1.growth_date <= (CASE WHEN c.`status` = 1
+               THEN sysdate()
+                                         WHEN c.`status` = 0
+                                           THEN c.operation_date END)
+             and t1.create_time <> t1.modify_time
+             LEFT JOIN s_d_farm f
+               ON t1.farm_id = f.id
+               AND f.freeze_status=0
+             LEFT JOIN s_d_organization o
+               ON o.id = f.farm_code
+               AND o.freeze_status=0
+             LEFT JOIN v_user u
+             ON o.id = u.obj_id
+             LEFT JOIN s_d_house h
+               ON t1.house_code = h.id
+                  AND t1.farm_id = h.farm_id
+                  AND h.freeze_status=0
+             LEFT JOIN (SELECT
+                          a.farm_id,
+                          a.house_code,
+                          a.batch_id,
+                          a.operation_date,
+                          sum(a.female_count) AS female_dj,
+                          sum(a.male_count)   AS male_dj
+                        FROM s_b_batch_change a
+                        WHERE a.operation_type = 3
+                        GROUP BY a.farm_id, a.house_code, a.batch_id, a.operation_date) t5
+               ON t1.batch_id = t5.batch_id
+                  AND t1.growth_date = t5.operation_date
+           WHERE u.id='${user_id}' and h.house_type = 1 and u.obj_type=2
+           ${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+           GROUP BY o.id,
+             o.parent_id,
+             f.farm_name_chs,
+             t1.farm_id,
+             t1.house_code,
+             h.house_name,
+             t1.batch_id,
+             t1.growth_week_age,
+             t1.laying_week_age) m1
+      LEFT JOIN s_b_breed_detail m2
+        ON m1.batch_id = m2.batch_id
+           AND m1.begin_growth_date = m2.growth_date
+      LEFT JOIN s_b_breed_detail m3
+        ON m1.batch_id = m3.batch_id
+           AND m1.end_growth_date = m3.growth_date
+  ) n1
+LEFT JOIN s_b_growing_std n2
+  ON n1.feed_type = n2.variety_id
+      AND n1.growth_week_age = n2.grow_week_age
+LEFT JOIN s_b_lay_egg_std n3
+  ON n1.feed_type = n3.variety_id
+      AND n1.生产周龄 = n3.lay_egg_week_age
+) h1
+INNER JOIN 
+(select
+             t1.batch_id,
+             max(t1.growth_week_age) as growth_week_age
+             FROM s_b_batch_curr c
+             JOIN s_b_breed_detail t1
+               ON c.batch_id = t1.batch_id
+                  AND t1.growth_date <= (CASE WHEN c.`status` = 1
+               THEN sysdate()
+                                         WHEN c.`status` = 0
+                                           THEN c.operation_date END)
+                  and t1.create_time <> t1.modify_time
+GROUP BY t1.batch_id) h2
+ON h2.batch_id = h1.batch_id
+and h2.growth_week_age -1 = h1.growth_week_age) dd]]></Query>
+</TableData>
+</TableDataMap>
+<ReportWebAttr>
+<ServerPrinter/>
+<WebPageContent>
+<Listener event="afterload">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var reportFrame = document.getElementById('content-container'); 
+reportFrame.style.backgroundColor = "#ffffff";
+reportFrame.style.left = "3px";]]></Content>
+</JavaScript>
+</Listener>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.page.First">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-First')}]]></Text>
+<IconName>
+<![CDATA[first]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.page.Previous">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-Previous')}]]></Text>
+<IconName>
+<![CDATA[previous]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.page.Next">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-Next')}]]></Text>
+<IconName>
+<![CDATA[next]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.page.Last">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('ReportServerP-Last')}]]></Text>
+<IconName>
+<![CDATA[last]]></IconName>
+</Widget>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<WebPage isPage="true" isShowAsImage="false" isAutoScale="false" isTDHeavy="false"/>
+</WebPageContent>
+<CSSImport>
+<![CDATA[btn.css]]></CSSImport>
+</ReportWebAttr>
+<ReportFitAttr fitStateInPC="1" fitFont="false"/>
+<ElementCaseMobileAttr>
+<ElementCaseMobileAttrProvider horizontal="1" vertical="0" zoom="true" refresh="false" isUseHTML="false"/>
+</ElementCaseMobileAttr>
+<Report class="com.fr.report.poly.PolyWorkSheet" name="sheet1">
+<ReportAttrSet>
+<ReportSettings headerHeight="0" footerHeight="0">
+<PaperSetting>
+<PaperSize width="54000000" height="40320000"/>
+<Margin top="0" left="0" bottom="0" right="0"/>
+</PaperSetting>
+</ReportSettings>
+</ReportAttrSet>
+<Block class="com.fr.report.poly.PolyECBlock">
+<ReportPageAttr>
+<HR/>
+<FR/>
+<HC/>
+<FC/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[1447800,1447800,1447800,1257300,1447800,1447800,723900,723900,723900,723900,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[2819400,0,0,2933700,4267200,2438400,2057400,2895600,2819400,3048000,0,2857500,2781300,2743200,2705100,3048000,3086100,2743200,3086100,0,0,0,0,3810000,38100,0,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0" rs="2" s="0">
+<O>
+<![CDATA[蛋种青年鸡]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="0" rs="2" s="1">
+<O>
+<![CDATA[编号]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="0" rs="2" s="2">
+<O>
+<![CDATA[用户id]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="0" rs="2" s="1">
+<O>
+<![CDATA[批次]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="0" rs="2" s="1">
+<O>
+<![CDATA[农场]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="0" rs="2" s="1">
+<O>
+<![CDATA[栋舍]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="0" rs="2" s="1">
+<O>
+<![CDATA[周龄]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="0" cs="2" s="1">
+<O>
+<![CDATA[成活率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="0" cs="2" s="1">
+<O>
+<![CDATA[周死淘]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="0" cs="2" s="1">
+<O>
+<![CDATA[均匀度]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="0" cs="2" s="1">
+<O>
+<![CDATA[体重]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="0" cs="2" s="1">
+<O>
+<![CDATA[周增重]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="0" cs="2" s="1">
+<O>
+<![CDATA[累计只耗料]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="0" s="3">
+<O t="I">
+<![CDATA[1]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="0" s="3">
+<O t="I">
+<![CDATA[2]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="0" s="3">
+<O t="I">
+<![CDATA[3]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="0" s="3">
+<O t="I">
+<![CDATA[4]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="0" rs="2" s="4">
+<O>
+<![CDATA[  综合达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="1" s="5">
+<O>
+<![CDATA[实际]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="1" s="5">
+<O>
+<![CDATA[实际]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="1" s="5">
+<O>
+<![CDATA[实际(%)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="1" s="5">
+<O>
+<![CDATA[实际(g)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="1" s="5">
+<O>
+<![CDATA[实际(g)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="1" s="5">
+<O>
+<![CDATA[实际(kg)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="1">
+<O t="I">
+<![CDATA[1]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="1">
+<O t="I">
+<![CDATA[2]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="1">
+<O t="I">
+<![CDATA[3]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="1">
+<O t="I">
+<![CDATA[4]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="2" s="6">
+<O>
+<![CDATA[母鸡]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="2" s="7">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="parent_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="parent_id" viName="name_cn"/>
+<DBDictAttr tableName="s_d_organization" schemaName="" ki="-1" vi="-1" kiName="parent_id" viName="name_cn"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="2" r="2" s="8">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="user_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="3" r="2" s="7">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="batch_no"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="4" r="2" s="7">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="farm_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="id" viName="farm_name_chs"/>
+<DBDictAttr tableName="s_d_farm" schemaName="" ki="-1" vi="-1" kiName="id" viName="farm_name_chs"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="5" r="2" s="9">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="house_code"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<NameJavaScriptGroup>
+<NameJavaScript name="JavaScript2">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$B3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$E3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$F3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$C3]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/menu.js]]></JSImport>
+<Content>
+<![CDATA[var url = '/analyze/showCurveAnalysis?farm_id=' + farm_id + '&house_id=' + house_id + '&org_id='+ org_id + '&user_id=' + user_id;
+siMenu('z406','lm2','se2','op2','曲线分析', url);
+
+]]></Content>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<CellGUIAttr>
+<ToolTipText>
+<![CDATA[查看曲线]]></ToolTipText>
+</CellGUIAttr>
+<CellPageAttr/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="id" viName="house_name"/>
+<DBDictAttr tableName="s_d_house" schemaName="" ki="-1" vi="-1" kiName="id" viName="house_name"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="6" r="2" s="9">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="growth_week_age"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<NameJavaScriptGroup>
+<NameJavaScript name="JavaScript2">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$C3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$B3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$E3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$F3]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/menu.js]]></JSImport>
+<Content>
+<![CDATA[var url = '/analyze/showWeeklyProductionReport?farm_id=' + farm_id + '&house_id=' + house_id + '&org_id='+ org_id + '&user_id=' + user_id;
+siMenu('z403','lm2','se2','op2','生产周报', url);]]></Content>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<CellGUIAttr>
+<ToolTipText>
+<![CDATA[查看周报]]></ToolTipText>
+</CellGUIAttr>
+<CellPageAttr/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="7" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡实际成活率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="8" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡成活率达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="9" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡周死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="10" r="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡周死淘率达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="11" r="2" s="12">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母实际均匀度"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="12" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡均匀度达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="13" r="2" s="13">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="实际母均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="14" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡体重达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="15" r="2" s="14">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=(T3 - V3)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[$$$ < 0]]></Formula>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="16" r="2" s="10">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if(((T3 - V3) / (u3-w3))<0,null,((T3 - V3) / (u3-w3)))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[$$$ < 0]]></Formula>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="17" r="2" s="13">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="实际母鸡只累计耗料"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="18" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="母鸡累计达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="19" r="2" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="实际母均重"/>
+<Condition class="com.fr.data.condition.ListCondition"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Result>
+<![CDATA[$$$]]></Result>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="2" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="标准母均重"/>
+<Condition class="com.fr.data.condition.ListCondition"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Result>
+<![CDATA[$$$]]></Result>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="2" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds2" columnName="实际母均重"/>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[farm_id]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="farm_id"/>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[house_code]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="house_code"/>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[batch_no]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="batch_no"/>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Result>
+<![CDATA[$$$]]></Result>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="22" r="2" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds2" columnName="标准母均重"/>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[batch_no]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="batch_no"/>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[farm_id]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="farm_id"/>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[house_code]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="house_code"/>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Result>
+<![CDATA[$$$]]></Result>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="23" r="2" s="16">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=(I3 + M3 + O3 + Q3 + S3) / 5]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="2">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="house_type"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="0" r="3" cs="7" s="17">
+<O>
+<![CDATA[合计]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="3" s="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="3" s="10">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(I3[!0;!0]A)/SUM(IF(LEN(I3[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="9" r="3" s="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="3" s="11">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AVERAGE(K3[!0;!0]A)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="11" r="3" s="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="3" s="10">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(M3[!0;!0]A)/SUM(IF(LEN(M3[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="13" r="3" s="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="3" s="10">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(O3[!0;!0]A)/SUM(IF(LEN(O3[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="15" r="3" s="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="3" s="10">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(Q3[!0;!0]A)/SUM(IF(LEN(Q3[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="17" r="3" s="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="3" s="10">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(S3[!0;!0]A)/SUM(IF(LEN(S3[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="19" r="3">
+<PrivilegeControl/>
+</C>
+<C c="20" r="3">
+<PrivilegeControl/>
+</C>
+<C c="21" r="3">
+<PrivilegeControl/>
+</C>
+<C c="22" r="3">
+<PrivilegeControl/>
+</C>
+<C c="23" r="3" s="16">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=(I4 + M4 + O4 + Q4 + S4) / 5]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="4" s="6">
+<O>
+<![CDATA[公鸡]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="4" s="7">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="parent_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="parent_id" viName="name_cn"/>
+<DBDictAttr tableName="s_d_organization" schemaName="" ki="-1" vi="-1" kiName="parent_id" viName="name_cn"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="2" r="4" s="8">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="user_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="3" r="4" s="7">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="batch_no"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="4" r="4" s="7">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="farm_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="id" viName="farm_name_chs"/>
+<DBDictAttr tableName="s_d_farm" schemaName="" ki="-1" vi="-1" kiName="id" viName="farm_name_chs"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="5" r="4" s="9">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="house_code"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<NameJavaScriptGroup>
+<NameJavaScript name="JavaScript2">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$B5]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$E5]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$F5]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$C5]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/menu.js]]></JSImport>
+<Content>
+<![CDATA[var url = '/analyze/showCurveAnalysis?farm_id=' + farm_id + '&house_id=' + house_id + '&org_id='+ org_id + '&user_id=' + user_id;
+siMenu('z406','lm2','se2','op2','曲线分析', url);]]></Content>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<CellGUIAttr>
+<ToolTipText>
+<![CDATA[查看曲线]]></ToolTipText>
+</CellGUIAttr>
+<CellPageAttr/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="id" viName="house_name"/>
+<DBDictAttr tableName="s_d_house" schemaName="" ki="-1" vi="-1" kiName="id" viName="house_name"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="6" r="4" s="9">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="growth_week_age"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<NameJavaScriptGroup>
+<NameJavaScript name="JavaScript2">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$C5]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$B5]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$E5]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$F5]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/menu.js]]></JSImport>
+<Content>
+<![CDATA[var url = '/analyze/showWeeklyProductionReport?farm_id=' + farm_id + '&house_id=' + house_id + '&org_id='+ org_id + '&user_id=' + user_id;
+siMenu('z403','lm2','se2','op2','生产周报', url);]]></Content>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<CellGUIAttr>
+<ToolTipText>
+<![CDATA[查看周报]]></ToolTipText>
+</CellGUIAttr>
+<CellPageAttr/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="7" r="4" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="公鸡实际成活率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="8" r="4" s="10">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="9" r="4" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="公鸡周死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="10" r="4" s="18">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="11" r="4" s="12">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="公实际均匀度"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="12" r="4" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="公鸡均匀度达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="13" r="4" s="13">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="实际公均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="14" r="4" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="公鸡体重达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="15" r="4" s="14">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=(T5 - V5)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[$$$ < 0]]></Formula>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="16" r="4" s="10">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if(((T5 - V5) / (u5-w5))<0,null,((T5 - V5) / (u5-w5)))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+</JoinCondition>
+<JoinCondition join="1">
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[$$$ < 0]]></Formula>
+</Condition>
+</JoinCondition>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="17" r="4" s="13">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="实际公鸡只累计耗料"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="18" r="4" s="10">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="公鸡累计达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="19" r="4" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="实际公均重"/>
+<Condition class="com.fr.data.condition.ListCondition"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Result>
+<![CDATA[$$$]]></Result>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="4" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="标准公均重"/>
+<Condition class="com.fr.data.condition.ListCondition"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Result>
+<![CDATA[$$$]]></Result>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="4" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds2" columnName="实际公均重"/>
+<Condition class="com.fr.data.condition.ListCondition">
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[farm_id]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="farm_id"/>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[house_code]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="house_code"/>
+</Compare>
+</Condition>
+</JoinCondition>
+<JoinCondition join="0">
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[batch_no]]></CNAME>
+<Compare op="0">
+<SimpleDSColumn dsName="ds1" columnName="batch_no"/>
+</Compare>
+</Condition>
+</JoinCondition>
+</Condition>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Result>
+<![CDATA[$$$]]></Result>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="22" r="4" s="15">
+<O t="DSColumn">
+<Attributes dsName="ds2" columnName="标准公均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="23" r="4" s="16">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=(I5 + M5 + O5 + Q5 + S5) / 5]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="4">
+<O t="DSColumn">
+<Attributes dsName="ds1" columnName="house_type"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="0" r="5" cs="7" s="19">
+<O>
+<![CDATA[合计]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="5" s="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="5" s="21">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(I5[!0;!0]A)/SUM(IF(LEN(I5[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="9" r="5" s="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="5" s="20">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=AVERAGE(K5[!0;!0]A)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="11" r="5" s="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="5" s="21">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(M5[!0;!0]A)/SUM(IF(LEN(M5[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="13" r="5" s="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="5" s="21">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(O5[!0;!0]A)/SUM(IF(LEN(O5[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ListCondition"/>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="15" r="5" s="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="5" s="21">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(Q5[!0;!0]A)/SUM(IF(LEN(Q5[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="17" r="5" s="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="5" s="21">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(S5[!0;!0]A)/SUM(IF(LEN(S5[!0;!0]A)=0,0,1))]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[0]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="19" r="5" s="22">
+<PrivilegeControl/>
+</C>
+<C c="20" r="5" s="22">
+<PrivilegeControl/>
+</C>
+<C c="21" r="5" s="22">
+<PrivilegeControl/>
+</C>
+<C c="22" r="5" s="22">
+<PrivilegeControl/>
+</C>
+<C c="23" r="5" s="23">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=(I6 + M6 + O6 + Q6 + S6) / 5]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+</CellElementList>
+<PECBAttr blockName="block1" x="152400" y="2095500" width="50177700" height="8496300"/>
+</Block>
+<Block class="com.fr.report.poly.PolyECBlock">
+<ReportPageAttr>
+<HR/>
+<FR/>
+<HC/>
+<FC/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[1447800,1447800,1447800,1485900,723900,723900,723900,723900,723900,723900,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[5753100,0,0,3429000,2552700,2743200,3314700,3086100,2895600,0,2819400,0,3124200,2819400,3162300,2743200,2933700,2857500,3009900,2895600,0,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0" rs="2" s="0">
+<O>
+<![CDATA[蛋种产蛋鸡]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="0" rs="2" s="24">
+<O>
+<![CDATA[用户id]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="0" rs="2" s="24">
+<O>
+<![CDATA[公司id]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="0" rs="2" s="1">
+<O>
+<![CDATA[批次]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="0" rs="2" s="1">
+<O>
+<![CDATA[栋舍]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="0" rs="2" s="1">
+<O>
+<![CDATA[产蛋周龄]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="0" cs="2" s="1">
+<O>
+<![CDATA[存栏]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="0" cs="2" rs="2" s="1">
+<O>
+<![CDATA[日死淘]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="0" cs="2" rs="2" s="1">
+<O>
+<![CDATA[累计死淘]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="0" cs="2" s="1">
+<O>
+<![CDATA[每只入舍鸡累计合格蛋数]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="0" cs="2" s="1">
+<O>
+<![CDATA[蛋耗料]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="0" cs="2" s="1">
+<O>
+<![CDATA[周平均产蛋率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="0" cs="2" s="4">
+<O>
+<![CDATA[蛋重]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="1" s="5">
+<O>
+<![CDATA[母鸡（只）]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="1" s="5">
+<O>
+<![CDATA[公鸡（只）]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="1" s="5">
+<O>
+<![CDATA[实际(枚)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="1" s="5">
+<O>
+<![CDATA[实际(g)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="1" s="5">
+<O>
+<![CDATA[实际]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="1" s="5">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="1" s="5">
+<O>
+<![CDATA[实际(g/枚)]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="1" s="25">
+<O>
+<![CDATA[达标率]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="2" s="6">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="farm_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="id" viName="farm_name_chs"/>
+<DBDictAttr tableName="s_d_farm" schemaName="" ki="-1" vi="-1" kiName="id" viName="farm_name_chs"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="1" r="2" s="7">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="user_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="2" r="2" s="7">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="parent_id"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<Expand dir="0"/>
+</C>
+<C c="3" r="2" s="7">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="batch_no"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="4" r="2" s="9">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="house_code"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<NameJavaScriptGroup>
+<NameJavaScript name="JavaScript2">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$C3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$A3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$E3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$B3]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/menu.js]]></JSImport>
+<Content>
+<![CDATA[var url = '/analyze/showCurveAnalysis?farm_id=' + farm_id + '&house_id=' + house_id + '&org_id='+ org_id + '&user_id=' + user_id;
+siMenu('z406','lm2','se2','op2','曲线分析', url);]]></Content>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<CellGUIAttr>
+<ToolTipText>
+<![CDATA[查看曲线]]></ToolTipText>
+</CellGUIAttr>
+<CellPageAttr/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="id" viName="house_name"/>
+<DBDictAttr tableName="s_d_house" schemaName="" ki="-1" vi="-1" kiName="id" viName="house_name"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand dir="0"/>
+</C>
+<C c="5" r="2" s="9">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="生产周龄"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<NameJavaScriptGroup>
+<NameJavaScript name="JavaScript2">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$B3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$C3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$A3]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$E3]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/menu.js]]></JSImport>
+<Content>
+<![CDATA[var url = '/analyze/showWeeklyProductionReport?farm_id=' + farm_id + '&house_id=' + house_id + '&org_id='+ org_id + '&user_id=' + user_id;
+siMenu('z403','lm2','se2','op2','生产周报', url);]]></Content>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<CellGUIAttr>
+<ToolTipText>
+<![CDATA[查看周报]]></ToolTipText>
+</CellGUIAttr>
+<CellPageAttr/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="6" r="2" s="26">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="母鸡存栏数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="7" r="2" s="26">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="公鸡存栏数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="8" r="2" s="11">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="日死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="9" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="日死淘达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="10" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="累计死淘率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="11" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="母鸡累计死淘达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="12" r="2" s="27">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="累计合格蛋数"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="13" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="入舍母鸡合格蛋达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="14" r="2" s="13">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="蛋耗料"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="15" r="2" s="10">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="16" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="周平均产蛋率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="17" r="2" s="10">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="周平均产蛋达标率"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="18" r="2" s="13">
+<O t="DSColumn">
+<Attributes dsName="产蛋" columnName="合格蛋均重"/>
+<Complex/>
+<RG class="com.fr.report.cell.cellattr.core.group.FunctionGrouper"/>
+<Parameters/>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand dir="0"/>
+</C>
+<C c="19" r="2" s="28">
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.FormulaCondition">
+<Formula>
+<![CDATA[len($$$) = 0]]></Formula>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[-]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="0" r="3" cs="6" s="29">
+<O>
+<![CDATA[合计]]></O>
+<PrivilegeControl/>
+<Expand extendable="1"/>
+</C>
+<C c="6" r="3" s="30">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(G3)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="3" s="30">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(H3)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="3" s="30">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=SUM(M3)]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="3" s="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="3" s="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+</CellElementList>
+<PECBAttr blockName="block2" x="190500" y="12382500" width="50139600" height="5829300"/>
+</Block>
+<Block class="com.fr.report.poly.PolyECBlock">
+<ReportPageAttr>
+<HR/>
+<FR/>
+<HC/>
+<FC/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[1371600,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,2743200,3657600,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0" cs="18" s="33">
+<O>
+<![CDATA[每周简报]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="1" cs="3" s="34">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.DatabaseDictionary">
+<FormulaDictAttr kiName="id" viName="name_cn"/>
+<DBDictAttr tableName="s_d_organization" schemaName="" ki="-1" vi="-1" kiName="id" viName="name_cn"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[zdyj]]></DatabaseName>
+</Connection>
+</Dictionary>
+</Present>
+<Expand/>
+</C>
+<C c="3" r="1" s="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="1">
+<PrivilegeControl/>
+</C>
+<C c="5" r="1">
+<PrivilegeControl/>
+</C>
+<C c="6" r="1">
+<PrivilegeControl/>
+</C>
+<C c="7" r="1">
+<PrivilegeControl/>
+</C>
+<C c="8" r="1">
+<PrivilegeControl/>
+</C>
+<C c="9" r="1">
+<PrivilegeControl/>
+</C>
+<C c="10" r="1">
+<PrivilegeControl/>
+</C>
+<C c="11" r="1">
+<PrivilegeControl/>
+</C>
+<C c="12" r="1">
+<PrivilegeControl/>
+</C>
+<C c="13" r="1">
+<PrivilegeControl/>
+</C>
+<C c="14" r="1">
+<PrivilegeControl/>
+</C>
+<C c="15" r="1">
+<PrivilegeControl/>
+</C>
+<C c="16" r="1">
+<PrivilegeControl/>
+</C>
+<C c="17" r="1" s="36">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=today()]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+</CellElementList>
+<PECBAttr blockName="block3" x="38100" y="0" width="50292000" height="2095500"/>
+</Block>
+<PrivilegeControl/>
+</Report>
+<ReportParameterAttr>
+<Attributes showWindow="true" delayPlaying="false" windowPosition="1" align="0"/>
+<PWTitle>
+<![CDATA[参数]]></PWTitle>
+</ReportParameterAttr>
+<StyleList>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-6697984"/>
+<Border>
+<Top style="1" color="-8355712"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-8355712"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-8355712"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="72" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-8355712"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-8355712"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72" foreground="-16776961" underline="1"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.#%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.00%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.0]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0.#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.00]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0]]></Format>
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.#%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.00%]]></Format>
+<FRFont name="微软雅黑" style="1" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-8355712"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.00%]]></Format>
+<FRFont name="微软雅黑" style="1" size="80"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-8355712"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.00%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.#%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Bottom style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.#%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="72" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-8355712"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80" foreground="-1"/>
+<Background name="ColorBackground" color="-15562560"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.0#]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.0%]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-4144960"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="80"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-8355712"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#,##0]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-4144960"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border>
+<Top style="1" color="-4144960"/>
+<Bottom style="1" color="-8355712"/>
+<Left style="1" color="-4144960"/>
+<Right style="1" color="-8355712"/>
+</Border>
+</Style>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="128"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<Format class="java.text.SimpleDateFormat">
+<![CDATA[yyyy-MM-dd HH:mm:ss]]></Format>
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="4" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+</StyleList>
+<DesignerVersion DesignerVersion="IAA"/>
+<PreviewType PreviewType="0"/>
+</WorkBook>

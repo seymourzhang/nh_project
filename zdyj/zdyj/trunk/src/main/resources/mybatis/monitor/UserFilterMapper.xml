@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="UserFilterMapper">
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+    <select id="selectByCondition" resultType="pd" useCache="false">
+      SELECT house_id_group,
+          farm_id_group
+      FROM s_d_user_filter
+      WHERE user_code = ${user_code}
+    </select>
+    <insert id="saveSet" parameterType="pd" flushCache="false" keyProperty="id">
+        INSERT INTO s_d_user_filter (
+                user_code,
+                house_id_group,
+                farm_id_group,
+                create_date,
+                create_time
+        ) VALUES (
+                #{user_code},
+                #{house_id_group},
+                #{farm_id_group},
+                #{create_date},
+                #{create_time}
+        )
+    </insert>
+    <update id="updateSet" parameterType="pd" flushCache="false" keyProperty="id">
+        UPDATE s_d_user_filter SET house_id_group = "${house_id_group}", farm_id_group = "${farm_id_group}" WHERE user_code = ${user_code}
+    </update>
+</mapper>

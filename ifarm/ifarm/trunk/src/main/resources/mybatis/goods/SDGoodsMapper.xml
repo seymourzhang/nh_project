@@ -1,0 +1,1089 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SDGoodsMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+	<select id="getGoodsList3" resultType="pd" useCache="false">
+		select
+		  a.good_id,
+		  a.good_code,
+		  a.good_name,
+		  a.good_type,
+		  a.bak,
+		  a.create_person,
+		  a.create_date,
+		  a.create_time,
+		  a.modify_person,
+		  a.modify_date,
+		  a.modify_time,
+		  a.L_category,
+		  a.M_category
+		from s_d_goods a
+		where a.good_type=1
+	</select>
+	<select id="getGoodsList" resultType="pd" useCache="false">
+	   SELECT  t.good_id,
+		       t.good_code, 
+		       t.good_name, 
+		       t.good_type, 
+		       t.bak, 
+		       t.create_person, 
+		       t.create_date, 
+		       t.create_time, 
+		       t.modify_person, 
+		       t.modify_date, 
+		       t.modify_time 
+		FROM (SELECT  good_id,
+		       good_code, 
+		       good_name, 
+		       good_type, 
+		       bak, 
+		       create_person, 
+		       create_date, 
+		       create_time, 
+		       modify_person, 
+		       modify_date, 
+		       modify_time 
+		FROM   s_d_goods
+		where 1=1
+		<if test="good_id != null"> 
+			and good_id = #{good_id}
+		</if>
+		<if test="good_code != null"> 
+			and good_code = #{good_code}
+		</if>
+		<if test="good_name != null"> 
+			and good_name = #{good_name}
+		</if>
+		<if test="good_type != null"> 
+			and good_type = #{good_type}
+		</if>
+		limit 0,5000) t
+		order by t.modify_time desc, t.create_time desc
+    </select> 
+    
+    <select id="getGoodsList2" resultType="pd" useCache="false">  
+	  SELECT  t.good_id,
+		       t.good_code, 
+		       t.good_name, 
+		       t.good_type, 
+		       t.bak, 
+		       t.create_person, 
+		       t.create_date, 
+		       t.create_time, 
+		       t.modify_person, 
+		       t.modify_date, 
+		       t.modify_time 
+		       from (SELECT  g.good_id,
+		       g.good_code, 
+		       g.good_name, 
+		       c.code_name good_type, 
+		       g.bak, 
+		       g.create_person, 
+		       g.create_date, 
+		       g.create_time, 
+		       g.modify_person, 
+		       g.modify_date, 
+		       g.modify_time 
+		FROM   s_d_goods g
+		left join 
+		s_d_code c
+		on c.biz_code = g.good_type
+		where 1=1
+		and c.code_type = 'good_type'
+		and g.good_type !=1
+		<if test="good_name != null and good_name != ''"> 
+			and (g.good_name LIKE CONCAT(CONCAT('%', #{good_name}),'%') or g.good_code LIKE CONCAT(CONCAT('%', #{good_name}),'%'))
+		</if>
+        limit 0,5000) t
+        order by t.modify_time desc, t.create_time desc
+    </select> 
+    
+    <select id="getCorporationGood" resultType="pd" useCache="false">  
+	   SELECT  t.id,
+	           t.corporation_id,
+	           t.corporation,
+	           t.spec,
+	           t.unit,
+	           t.spec_name,
+	           t.unit_name,
+	           IFNULL(t.price,0) price,
+	           t.good_id,
+		       t.good_name, 
+		       t.good_type,
+		       t.factory_id,
+		       t.factory_name, 
+		       t.bak, 
+		       t.create_person, 
+		       t.create_date, 
+		       t.create_time, 
+		       t.modify_person, 
+		       t.modify_date, 
+		       t.modify_time 
+		       from (SELECT  g.id,
+	           g.corporation_id,
+	           g.corporation,
+	           g.spec,
+	           g.unit,
+	           (select code_name from s_d_code c where c.biz_code = g.spec and code_type = 'spec') as spec_name,
+	           (select code_name from s_d_code c where c.biz_code = g.unit and code_type = 'unit') as unit_name,
+	           g.price,
+	           g.good_id,
+		       g.good_name, 
+		       (select code_name from s_d_code c where c.biz_code = g.good_type and code_type = 'good_type') as good_type,
+		       g.factory_id,
+		       g.factory_name, 
+		       g.bak, 
+		       g.create_person, 
+		       g.create_date, 
+		       g.create_time, 
+		       g.modify_person, 
+		       g.modify_date, 
+		       g.modify_time 
+		FROM   s_b_corporation_good g
+		where 1=1
+		<if test="mobileFlag == null and mobileFlag == ''">
+			and g.good_type >1
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and g.good_type = #{good_type}
+		</if>
+		<if test="good_name != null and good_name != ''"> 
+			and g.good_name LIKE CONCAT(CONCAT('%', #{good_name}),'%')
+		</if>
+		<if test="good_id != null and good_id != ''"> 
+			and g.good_id = #{good_id}
+		</if>
+		<if test="corporation != null and corporation != ''"> 
+			and lower(g.corporation) LIKE lower(CONCAT(CONCAT('%', #{corporation}),'%'))
+		</if>
+		<if test="corporation_id != null and corporation_id != ''"> 
+			and g.corporation_id = #{corporation_id}
+		</if>
+		<if test="factory_name != null and factory_name != ''"> 
+			and lower(g.factory_name) LIKE lower(CONCAT(CONCAT('%', #{factory_name}),'%'))
+		</if>
+		<if test="factory_id != null and factory_id != ''"> 
+			and g.factory_id = #{factory_id}
+		</if>
+		<if test="spec != null and spec != ''"> 
+			and g.spec = #{spec}
+		</if>
+		<if test="unit != null and unit != ''"> 
+			and g.unit = #{unit}
+		</if>
+		limit 0,5000) t
+		order by t.id 
+    </select> 
+    
+    
+    <!-- 查询库存信息 -->
+    <select id="getStock" resultType="pd" useCache="false">  
+	   SELECT id, 
+              stock_batch_no, 
+              good_id, 
+              good_code, 
+              good_name, 
+              good_type, 
+              spec, 
+              unit, 
+              count,
+			  date_format(exp, '%Y-%m-%d') exp,
+			  date_format(operation_date, '%Y-%m-%d') operation_date,
+              corporation_id, 
+              factory_id, 
+              bak, 
+              create_person, 
+              create_date, 
+              create_time, 
+              modify_person, 
+              modify_date, 
+              modify_time 
+	    FROM   s_d_stock
+	    where 1=1
+		<if test="flag != null and flag != ''">
+			and count > 0
+		</if>
+		<if test="good_type != null"> 
+			and good_type = #{good_type}
+		</if>
+		<if test="good_id != null"> 
+			and good_id = #{good_id}
+		</if>
+		<if test="spec != null"> 
+			and spec = #{spec}
+		</if>
+		<if test="unit != null"> 
+			and unit = #{unit}
+		</if>
+		<if test="corporation_id != null"> 
+			and corporation_id = #{corporation_id}
+		</if>
+		<if test="factory_id != null"> 
+			and factory_id = #{factory_id}
+		</if>
+		order by id 
+    </select> 
+    <!-- 查询总库存 -->
+    <select id="getSumCount" resultType="decimal"  useCache="false" > 
+    	select sum(count) from s_d_stock
+    	where 1=1
+    	<if test="good_type != null"> 
+			and good_type = #{good_type}
+		</if>
+		<if test="good_id != null"> 
+			and good_id = #{good_id}
+		</if>
+    </select>
+    
+    <!-- 修改库存 -->
+	<update id="editStock" parameterType="pd" flushCache="false">
+		update  s_d_stock
+			set modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time},
+				count	= #{count}
+			<if test="operation_date != null and operation_date != ''">
+				,operation_date	= #{operation_date}
+			</if>
+			where 
+				id = #{id}
+	</update>
+	
+	<!-- 修改供应商 -->
+	<update id="editCorporation" parameterType="pd" flushCache="false">
+		update  s_d_corporation
+			set corporation     = #{corporation},
+			    corporation_person=#{corporation_person},
+			    corporation_address=#{corporation_address},
+			    telphone        =#{telphone},
+			    bak=#{bak},
+			    modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			where 
+				corporation_id = #{corporation_id}
+	</update>
+    
+    <!-- 修改厂家 -->
+	<update id="editFactory" parameterType="pd" flushCache="false">
+		update  s_d_factory
+			set factory_name     = #{factory_name},
+			    factory_person=#{factory_person},
+			    factory_address=#{factory_address},
+			    telphone        =#{telphone},
+			    bak=#{bak},
+			    modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			where 
+				factory_id = #{factory_id}
+	</update>
+	
+	<!-- 修改物资 -->
+	<update id="editGoods" parameterType="pd" flushCache="false">
+		update  s_d_goods
+			set good_code     = #{good_code},
+			    good_name     = #{good_name},
+			    good_type     = #{good_type},
+			    bak=#{bak},
+			    modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			where 
+				good_id = #{good_id}
+	</update>
+	
+	<!-- 修改供应商物资关系 -->
+	<update id="editCorporationGood" parameterType="pd" flushCache="false">
+		update  s_b_corporation_good
+			set <if test="corporation_id != null and corporation_id != ''">
+			    corporation     = #{corporation},
+			    </if>
+			    <if test="good_id != null and good_id != ''">
+                good_name     = #{good_name},
+                </if>
+                <if test="good_type != null and good_type != ''">
+                good_type     = #{good_type},
+                </if>
+                <if test="factory_id != null and factory_id != ''">
+                factory_name     = #{factory_name},
+                </if>
+			    modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			where 1=1
+			    <if test="id != null and id != ''">
+				and id = #{id}
+				</if>
+				<if test="corporation_id != null and corporation_id != ''">
+				and corporation_id = #{corporation_id}
+				</if>
+				<if test="good_id != null and good_id != ''">
+				and good_id = #{good_id}
+				</if>
+				<if test="factory_id != null and factory_id != ''">
+				and factory_id = #{factory_id}
+				</if>
+	</update>
+    <!-- 查询规格 -->
+    <select id="getSpec" resultType="pd" useCache="false">  
+		SELECT  t.code_type, 
+		       t.biz_code,
+		       t.code_name, 
+		       t.bak1, 
+		       t.bak2, 
+		       t.code_desc 
+		FROM (SELECT  c.code_type, 
+		       c.biz_code,
+		       c.code_name, 
+		       c.bak1, 
+		       c.bak2, 
+		       c.code_desc 
+		FROM  s_d_code c
+		, s_b_corporation_good cg 
+		where 1=1 and cg.spec=c.biz_code
+		and c.code_type = 'spec'
+		
+		<if test="good_id != null and good_id != ''">
+			and cg.good_id = #{good_id}
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and cg.good_type = #{good_type}
+		</if>
+		group by c.biz_code	
+		limit 0,100) t
+		order by t.biz_code	
+    </select> 
+    
+    <!-- 查询单位 -->
+    <select id="getUnit" resultType="pd" useCache="false">  
+		SELECT  c.code_type, 
+		       c.biz_code,
+		       c.code_name, 
+		       c.bak1, 
+		       c.bak2, 
+		       c.code_desc 
+		FROM  s_d_code c
+		, s_b_corporation_good  cg where cg.unit=c.biz_code
+		and c.code_type = 'unit'
+		<if test="good_id != null and good_id != ''">
+			and cg.good_id = #{good_id}
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and cg.good_type = #{good_type}
+		</if>
+		group by c.code_name
+		order by c.biz_code		
+    </select> 
+    
+    <!-- 查询供应商 -->
+    <select id="getCorporation" resultType="pd" useCache="false">  
+		SELECT  c.corporation_id, 
+		        max(c.corporation) corporation, 
+		        IFNULL(c.corporation_person,'') corporation_person, 
+		        IFNULL(c.corporation_address,'') corporation_address, 
+		        IFNULL(c.telphone,'') telphone, 
+		        IFNULL(c.bak,'') bak, 
+		        c.create_person, 
+		        c.create_date, 
+		        c.create_time, 
+		        c.modify_person, 
+		        c.modify_date, 
+		        c.modify_time 
+		FROM  s_d_corporation c
+		left join s_b_corporation_good  cg on cg.corporation_id=c.corporation_id
+		where 1=1
+		<if test="corporation_id != null and corporation_id != ''">
+			and c.corporation_id = #{corporation_id}
+		</if>
+		<if test="good_id != null and good_id != ''">
+			and cg.good_id = #{good_id}
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and cg.good_type = #{good_type}
+		</if>
+		group by c.corporation
+		order by c.corporation_id		
+    </select> 
+    
+    <!-- 查询供应商主数据 -->
+    <select id="getCorporation2" resultType="pd" useCache="false">  
+		SELECT  c.corporation_id, 
+		        IFNULL(c.corporation,'') corporation, 
+		        IFNULL(c.corporation_person,'') corporation_person, 
+		        IFNULL(c.corporation_address,'') corporation_address, 
+		        IFNULL(c.telphone,'') telphone, 
+		        IFNULL(c.bak,'') bak, 
+		        c.create_person, 
+		        c.create_date, 
+		        c.create_time, 
+		        c.modify_person, 
+		        c.modify_date, 
+		        c.modify_time 
+		FROM  s_d_corporation c
+		where 1=1
+		<if test="corporation_id != null and corporation_id != ''">
+			and c.corporation_id = #{corporation_id}
+		</if>
+		<if test="corporation != null and corporation != ''">
+			and lower(c.corporation) LIKE lower(CONCAT(CONCAT('%', #{corporation}),'%'))
+		</if>
+		order by c.corporation_id
+    </select>
+    
+    <select id="getCorporation3" resultType="pd" useCache="false">  
+		SELECT  c.corporation_id, 
+		        c.corporation,
+		        c.create_date
+		FROM  s_d_corporation c
+		order by c.corporation_id
+    </select>
+    
+     <!-- 查询厂家 -->
+    <select id="getFactory" resultType="pd" useCache="false">  
+		SELECT  f.factory_id, 
+			    IFNULL(f.factory_name,'') factory_name, 
+				IFNULL(f.factory_person,'') factory_person, 
+				IFNULL(f.factory_address,'') factory_address, 
+				IFNULL(f.telphone,'') telphone, 
+				IFNULL(f.bak,'') bak, 
+				f.create_person, 
+				f.create_date, 
+				f.create_time, 
+				f.modify_person, 
+				f.modify_date, 
+				f.modify_time 
+		FROM s_d_factory f
+		where 1=1
+		<if test="factory_id != null and factory_id != ''">
+			and f.factory_id = #{factory_id}
+		</if>
+		order by f.factory_id
+    </select> 
+    
+    <!-- 查询供应商主数据 -->
+    <select id="getFactory2" resultType="pd" useCache="false">  
+		SELECT  f.factory_id, 
+			    IFNULL(f.factory_name,'') factory_name, 
+				IFNULL(f.factory_person,'') factory_person, 
+				IFNULL(f.factory_address,'') factory_address, 
+				IFNULL(f.telphone,'') telphone, 
+				IFNULL(f.bak,'') bak, 
+				f.create_person, 
+				f.create_date, 
+				f.create_time, 
+				f.modify_person, 
+				f.modify_date, 
+				f.modify_time 
+		FROM s_d_factory f
+		where 1=1
+		<if test="factory_name != null and factory_name != ''">
+			and lower(f.factory_name) LIKE lower(CONCAT(CONCAT('%', #{factory_name}),'%'))
+		</if>
+		order by f.factory_id
+    </select>
+    
+    <select id="getFactory3" resultType="pd" useCache="false">  
+		SELECT  f.factory_id, 
+			    f.factory_name,
+			    f.create_date
+		FROM s_d_factory f
+		order by f.factory_id
+    </select>
+    
+     <!-- 保存供应商 -->
+    <insert id="saveCorporation" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_corporation (corporation,corporation_person,
+			corporation_address,
+			telphone,
+			bak,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (#{corporation},
+		    #{corporation_person},
+			#{corporation_address},
+			#{telphone},
+			#{bak},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	
+	<!-- 保存厂家 -->
+    <insert id="saveFactory" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_factory (factory_name,
+		    factory_person,
+			factory_address,
+			telphone,
+			bak,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (#{factory_name},
+		    #{factory_person},
+			#{factory_address},
+			#{telphone},
+			#{bak},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	
+	<!-- 保存物资 -->
+    <insert id="saveGoods" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_goods (good_code,
+		    good_name,
+			good_type,
+			bak,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (#{good_code},
+		    #{good_name},
+			#{good_type},
+			#{bak},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	
+	<!-- 保存供应商物资关系 -->
+    <insert id="saveCorporationGoods" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_b_corporation_good (corporation_id,
+		    corporation,
+			good_id,
+			good_name,
+			factory_id,
+			factory_name,
+			good_type,
+			price,
+			spec,
+			unit,
+			bak,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (#{corporation_id},
+		    #{corporation_name},
+			#{good_id},
+			#{good_name},
+			#{factory_id},
+			#{factory_name},
+			#{good_type},
+			#{price},
+			#{spec},
+			#{unit},
+			#{bak},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+    
+    <!-- 保存库存 -->
+    <insert id="saveStock" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_stock (farm_id,farm_name,
+			stock_batch_no,
+			good_id,
+			good_code,
+			good_name,
+			good_type,
+			spec,
+			unit,
+			count,
+			exp,
+			operation_date,
+			bak,
+			corporation_id,
+			<if test="factory_id != null and factory_id != ''">
+			factory_id,
+			</if>
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (#{inStockFarmId},#{inStockFarm},
+			#{stock_batch_no},
+			#{good_id},
+			#{good_code},
+			#{good_name},
+			#{good_type},
+			#{spec},
+			#{unit},
+			#{count},
+			#{exp},
+			#{operation_date},
+			#{bak},
+			#{corporation_id},
+			<if test="factory_id != null and factory_id != ''">
+			#{factory_id},
+			</if>
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	
+	 <!-- 保存库存变动 -->
+    <insert id="saveStockcChange" parameterType="pd"  flushCache="false" useGeneratedKeys="true" keyProperty="id">
+		insert into s_d_stock_change (
+			stock_id,
+			good_id,
+			good_code,
+			good_name,
+			good_type,
+			spec,
+			unit,
+			count,
+			price,
+			exp,
+			operation_date,
+			operation_kind,
+			farm_id,
+			farm_name,
+			house_id,
+			house_name,
+			stock_batch_no,
+			approve_status,
+			corporation_id,
+			<if test="factory_id != null and factory_id != ''">
+			factory_id,
+			</if>
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time,
+			bak
+		) values (
+			#{stock_id},
+			#{good_id},
+			#{good_code},
+			#{good_name},
+			#{good_type},
+			#{spec},
+			#{unit},
+			#{count},
+			#{price},
+			#{exp},
+			#{operation_date},
+			#{operation_kind},
+			#{farm_id},
+			#{farm_name},
+			#{house_id},
+			#{house_name},
+			#{stock_batch_no},
+			#{approve_status},
+			#{corporation_id},
+			<if test="factory_id != null and factory_id != ''">
+			#{factory_id},
+			</if>
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time},
+			#{remark}
+		)
+	</insert>
+  
+  <select id="getStockChange" resultType="pd" useCache="false">  
+	   SELECT   c.id, 
+		        c.stock_id, 
+		        c.good_id, 
+		        c.good_code, 
+		        c.good_name, 
+		        c3.code_name type_name,
+		        c.good_type, 
+		        c.spec,
+		        c1.code_name spec_name,
+		        c.unit, 
+		        c2.code_name unit_name,
+	  			(CASE WHEN c.count > 0 THEN c.count ELSE c.count*(-1) END) count,
+		        c.price,
+	  			date_format(c.exp, '%Y-%m-%d') exp,
+	  			date_format(c.operation_date, '%Y-%m-%d') operation_date,
+		        c.operation_kind, 
+		        c.farm_id, 
+		        c.farm_name, 
+		        c.house_id, 
+		        c.house_name, 
+		        c.stock_batch_no, 
+		        c.corporation_id,
+		        a.corporation,
+		        c.factory_id,
+		        b.factory_name,
+		        c.approve_status, 
+		        c.create_person, 
+		        c.create_date, 
+				c.create_time, 
+		        c.modify_person, 
+		        c.modify_date, 
+		        c.modify_time,
+	  			c.bak
+		FROM s_d_stock_change c
+		left join s_d_corporation a
+		on a.corporation_id = c.corporation_id
+		left join s_d_factory b
+		on c.factory_id = b.factory_id
+		LEFT JOIN s_d_code c1 on c1.biz_code=c.spec and c1.code_type='spec'
+		LEFT JOIN s_d_code c2 on c2.biz_code=c.unit and c2.code_type='unit'
+		LEFT JOIN s_d_code c3 on c3.biz_code=c.good_type and c3.code_type='good_type'
+		where 1=1
+		<if test="operation_kind != null and operation_kind != ''">
+			and c.operation_kind = #{operation_kind}
+		</if>
+		<if test="good_type != null and good_type != ''">
+			and c.good_type = #{good_type}
+		</if>
+		<if test="good_id != null and good_id != ''">
+			and c.good_id = #{good_id}
+		</if>
+		<if test="spec != null and spec != ''">
+			and c.spec = #{spec}
+		</if>
+		<if test="unit != null and unit != ''">
+			and c.unit = #{unit}
+		</if>
+		<if test="corporation_id != null and corporation_id != ''">
+			and c.corporation_id = #{corporation_id}
+		</if>
+		<if test="factory_id != null and factory_id != ''">
+			and c.factory_id = #{factory_id}
+		</if>
+		<if test="approve_status != null and approve_status != ''">
+			and c.approve_status = #{approve_status}
+		</if>
+	    <if test="farm_id != null and farm_id != ''">
+			and farm_id = #{farm_id}
+		</if>
+	  	and date_format(c.operation_date,'%Y-%m-%d') >=  DATE_SUB(date_format(current_date,'%Y-%m-%d') ,INTERVAL 30 DAY)
+	  	and date_format(c.operation_date,'%Y-%m-%d') &lt;= date_format(current_date,'%Y-%m-%d')
+		order by c.operation_date , c.farm_id, c.house_id,c.good_type,c.good_code  desc
+    </select>   
+    
+    
+  <select id="getStockSum" resultType="pd" useCache="false">
+	   SELECT  s.good_id,
+		       s.good_code,
+		       s.good_name,
+		       s.good_type,
+		       c3.code_name type_name,  
+		       s.spec,
+		       c1.code_name spec_name,  
+		       s.unit,
+		       c2.code_name unit_name,
+		       s.corporation_id,
+		       a.corporation, 
+		       s.factory_id,
+		       b.factory_name, 
+		       sum(s.count) stockCount,
+		       (select sum(sc.count) from s_d_stock_change sc where sc.good_id = s.good_id and sc.good_type = s.good_type and sc.approve_status = 1 ) as waitCount		       
+		FROM s_d_stock s
+		left join s_d_corporation a   on a.corporation_id = s.corporation_id   
+		left join s_d_factory b   on s.factory_id = b.factory_id  
+		LEFT JOIN s_d_code c1 on c1.biz_code=s.spec and c1.code_type='spec'   
+		LEFT JOIN s_d_code c2 on c2.biz_code=s.unit and c2.code_type='unit' 
+		LEFT JOIN s_d_code c3 on c3.biz_code=s.good_type and c3.code_type='good_type' 
+		where 1=1
+		<if test="good_type != null and good_type != ''">
+			and s.good_type = #{good_type}
+		</if>
+<!-- 		<if test="good_id != null and good_id != ''"> -->
+<!-- 			and s.good_id = #{good_id} -->
+<!-- 		</if> -->
+		<if test="good_name != null and good_name != ''">
+			and s.good_name LIKE CONCAT(CONCAT('%', #{good_name}),'%')
+		</if>
+		<if test="spec != null and spec != ''">
+			and s.spec = #{spec}
+		</if>
+		<if test="unit != null and unit != ''">
+			and s.unit = #{unit}
+		</if>
+		<if test="corporation_id != null and corporation_id != ''">
+			and s.corporation_id = #{corporation_id}
+		</if>
+		<if test="factory_id != null and factory_id != ''">
+			and s.factory_id = #{factory_id}
+		</if>
+	    group by   s.good_id,
+			       s.good_code,
+			       s.good_type,
+			       s.spec,
+			       s.unit,
+			       s.corporation_id,
+			       s.factory_id
+	   order by s.operation_date
+		limit 0,30		       
+    </select>
+
+	<select id="getStockApproval" resultType="pd" useCache="false">
+		SELECT
+			  sc.id
+			  ,sc.stock_id
+			  ,sc.good_id
+			  ,sc.good_code
+			  ,sc.good_name
+			  ,sc.good_type
+			  ,c3.code_name type_name
+			  ,sc.spec
+			  ,c1.code_name spec_name
+			  ,sc.unit
+			  ,c2.code_name unit_name
+			  ,sc.count
+			  ,sc.price
+			  ,date_format(sc.exp, '%Y-%m-%d') exp
+			  ,date_format(sc.operation_date, '%Y-%m-%d') operation_date
+			  ,sc.operation_kind
+			  ,sc.corporation_id
+			  ,a.corporation
+			  ,sc.factory_id
+		      ,b.factory_name
+			  ,sc.farm_id
+			  ,sc.farm_name
+			  ,sc.stock_batch_no
+			  ,sc.approve_status
+			  ,CASE sc.bak WHEN '【】 => 【】' THEN '-' ELSE sc.bak END as bak
+			  ,u.user_real_name create_person
+			  ,CASE sc.approve_status WHEN 2 THEN '通过' ELSE '未通过' END as state
+		FROM s_d_stock_change sc
+		LEFT JOIN s_d_corporation a   ON a.corporation_id = sc.corporation_id
+		LEFT JOIN s_d_factory b   ON sc.factory_id = b.factory_id
+		LEFT JOIN s_d_code c1 ON c1.biz_code=sc.spec AND c1.code_type='spec'
+		LEFT JOIN s_d_code c2 ON c2.biz_code=sc.unit AND c2.code_type='unit'
+		LEFT JOIN s_d_code c3 ON c3.biz_code=sc.good_type AND c3.code_type='good_type'
+		LEFT JOIN s_d_user u ON u.id = sc.create_person
+		WHERE sc.operation_kind = 3
+		<if test="currFlag == null or currFlag == ''">
+			AND sc.approve_status != 1
+		</if>
+		<if test="currFlag != null and currFlag != ''">
+			AND sc.approve_status = 1
+        </if>
+		<if test="good_type != null and good_type != ''">
+			and sc.good_type = #{good_type}
+		</if>
+		<if test="good_id != null and good_id != ''">
+			and sc.good_id = #{good_id}
+		</if>
+		<if test="spec != null and spec != ''">
+			and sc.spec = #{spec}
+		</if>
+		<if test="unit != null and unit != ''">
+			and sc.unit = #{unit}
+		</if>
+		<if test="corporation_id != null and corporation_id != ''">
+			and sc.corporation_id = #{corporation_id}
+		</if>
+		<if test="factory_id != null and factory_id != ''">
+			and sc.factory_id = #{factory_id}
+		</if>
+		        AND sc.farm_id = #{farm_id}
+		order by sc.operation_date
+		limit 0,30        
+	</select>
+	
+	<select id="getStockApproval2" resultType="pd" useCache="false">
+		SELECT
+			  sc.id
+			  ,sc.stock_id
+			  ,sc.good_id
+			  ,sc.good_code
+			  ,sc.good_name
+			  ,sc.good_type
+			  ,c3.code_name type_name
+			  ,sc.spec
+			  ,c1.code_name spec_name
+			  ,sc.unit
+			  ,c2.code_name unit_name
+			  ,sum(sc.count) as count
+			  ,sc.price
+			  ,date_format(sc.exp, '%Y-%m-%d') exp
+			  ,date_format(sc.operation_date, '%Y-%m-%d') operation_date
+			  ,sc.operation_kind
+			  ,sc.corporation_id
+			  ,a.corporation
+			  ,sc.factory_id
+		      ,b.factory_name
+			  ,sc.farm_id
+			  ,sc.farm_name
+			  ,sc.stock_batch_no
+			  ,sc.approve_status
+			  ,sc.bak
+			  ,u.user_real_name create_person
+		FROM s_d_stock_change sc
+		LEFT JOIN s_d_corporation a   ON a.corporation_id = sc.corporation_id
+		LEFT JOIN s_d_factory b   ON sc.factory_id = b.factory_id
+		LEFT JOIN s_d_code c1 ON c1.biz_code=sc.spec AND c1.code_type='spec'
+		LEFT JOIN s_d_code c2 ON c2.biz_code=sc.unit AND c2.code_type='unit'
+		LEFT JOIN s_d_code c3 ON c3.biz_code=sc.good_type AND c3.code_type='good_type'
+		LEFT JOIN s_d_user u ON u.id = sc.create_person
+		WHERE sc.operation_kind = 3
+		<if test="currFlag != null and currFlag != ''">
+			AND sc.approve_status = 1
+        </if>
+		        AND sc.farm_id = #{farm_id}
+		group by   sc.good_id,
+			       sc.good_code,
+			       sc.good_type,
+			       sc.spec,
+			       sc.unit,
+			       sc.corporation_id,
+			       sc.factory_id
+	   order by sc.operation_date
+		limit 0,30 		       
+	</select>
+
+	<!-- 审批 -->
+	<update id="approvalStockChange" parameterType="java.util.List" flushCache="false">
+		UPDATE s_d_stock_change SET approve_status= 3, 
+		bak = 
+		<foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+        when #{item.id,jdbcType=DECIMAL} then CONCAT("【", bak, "】 => 【",#{item.remark,jdbcType=VARCHAR},"】")
+        </foreach>
+		WHERE operation_kind=3
+			AND id in
+			<foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=DECIMAL}
+            </foreach>
+	</update>
+	
+	<update id="approvalStockChange2" parameterType="java.util.List" flushCache="false">
+	<foreach collection="list" index="index" item="item"  open="" separator=";" close="" > 
+		UPDATE s_d_stock_change SET approve_status= 2, 
+		bak = 
+		<foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+        when #{item.id,jdbcType=DECIMAL} then CONCAT("【", bak, "】 => 【",#{item.remark,jdbcType=VARCHAR},"】")
+        </foreach>
+		WHERE operation_kind=3
+			AND id in
+			<foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=DECIMAL}
+            </foreach>
+	</foreach>
+	</update>
+
+	<!-- 更新提醒数据 -->
+	<select id="exec_SP_STOCK_REMIND" parameterType="pd" statementType="CALLABLE">
+		{
+			call SP_STOCK_REMIND (#{id,mode=IN,jdbcType=VARCHAR})
+		}
+	</select>
+	
+	<update id="updateStock" parameterType="java.util.List" flushCache="false">
+	
+	    UPDATE s_d_stock SET 
+	    modify_person	= 
+	    <foreach collection="list" index="index" item="item"  separator=" " open="case ID" close="end" > 
+	    when #{item.stock_id,jdbcType=DECIMAL} then #{item.modify_person}
+	    </foreach>
+	    ,modify_date 	= 
+	    <foreach collection="list" index="index" item="item"  separator=" " open="case ID" close="end" > 
+	    when #{item.stock_id,jdbcType=DECIMAL} then #{item.modify_date}
+	    </foreach>
+	    ,modify_time 	= 
+	    <foreach collection="list" index="index" item="item"  separator=" " open="case ID" close="end" > 
+	    when #{item.stock_id,jdbcType=DECIMAL} then #{item.modify_time}
+	    </foreach>
+	    ,count	= 
+	    <foreach collection="list" index="index" item="item"  separator=" " open="case ID" close="end" > 
+	    when #{item.stock_id,jdbcType=DECIMAL} then (count + #{item.count})
+	    </foreach>
+		,operation_date	= 
+		<foreach collection="list" index="index" item="item"  separator=" " open="case ID" close="end" > 
+	    when #{item.stock_id,jdbcType=DECIMAL} then #{item.operation_date}
+	    </foreach>
+			where  id in
+			<foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.stock_id,jdbcType=DECIMAL}
+            </foreach> 
+	
+	</update>
+
+	<select id="exec_SP_DELETE_STOCK_REMIND" useCache="false">
+		CALL SP_DELETE_STOCK_REMIND()
+	</select>
+
+	<select id="getRemindMsg" resultType="pd" useCache="false">
+		select
+		  id,
+		  change_id,
+		  good_id,
+		  good_code,
+		  good_name,
+		  good_type,
+		  spec,
+		  unit,
+		  bef_count,
+		  count,
+		  aft_count,
+		  corporation_id,
+		  factory_id,
+		  farm_id,
+		  farm_name,
+		  house_id,
+		  house_name,
+		  stock_batch_no,
+		  exp,
+		  operation_date,
+		  remind_person,
+		  approve_status,
+		  create_person,
+		  create_date,
+		  create_time,
+		  modify_person,
+		  modify_date,
+		  modify_time,
+		  ISENABLED,
+		  b.code_name aprrove_status_name
+		from s_d_stock_change_remind a
+			left join (select * from s_d_code
+		where code_type='approve_status') b
+			on a.approve_status = b.biz_code
+		where 1=1
+		  and ISENABLED=1
+		  and a.remind_person = #{user_id}
+		  and a.is_notice = 1
+	</select>
+    <!-- 删除供应商物资关系 -->
+    <delete id="deleteCorporationGoods" flushCache="false">
+	delete from s_b_corporation_good 
+	where id = #{id}
+	</delete>
+</mapper>

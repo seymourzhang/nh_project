@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SBFarmTaskMapper" >
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+    <insert id="insertBatch" parameterType="pd">
+        INSERT INTO s_b_farm_task (org_id,
+                                    org_name,
+                                    task_id, 
+                                    task_name, 
+                                    task_type, 
+                                    task_status, 
+                                    date_type, 
+                                    date_values, 
+                                    week_group, 
+                                    create_person, 
+                                    create_date, 
+                                    create_time, 
+                                    modify_person, 
+                                    modify_date, 
+                                    modify_time)
+        VALUES
+              (#{org_id},#{org_name},#{task_id},#{task_name},
+              #{task_type},#{task_status},#{date_type},#{date_values},
+              #{week_group},#{create_person},#{create_date},#{create_time},
+              #{modify_person},#{modify_date},#{modify_time})
+    </insert>
+
+    <select id="selectByUserIdOrStatus" resultType="pd" useCache="false">
+        SELECT
+              f.id,
+              f.org_id,
+              f.task_id,
+              f.task_name,
+              f.task_type,
+              f.task_status,
+              f.date_type,
+              f.date_values,
+              f.week_group,
+              (SELECT c.code_name FROM s_d_code c where c.code_type = 'task_type' AND f.task_type = c.biz_code) AS taskType,
+              (SELECT d.code_name FROM s_d_code d WHERE d.code_type = 'date_type' AND f.date_type = d.biz_code) AS dateType
+        FROM s_b_farm_task f
+        WHERE f.org_id = ${orgIds} AND f.task_status = 'Y'
+        ORDER BY f.create_time DESC
+    </select>
+
+    <select id="selectByTashId" resultType="pd" useCache="false">
+        SELECT
+        f.id,
+        f.org_id,
+        f.task_id,
+        f.task_name,
+        f.task_type,
+        f.task_status,
+        f.date_type,
+        f.date_values,
+        f.week_group,
+        (SELECT c.code_name FROM s_d_code c where c.code_type = 'task_type' AND f.task_type = c.biz_code) AS taskType,
+        (SELECT d.code_name FROM s_d_code d WHERE d.code_type = 'date_type' AND f.date_type = d.biz_code) AS dateType
+        FROM s_b_farm_task f
+        WHERE f.org_id = ${orgIds} AND f.task_status = 'Y' AND f.task_id = ${task_id}
+    </select>
+
+    <update id="updateTaskStatus" parameterType="pd">
+        UPDATE s_b_farm_task SET task_status = 'N' WHERE id IN (${id});
+    </update>
+
+    <select id="selectCountForMobile" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+          sum(CASE WHEN deal_status = 1
+            THEN 1
+          ELSE 0 END) AS unCompletes,
+          sum(CASE WHEN deal_status = 3
+            THEN 1
+          ELSE 0 END) AS delays
+        FROM s_b_task_list_his
+        WHERE farm_id = ${farm_id} AND house_id = ${house_code}
+              AND task_date &gt; #{operationDate} AND datediff(task_date, curdate()) &lt; 0
+        GROUP BY farm_id, house_id
+    </select>
+
+    <select id="selectCurrForMobile" parameterType="pd" resultType="pd" useCache="false">
+          select a.id, a.task_id, a.task_type, a.task_name, a.deal_status
+          from s_b_task_list_curr a
+          where a.house_id = ${house_code} and a.farm_id = ${farm_id}
+            and exists(SELECT 1 FROM v_user v WHERE
+                v.id = ${UserId} AND v.obj_type = 2 AND v.role_level &lt;&gt; 1 AND (v.obj_id = a.farm_id OR v.obj_id = a.house_id))
+    </select>
+
+    <select id="selectHistForMobile" parameterType="pd" resultType="pd" useCache="false">
+          select id, task_id, task_type, task_name, deal_status
+          from s_b_task_list_his
+          where house_id = ${house_code} and farm_id = ${farm_id}
+            and datediff(task_date, #{remindDate}) = 0
+    </select>
+
+    <update id="updateCurStatusForMobile" parameterType="pd" flushCache="false">
+        UPDATE s_b_task_list_curr
+        SET deal_status = ${dealStatus}
+        WHERE id = ${id}
+    </update>
+
+    <update id="updateHisStatusForMobile" parameterType="pd" flushCache="false">
+        UPDATE s_b_task_list_his
+        SET deal_status = ${dealStatus}
+        WHERE id = ${id}
+    </update>
+</mapper>

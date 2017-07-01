@@ -1,0 +1,21 @@
+
+<ion-tabs class="tabs-icon-only tabs-positive tabs-top AndroidBlueTab" id="tabView">
+    <div style="width: 10%;height: 100%;background: #439AFC;">
+      <a ui-sref="home" id="backBtn" class="AndroidbackBtn" style="position: absolute;left: 0%; width: 60px; background: #439AFC;text-align:center;">
+        <img src="img/newFolder/public/BackArrow.png" style="position: relative; left: 0%; top:0%;height: 100%;width: 50%;">
+      </a>
+    </div>
+    <ion-tab title="产蛋率"  href="#/eggAnalysis/layingRate">
+      <ion-nav-view name="eggAnalysis-layingRate"  id="layingRateView"></ion-nav-view>
+    </ion-tab>
+    <ion-tab title="蛋重"  href="#/eggAnalysis/eggWeight">
+      <ion-nav-view name="eggAnalysis-eggWeight"  id="eggWeightView"></ion-nav-view>
+    </ion-tab>
+    <ion-tab title="料蛋比"  href="#/eggAnalysis/feedEgg">
+      <ion-nav-view name="eggAnalysis-feedEgg"  id="feedEggView"></ion-nav-view>
+    </ion-tab>
+    <ion-tab title="只鸡产蛋率"  href="#/eggAnalysis/onlyChickenLaying">
+      <ion-nav-view name="eggAnalysis-onlyChickenLaying"  id="onlyChickenLayingView"></ion-nav-view>
+    </ion-tab>
+    
+</ion-tabs>

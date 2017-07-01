@@ -1,0 +1,60 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+<a class="button icon ion-chevron-left button-clear" ui-sref="home"></a>
+    <h1 class="title">
+      信息维护
+    </h1>
+    <button id="chang" class="button" ng-click="showConfirm()">退出</button>
+</div>
+    <ion-content class="has-header">
+        <ion-list>
+            <ion-item class="item-icon-right" ng-click="goFarmRegistered()">
+                  农场信息
+               <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+
+            <ion-item class="item-icon-right" ng-click="goBuildingTable()">
+                  栋舍信息
+               <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+
+            <ion-item class="item-icon-right" ng-click="goUserInfo()">
+                  用户信息
+               <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+        <br /> 
+        <br /> 
+        <br />
+        <div class="middle">  
+         <a class="button  button-balanced saveBtn" ng-click="updateFarm()" nav-transition="android">切换农场</a> 
+        </div>
+        <br /> 
+        <br /> 
+        <br />
+    </ion-content>
+</ion-view>
+
+
+
+
+
+
+
+<script id="farmList.html" type="text/ng-template">
+  <ion-modal-view>
+    <ion-header-bar class="bar bar-header bar-balanced">
+      <a class="button icon ion-chevron-left button-clear" ng-click="infoSafeguardModaClose()"></a>
+        <h1 class="title">农场列表</h1>
+    </ion-header-bar>
+    <ion-content>
+      <ion-item class      =  "item-icon-right" 
+                ng-repeat  =  "item in sparraw_user_temp.farmList" 
+                type       =  "item-text-wrap" 
+                ng-click   =  "clickQueryDetail(item.farmId)">
+          {{item.farmName}}
+         <i class="icon ion-chevron-right icon-accessory"></i>
+      </ion-item>
+    </ion-content>
+  </ion-modal-view>
+</script>

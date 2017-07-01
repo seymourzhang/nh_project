@@ -1,0 +1,6511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WorkBook xmlVersion="20151125" releaseVersion="8.0.0">
+<TableDataMap>
+<TableData name="温度" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="date"/>
+<O t="Date">
+<![CDATA[1496160000000]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O>
+<![CDATA[208]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="batch_no"/>
+<O>
+<![CDATA[206-208-F12]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[44]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[199]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="type"/>
+<O>
+<![CDATA[1]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[206]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[select  
+  z.base_id,
+  z.base_name,
+  z.farm_id,
+  z.house_id,
+  z.date,
+  z.time,
+  z.date_age,
+  z.batch_id,
+  z.batch_no,
+  case when z.温度1=-99 then "" else 温度1 end 温度1,
+  case when z.温度2=-99 then "" else 温度2 end 温度2,
+  case when z.温度3=-99 then "" else 温度3 end 温度3,
+  case when z.温度4=-99 then "" else 温度4 end 温度4,
+  case when z.温度5=-99 then "" else 温度5 end 温度5,
+  case when z.平均温度=-99 then "" else 平均温度 end 平均温度,
+  case when z.目标温度=-99 then "" else 目标温度 end 目标温度,
+  case when z.高报温度=-99 then "" else 高报温度 end 高报温度,
+  case when z.低报温度=-99 then "" else 低报温度 end 低报温度,
+  case when z.室外温度=-99 then "" else 室外温度 end 室外温度,
+  case when z.湿度=-99 then "" else 湿度 end 湿度 
+  from (
+SELECT
+  org.id base_id,
+  org.name_cn base_name,
+  d.farm_id,
+  d.house_id,
+  d.date,
+  CONCAT(substr(d.time,9,2),':',substr(d.time,11,2)) AS time,
+  CONCAT(datediff(d.date,c.operation_date)+grow_age,'<br> (',substr(d.time,9,2),')') as date_age,
+  c.batch_id,
+  d.batch_no,
+  ROUND(d.inside_temp1, 1) 温度1,
+  ROUND(d.inside_temp2, 1) 温度2,
+  ROUND(d.inside_temp10, 1) 温度3,
+  ROUND(d.inside_temp19, 1) 温度4,
+  ROUND(d.inside_temp20, 1) 温度5,
+  ROUND(d.inside_avg_temp, 1) 平均温度,
+  ROUND(d.inside_set_temp, 1) 目标温度,
+  ROUND(d.high_alarm_temp, 1) 高报温度,
+  ROUND(d.low_alarm_temp, 1) 低报温度,
+  ROUND(d.outside_temp, 1) 室外温度,
+  ROUND(d.humidity, 1) 湿度
+FROM
+    rpt_monitor_daily d
+LEFT JOIN s_b_batch_change c
+ON c.farm_id = d.farm_id
+AND c.house_code = d.house_id
+AND c.operation_type = 2
+AND substring_index(c.batch_id,'-',-1) = d.batch_no
+LEFT JOIN s_d_farm f
+  ON f.id = d.farm_id
+  AND f.freeze_status=0
+LEFT JOIN s_d_organization org
+  ON org.organization_id = f.id
+  AND org.level_id = (SELECT MAX(level_id)-1 max_level FROM s_d_organization)
+  AND org.freeze_status=0
+LEFT JOIN v_user u
+ON org.id = u.obj_id
+AND u.obj_type = 2
+where u.id = '${user_id}' 
+${if(type==2 ,"and 1=1"," and 1=0")}
+AND d.date BETWEEN date_sub(str_to_date('${date}', '%Y-%m-%d'), interval 6 day) AND str_to_date('${date}', '%Y-%m-%d')
+AND right(d.time,2) = '00'
+${if(len(org_id)==0,"","and org.parent_id = '"+org_id+"'")}
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(batch_no)==0,"","and c.batch_id='"+batch_no+"'")}
+
+
+UNION
+
+SELECT
+  org.id base_id,
+  org.name_cn base_name,
+  d.farm_id,
+  d.house_id,
+  d.date,
+  date_format(d.date, '%Y/%m/%d') AS time,
+  d.date_age,
+  c.batch_id,
+  d.batch_no,
+  ROUND(d.inside_temp1, 1) 温度1,
+  ROUND(d.inside_temp2, 1) 温度2,
+  ROUND(d.inside_temp10, 1) 温度3,
+  ROUND(d.inside_temp19, 1) 温度4,
+  ROUND(d.inside_temp20, 1) 温度5,
+  ROUND(d.inside_avg_temp, 1) 平均温度,
+  ROUND(d.inside_set_temp, 1) 目标温度,
+  ROUND(d.high_alarm_temp, 1) 高报温度,
+  ROUND(d.low_alarm_temp, 1) 低报温度,
+  ROUND(d.outside_temp, 1) 室外温度,
+  ROUND(d.humidity, 1) 湿度
+FROM
+  rpt_monitor_month d
+LEFT JOIN s_b_batch_change c
+ON c.farm_id = d.farm_id
+AND c.house_code = d.house_id
+AND c.operation_type = 2
+AND substring_index(c.batch_id,'-',-1) = d.batch_no
+LEFT JOIN s_d_farm f
+  ON f.id = d.farm_id
+  AND f.freeze_status=0
+LEFT JOIN s_d_organization org
+  ON org.organization_id = f.id
+  AND org.level_id = (SELECT MAX(level_id)-1 max_level FROM s_d_organization)
+  AND org.freeze_status=0
+LEFT JOIN v_user u
+ON org.id = u.obj_id
+AND u.obj_type = 2
+where u.id = '${user_id}' and
+  ${if(type==3,"1=1","1=0")}
+AND d.date BETWEEN date_sub(str_to_date('${date}', '%Y-%m-%d'), interval 29 day) AND str_to_date('${date}', '%Y-%m-%d')
+${if(len(org_id)==0,""," and org.parent_id='"+org_id+"'")}
+${if(len(farm_id)==0,"","and d.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and d.house_id='"+house_id+"'")}
+${if(len(batch_no)==0,"","and c.batch_id='"+batch_no+"'")}
+
+UNION
+
+SELECT
+
+  org.id base_id,
+
+  org.name_cn base_name,
+
+  v.farm_id,
+
+  v.house_id,
+
+  v.date,
+
+  d.time,
+
+  v.time as date_age,
+
+  c.batch_id,
+
+  d.batch_no,
+
+  ROUND(d.inside_temp1, 1) 温度1,
+
+  ROUND(d.inside_temp2, 1) 温度2,
+
+  ROUND(d.inside_temp10, 1) 温度3,
+
+  ROUND(d.inside_temp19, 1) 温度4,
+
+  ROUND(d.inside_temp20, 1) 温度5,
+
+  ROUND(d.inside_avg_temp, 1) 平均温度,
+
+  ROUND(d.inside_set_temp, 1) 目标温度,
+
+  ROUND(d.high_alarm_temp, 1) 高报温度,
+
+  ROUND(d.low_alarm_temp, 1) 低报温度,
+
+  ROUND(d.outside_temp, 1) 室外温度,
+
+  ROUND(d.humidity, 1) 湿度
+
+FROM (select
+
+ b.farm_id,
+
+ b.house_id,
+
+ '${date}' date,
+
+ DATE_FORMAT(STR_TO_DATE(CONCAT(h.`hour`,':',m.min),'%H:%i'),'%H:%i') as time  
+
+from
+
+     (select distinct hs.farm_id,hs.house_code house_id from s_d_house hs
+
+          where  1=1
+
+                  ${if(len(farm_id)==0,"","and hs.farm_id='"+farm_id+"'")}
+
+                  ${if(len(house_id)==0,"","and hs.house_code='"+house_id+"'")}
+
+      ) b,
+
+  (select
+
+    substring_index(code_name,':',1) hour
+
+  from s_d_code
+
+    where code_type = 'time'
+
+  order by hour) h
+
+  ,
+
+  (select
+
+    (case when sc.biz_code ='60' then '00' else sc.biz_code end) min
+
+  from s_d_code sc
+
+    where sc.code_type like 'PerMinute%'
+
+   order by min) m
+
+where 1=1
+
+and DATE_FORMAT(STR_TO_DATE(CONCAT(h.`hour`,':',m.min),'%H:%i'),'%i') in ('00','05','10','15','20','25','30','35','40','45','50','55')
+) v
+
+LEFT JOIN
+
+    (select a.farm_id,
+
+  a.house_id,
+
+  DATE_FORMAT(a.update_datetime,'%Y-%m-%d') as date,
+
+  DATE_FORMAT(a.update_datetime,'%H:%i') as time,
+
+  DATE_FORMAT(a.update_datetime,'%H:%i') as date_age,
+
+  a.batch_no,
+
+  round(sum(if(a.inside_temp1=-99,0,a.inside_temp1))/sum(if(a.inside_temp1=-99,0,1)) ,2) as inside_temp1,
+
+  round(sum(if(a.inside_temp2=-99,0,a.inside_temp2))/sum(if(a.inside_temp2=-99,0,1)) ,2) as inside_temp2,
+
+  round(sum(if(a.inside_temp10=-99,0,a.inside_temp10))/sum(if(a.inside_temp10=-99,0,1)) ,2) as inside_temp10,
+
+  round(sum(if(a.inside_temp19=-99,0,a.inside_temp19))/sum(if(a.inside_temp19=-99,0,1)) ,2) as inside_temp19,
+
+  round(sum(if(a.inside_temp20=-99,0,a.inside_temp20))/sum(if(a.inside_temp20=-99,0,1)) ,2) as inside_temp20,
+
+  round(sum(if(a.inside_avg_temp=-99,0,a.inside_avg_temp))/sum(if(a.inside_avg_temp=-99,0,1)) ,2) as inside_avg_temp,
+
+  round(sum(if(a.inside_set_temp=-99,0,a.inside_set_temp))/sum(if(a.inside_set_temp=-99,0,1)) ,2) as inside_set_temp,
+
+  round(sum(if(a.high_alarm_temp=-99,0,a.high_alarm_temp))/sum(if(a.high_alarm_temp=-99,0,1)) ,2) as high_alarm_temp,
+
+  round(sum(if(a.low_alarm_temp=-99,0,a.low_alarm_temp))/sum(if(a.low_alarm_temp=-99,0,1)) ,2) as low_alarm_temp,
+
+  round(sum(if(a.outside_temp=-99,0,a.outside_temp))/sum(if(a.outside_temp=-99,0,1)) ,2) as outside_temp,
+
+  round(sum(if(a.inside_humidity=-99,0,a.inside_humidity))/sum(if(a.inside_humidity=-99,0,1)) ,2) as humidity
+
+from s_b_monitor_hist a
+
+where 1=1
+
+         and  a.update_datetime between CONCAT('${date}',' 00:00:00') and  CONCAT('${date}',' 23:59:59')
+
+         and DATE_FORMAT(a.update_datetime,'%i') in ('00','05','10','15','20','25','30','35','40','45','50','55')
+
+        ${if(len(farm_id)==0,"","and a.farm_id='"+farm_id+"'")}
+
+        ${if(len(house_id)==0,"","and a.house_id='"+house_id+"'")}
+
+        ${if(len(batch_no)==0,"","and a.batch_no=substring_index('"+batch_no+"','-',-1)")}
+
+group by a.farm_id,
+
+  a.house_id,
+
+  DATE_FORMAT(a.update_datetime,'%Y-%m-%d'),
+
+  DATE_FORMAT(a.update_datetime,'%H:%i') ,
+
+  a.batch_no) d
+
+on v.time =  d.time
+
+and v.house_id = d.house_id
+
+and v.farm_id = d.farm_id
+
+and v.date = d.date
+
+LEFT JOIN s_b_batch_change c
+
+ON c.farm_id = v.farm_id
+
+AND c.house_code = v.house_id
+
+AND c.operation_type = 2
+
+AND substring_index(c.batch_id,'-',-1) = d.batch_no
+
+LEFT JOIN s_d_farm f
+
+  ON f.id = v.farm_id
+
+  AND f.freeze_status=0
+
+  ${if(len(farm_id)==0,"","and f.id='"+farm_id+"'")}
+
+LEFT JOIN s_d_organization org
+
+  ON org.freeze_status=0
+
+      ${if(len(org_id)==0,""," and org.id='"+org_id+"'")}
+
+LEFT JOIN v_user u
+
+ON org.id = u.obj_id
+
+       AND u.obj_type = 2
+
+       AND u.id = '${user_id}' 
+
+
+
+WHERE  
+
+  ${if(type==1,"1=1","1=0")}
+
+    and u.id is not null
+
+    and org.id is not null
+
+    and v.farm_id is not null
+
+    and v.house_id is not null
+
+    and d.batch_no is not null
+
+)z
+
+ORDER BY z.date,z.date_age
+]]></Query>
+</TableData>
+<TableData name="栋舍" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  o.id org_id,
+  o.parent_id,
+  o.name_cn,
+  o.level_id,
+  o.level_name,
+  o.freeze_status,
+  u.id user_id,
+  u.user_code,
+  u.user_real_name
+FROM
+	s_d_organization o
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+AND u.obj_type = 2
+WHERE o.freeze_status=0 AND u.id = '${user_id}' AND o.level_id=3
+${if(len(farm_id)==0,"","and o.parent_id='"+farm_id+"'")}
+ORDER BY CONVERT(o.name_cn USING gbk)]]></Query>
+</TableData>
+<TableData name="公司" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  o.id org_id,
+  o.parent_id,
+  o.name_cn,
+  o.level_id,
+  o.level_name,
+  o.freeze_status,
+  u.id user_id,
+  u.user_code,
+  u.user_real_name,
+  f.id farm_id,
+  f.farm_name_chs,
+  h.id house_id,
+  h.house_name,
+  c.batch_id,
+  c.batch_no
+FROM
+	s_d_organization o
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+LEFT JOIN s_d_farm f
+ON o.id = f.id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON h.farm_id = f.id
+AND h.freeze_status=0
+LEFT JOIN s_b_batch_curr c
+ON c.farm_id = f.id
+AND c.house_code = h.house_code
+WHERE u.obj_type = 2 AND o.level_id = 1  AND o.freeze_status=0 AND u.id = '${user_id}']]></Query>
+</TableData>
+<TableData name="农场" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT
+  o.id org_id,
+  o.parent_id,
+  o.name_cn,
+  o.level_id,
+  o.level_name,
+  o.freeze_status,
+  u.id user_id,
+  u.user_code,
+  u.user_real_name,
+  f.id farm_id,
+  f.farm_name_chs,
+  h.id house_id,
+  h.house_name,
+  h.house_type,
+  c.batch_id,
+  c.batch_no
+FROM
+	s_d_organization o
+LEFT JOIN v_user u
+ON o.id = u.obj_id
+LEFT JOIN s_d_farm f
+ON o.id = f.id
+AND f.freeze_status=0
+LEFT JOIN s_d_house h
+ON h.farm_id = f.id
+AND h.freeze_status=0
+LEFT JOIN s_b_batch_curr c
+ON c.farm_id = f.id
+AND c.house_code = h.house_code
+WHERE u.obj_type = 2 AND o.freeze_status=0 AND u.id = '${user_id}'
+${if(len(org_id)==0,"","and o.parent_id='"+org_id+"'")}
+ORDER BY CONVERT(f.farm_name_chs USING gbk)]]></Query>
+</TableData>
+<TableData name="批次" class="com.fr.data.impl.DBTableData">
+<Parameters>
+<Parameter>
+<Attributes name="date"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O>
+<![CDATA[31543]]></O>
+</Parameter>
+</Parameters>
+<Attributes maxMemRowCount="-1"/>
+<Connection class="com.fr.data.impl.NameDatabaseConnection">
+<DatabaseName>
+<![CDATA[ifarm]]></DatabaseName>
+</Connection>
+<Query>
+<![CDATA[SELECT c.operation_date,
+       c.batch_id,
+       substring_index(c.batch_id,'-',-1) as batch_no,
+       DATEDIFF(str_to_date('${date}','%Y-%m-%d'),c.operation_date) + c.grow_age as date_age 
+FROM   s_b_batch_change c
+WHERE c.operation_type=2
+${if(len(farm_id)==0,"","and c.farm_id='"+farm_id+"'")}
+${if(len(house_id)==0,"","and c.house_code='"+house_id+"'")}
+order by c.operation_date desc
+]]></Query>
+</TableData>
+</TableDataMap>
+<ReportWebAttr>
+<ServerPrinter/>
+<WebPageContent>
+<Listener event="afterload">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$user_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$farm_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$house_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="batch_no"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$batch_no]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="d"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$date]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/common.js]]></JSImport>
+<Content>
+<![CDATA[var reportFrame = document.getElementById('content-container'); 
+reportFrame.style.backgroundColor = "#ffffff";
+reportFrame.style.left = "3px";
+
+var p = {
+		user_id: user_id
+		,org_id: org_id
+		,farm_id: farm_id
+		,house_id: house_id
+		,batch_no: batch_no
+		,d: d
+	};
+
+setGlobalObj("analyzeReportParam",p);]]></Content>
+</JavaScript>
+</Listener>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<WebPage isPage="true" isShowAsImage="false" isAutoScale="false" isTDHeavy="false"/>
+</WebPageContent>
+<WebWriteContent>
+<ToolBars>
+<ToolBarManager>
+<Location>
+<Embed position="1"/>
+</Location>
+<ToolBar>
+<Widget class="com.fr.report.web.button.Print">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Print')}]]></Text>
+<IconName>
+<![CDATA[print]]></IconName>
+<PrintButtons/>
+</Widget>
+<Widget class="com.fr.report.web.button.Export">
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[${i18n('Export')}]]></Text>
+<IconName>
+<![CDATA[export]]></IconName>
+<Buttons pdf="true" excelP="true" excelO="true" excelS="true" word="true" image="true" html="true"/>
+</Widget>
+</ToolBar>
+</ToolBarManager>
+</ToolBars>
+<SelectedColor/>
+<WebWrite SheetPosition="3"/>
+<RptLocation isShowAtLeft="true"/>
+<UnloadCheck/>
+<ShowWidgets/>
+<OtherAttr isAutoStash="false"/>
+</WebWriteContent>
+</ReportWebAttr>
+<ElementCaseMobileAttr>
+<ElementCaseMobileAttrProvider horizontal="1" vertical="0" zoom="true" refresh="false" isUseHTML="false"/>
+</ElementCaseMobileAttr>
+<Report class="com.fr.report.worksheet.WorkSheet" name="sheet1">
+<ReportPageAttr>
+<HR/>
+<FR/>
+<HC/>
+<FC/>
+</ReportPageAttr>
+<ColumnPrivilegeControl/>
+<RowPrivilegeControl/>
+<RowHeight defaultValue="723900">
+<![CDATA[723900,723900,457200,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,723900,1066800,838200,723900,723900,800100,723900]]></RowHeight>
+<ColumnWidth defaultValue="2743200">
+<![CDATA[1562100,1981200,2743200,2743200,1828800,4572000,1828800,4572000,1828800,4572000,1828800,3962400,2743200,2743200,2743200,5638800,2743200]]></ColumnWidth>
+<CellElementList>
+<C c="0" r="0" cs="15" s="0">
+<O>
+<![CDATA[温湿度曲线图]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="1" s="1">
+<O>
+<![CDATA[农场:]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="1" cs="2" s="2">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$farm_id]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="farm_id" viName="farm_name_chs"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+</Present>
+<Expand/>
+</C>
+<C c="4" r="1" s="1">
+<O>
+<![CDATA[栋舍:]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="1" s="2">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$house_id]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="org_id" viName="name_cn"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[栋舍]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+</Present>
+<Expand/>
+</C>
+<C c="6" r="1" s="1">
+<O>
+<![CDATA[批次:]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="1" s="2">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$batch_no]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Present class="com.fr.base.present.DictPresent">
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="batch_id" viName="batch_no"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[批次]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+</Present>
+<Expand/>
+</C>
+<C c="8" r="1" s="1">
+<O>
+<![CDATA[日期:]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="1" s="2">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$date]]></Attributes>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="1" s="1">
+<O>
+<![CDATA[时间段:]]></O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="1" s="2">
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$type]]></Attributes>
+</O>
+<PrivilegeControl/>
+<HighlightList>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性1]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[3]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[近30天]]></O>
+</HighlightAction>
+</Highlight>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性2]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[2]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[近7天]]></O>
+</HighlightAction>
+</Highlight>
+<Highlight class="com.fr.report.cell.cellattr.highlight.DefaultHighlight">
+<Name>
+<![CDATA[条件属性3]]></Name>
+<Condition class="com.fr.data.condition.ObjectCondition">
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+<HighlightAction class="com.fr.report.cell.cellattr.highlight.ValueHighlightAction">
+<O>
+<![CDATA[当天]]></O>
+</HighlightAction>
+</Highlight>
+</HighlightList>
+<Expand/>
+</C>
+<C c="0" r="2" cs="15" rs="21" s="3">
+<O t="CC">
+<LayoutAttr selectedIndex="0"/>
+<ChangeAttr enable="false" changeType="button" timeInterval="5" buttonColor="-8421505" carouselColor="-8421505">
+<TextAttr>
+<Attr alignText="0"/>
+</TextAttr>
+</ChangeAttr>
+<Chart name="默认" chartClass="com.fr.plugin.chart.vanchart.VanChart">
+<Chart class="com.fr.plugin.chart.vanchart.VanChart">
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-1118482"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<ChartAttr isJSDraw="true" isStyleGlobal="false"/>
+<Title4VanChart>
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="7"/>
+<newColor borderColor="-6908266"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.97"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[]]></O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="128" foreground="-13421773"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<Attr4VanChart useHtml="false" floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0"/>
+</Title4VanChart>
+<Plot class="com.fr.plugin.chart.custom.VanChartCustomPlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.1"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="0" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="false"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+</DataSheet>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName=""/>
+<isCustomFillStyle isCustomFillStyle="true"/>
+<ColorList>
+<OColor colvalue="-13210"/>
+<OColor colvalue="-26368"/>
+<OColor colvalue="-3355648"/>
+<OColor colvalue="-39220"/>
+<OColor colvalue="-3407668"/>
+<OColor colvalue="-10066330"/>
+<OColor colvalue="-16724941"/>
+<OColor colvalue="-65536"/>
+<OColor colvalue="-13421569"/>
+<OColor colvalue="-13369345"/>
+<OColor colvalue="-6710887"/>
+<OColor colvalue="-945550"/>
+<OColor colvalue="-4092928"/>
+<OColor colvalue="-13224394"/>
+<OColor colvalue="-12423245"/>
+<OColor colvalue="-10043521"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-13031292"/>
+<OColor colvalue="-16732559"/>
+<OColor colvalue="-7099690"/>
+<OColor colvalue="-11991199"/>
+<OColor colvalue="-331445"/>
+<OColor colvalue="-6991099"/>
+<OColor colvalue="-16686527"/>
+<OColor colvalue="-9205567"/>
+<OColor colvalue="-7397856"/>
+<OColor colvalue="-406154"/>
+<OColor colvalue="-2712831"/>
+<OColor colvalue="-4737097"/>
+<OColor colvalue="-11460720"/>
+<OColor colvalue="-6696775"/>
+<OColor colvalue="-3685632"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartRectanglePlotAttr vanChartPlotType="normal" isDefaultIntervalBackground="true"/>
+<XAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type = 3, "日  龄", if($type = 2, "日  龄<br>(小  时)", "5  分  钟"))]]></Attributes>
+</O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="4"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor lineColor="-5197648"/>
+<AxisPosition value="3"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="true" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="false" isRotation="false"/>
+<HtmlLabel customText="function()   {      var a;    { a=this }     return a; }  " useHtml="true" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+</VanChartAxis>
+</XAxisList>
+<YAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[温度(℃)]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-5197648"/>
+<AxisPosition value="2"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange minValue="=10" maxValue="=40"/>
+<AxisUnit201106 isCustomMainUnit="true" isCustomSecUnit="false" mainUnit="=5" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[湿度(%)]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor lineColor="-5197648"/>
+<AxisPosition value="4"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=5" secUnit="=20"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴2" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+</YAxisList>
+<stackAndAxisCondition>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</stackAndAxisCondition>
+<VanChartCustomPlotAttr customStyle="custom"/>
+<CustomPlotList>
+<VanChartPlot class="com.fr.plugin.chart.area.VanChartAreaPlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="0" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="true" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="6"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrTrendLine">
+<TrendLine>
+<Attr trendLineName="" trendLineType="exponential" prePeriod="0" afterPeriod="0"/>
+<LineStyleInfo>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+<AttrColor>
+<Attr/>
+</AttrColor>
+<AttrLineStyle>
+<newAttr lineStyle="0"/>
+</AttrLineStyle>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+</LineStyleInfo>
+</TrendLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrLine">
+<VanAttrLine>
+<Attr lineWidth="2" lineStyle="2" nullValueBreak="true"/>
+</VanAttrLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrMarker">
+<VanAttrMarker>
+<Attr isCommon="true" markerType="NullMarker" radius="12.5" width="30.0" height="30.0"/>
+<Background name="NullBackground"/>
+</VanAttrMarker>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrAreaSeriesFillColorBackground">
+<AttrAreaSeriesFillColorBackground>
+<Attr alpha="0.46" color="-2631686"/>
+</AttrAreaSeriesFillColorBackground>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrLabel">
+<AttrLabel>
+<labelAttr enable="false"/>
+<labelDetail class="com.fr.plugin.chart.base.AttrLabelDetail">
+<Attr showLine="false" autoAdjust="false" position="1" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="false"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+</labelDetail>
+</AttrLabel>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+<ConditionAttrList>
+<List index="0">
+<ConditionAttr name="条件属性1">
+<AttrList>
+<Attr class="com.fr.chart.base.AttrBackground">
+<AttrBackground>
+<Background name="ColorBackground" color="-6710785"/>
+<Attr shadow="false"/>
+</AttrBackground>
+</Attr>
+</AttrList>
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[系列序号]]></CNAME>
+<Compare op="0">
+<O>
+<![CDATA[1]]></O>
+</Compare>
+</Condition>
+</ConditionAttr>
+</List>
+</ConditionAttrList>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="Microsoft YaHei" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="false"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+</DataSheet>
+<NameJavaScriptGroup>
+<NameJavaScript name="网络报表2">
+<JavaScript class="com.fr.js.ReportletHyperlink">
+<JavaScript class="com.fr.js.ReportletHyperlink">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$user_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$farm_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$house_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="batch_no"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$batch_no]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="date"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$date]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="time"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=CATEGORY]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="type"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type='3',2,1)]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_self]]></TargetFrame>
+<Features width="600" height="400"/>
+<ReportletName showPI="true">
+<![CDATA[/ifarm/temProfile.cpt]]></ReportletName>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName="新特性"/>
+<isCustomFillStyle isCustomFillStyle="false"/>
+<ColorList>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartRectanglePlotAttr vanChartPlotType="custom" isDefaultIntervalBackground="true"/>
+<XAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type = 3, "日  龄", if($type = 2, "日  龄<br>(小  时)", "5  分  钟"))]]></Attributes>
+</O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="4"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor lineColor="-5197648"/>
+<AxisPosition value="3"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="true" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="false" isRotation="false"/>
+<HtmlLabel customText="function()   {      var a;    { a=this }     return a; }  " useHtml="true" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+</VanChartAxis>
+</XAxisList>
+<YAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[温度(℃)]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-5197648"/>
+<AxisPosition value="2"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange minValue="=10" maxValue="=40"/>
+<AxisUnit201106 isCustomMainUnit="true" isCustomSecUnit="false" mainUnit="=5" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[湿度(%)]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor lineColor="-5197648"/>
+<AxisPosition value="4"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=5" secUnit="=20"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴2" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+</YAxisList>
+<stackAndAxisCondition>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+<ConditionAttrList>
+<List index="0">
+<ConditionAttr name="堆积和坐标轴1">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrSeriesStackAndAxis">
+<AttrSeriesStackAndAxis>
+<Attr xAxisIndex="0" yAxisIndex="1" stacked="true" percentStacked="false" stackID="堆积和坐标轴1"/>
+</AttrSeriesStackAndAxis>
+</Attr>
+</AttrList>
+<Condition class="com.fr.data.condition.CommonCondition">
+<CNUMBER>
+<![CDATA[0]]></CNUMBER>
+<CNAME>
+<![CDATA[系列名称]]></CNAME>
+<Compare op="0">
+<O>
+<![CDATA[湿度]]></O>
+</Compare>
+</Condition>
+</ConditionAttr>
+</List>
+</ConditionAttrList>
+</ConditionCollection>
+</stackAndAxisCondition>
+</VanChartPlot>
+<VanChartPlot class="com.fr.plugin.chart.line.VanChartLinePlot">
+<VanChartPlotVersion version="20170104"/>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isNullValueBreak="true" autoRefreshPerSecond="0" seriesDragEnable="false" plotStyle="0" combinedSize="50.0"/>
+<newHotTooltipStyle>
+<AttrContents>
+<Attr showLine="false" position="1" isWhiteBackground="true" isShowMutiSeries="false" seriesLabel="${VALUE}"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+<PercentFormat>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#0.##%]]></Format>
+</PercentFormat>
+</AttrContents>
+</newHotTooltipStyle>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name="">
+<AttrList>
+<Attr class="com.fr.plugin.chart.base.AttrTooltip">
+<AttrTooltip>
+<Attr enable="true" followMouse="true" showMutiSeries="true" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="true"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="true"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+<GI>
+<AttrBackground>
+<Background name="ColorBackground" color="-16777216"/>
+<Attr shadow="true"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="2"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="0.5"/>
+</AttrAlpha>
+</GI>
+</AttrTooltip>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrTrendLine">
+<TrendLine>
+<Attr trendLineName="" trendLineType="exponential" prePeriod="0" afterPeriod="0"/>
+<LineStyleInfo>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+<AttrColor>
+<Attr/>
+</AttrColor>
+<AttrLineStyle>
+<newAttr lineStyle="0"/>
+</AttrLineStyle>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+</LineStyleInfo>
+</TrendLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrLine">
+<VanAttrLine>
+<Attr lineWidth="2" lineStyle="2" nullValueBreak="true"/>
+</VanAttrLine>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.VanChartAttrMarker">
+<VanAttrMarker>
+<Attr isCommon="true" markerType="NullMarker" radius="12.5" width="30.0" height="30.0"/>
+<Background name="NullBackground"/>
+</VanAttrMarker>
+</Attr>
+<Attr class="com.fr.plugin.chart.base.AttrLabel">
+<AttrLabel>
+<labelAttr enable="false"/>
+<labelDetail class="com.fr.plugin.chart.base.AttrLabelDetail">
+<Attr showLine="false" autoAdjust="false" position="1" isCustom="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<AttrToolTipContent>
+<Attr isCommon="true"/>
+<value class="com.fr.plugin.chart.base.format.AttrTooltipValueFormat">
+<AttrTooltipValueFormat>
+<Attr enable="true"/>
+</AttrTooltipValueFormat>
+</value>
+<percent class="com.fr.plugin.chart.base.format.AttrTooltipPercentFormat">
+<AttrTooltipPercentFormat>
+<Attr enable="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##%]]></Format>
+</AttrTooltipPercentFormat>
+</percent>
+<category class="com.fr.plugin.chart.base.format.AttrTooltipCategoryFormat">
+<AttrToolTipCategoryFormat>
+<Attr enable="false"/>
+</AttrToolTipCategoryFormat>
+</category>
+<series class="com.fr.plugin.chart.base.format.AttrTooltipSeriesFormat">
+<AttrTooltipSeriesFormat>
+<Attr enable="false"/>
+</AttrTooltipSeriesFormat>
+</series>
+<HtmlLabel customText="" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+</AttrToolTipContent>
+</labelDetail>
+</AttrLabel>
+</Attr>
+</AttrList>
+</ConditionAttr>
+</DefaultAttr>
+</ConditionCollection>
+<Legend4VanChart>
+<Legend>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-3355444"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr position="4" visible="true"/>
+<FRFont name="Microsoft YaHei" style="0" size="88" foreground="-10066330"/>
+</Legend>
+<Attr4VanChart floating="false" x="0.0" y="0.0" limitSize="false" maxHeight="15.0" isHighlight="false"/>
+</Legend4VanChart>
+<DataSheet>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="1" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<Attr isVisible="false"/>
+<Format class="com.fr.base.CoreDecimalFormat">
+<![CDATA[#.##]]></Format>
+</DataSheet>
+<NameJavaScriptGroup>
+<NameJavaScript name="网络报表1">
+<JavaScript class="com.fr.js.ReportletHyperlink">
+<JavaScript class="com.fr.js.ReportletHyperlink">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$user_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="farm_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$farm_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="house_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$house_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="batch_no"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$batch_no]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="date"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$date]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="time"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=CATEGORY]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="type"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type='3',2,1)]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<TargetFrame>
+<![CDATA[_self]]></TargetFrame>
+<Features width="600" height="400"/>
+<ReportletName showPI="true">
+<![CDATA[ifarm/temProfile.cpt]]></ReportletName>
+</JavaScript>
+</JavaScript>
+</NameJavaScript>
+</NameJavaScriptGroup>
+<newPlotFillStyle>
+<AttrFillStyle>
+<AFStyle colorStyle="1"/>
+<FillStyleName fillStyleName="新特性"/>
+<isCustomFillStyle isCustomFillStyle="false"/>
+<ColorList>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+<OColor colvalue="-472193"/>
+<OColor colvalue="-486008"/>
+<OColor colvalue="-8595761"/>
+<OColor colvalue="-7236949"/>
+<OColor colvalue="-8873759"/>
+<OColor colvalue="-1071514"/>
+<OColor colvalue="-1188474"/>
+<OColor colvalue="-6715442"/>
+<OColor colvalue="-10243346"/>
+<OColor colvalue="-8988015"/>
+</ColorList>
+</AttrFillStyle>
+</newPlotFillStyle>
+<VanChartPlotAttr isAxisRotation="false"/>
+<VanChartRectanglePlotAttr vanChartPlotType="custom" isDefaultIntervalBackground="true"/>
+<XAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=if($type = 3, "日  龄", if($type = 2, "日  龄<br>(小  时)", "5  分  钟"))]]></Attributes>
+</O>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="4"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor lineColor="-5197648"/>
+<AxisPosition value="3"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=0" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="2" secTickLine="0" axisName="X轴" titleUseHtml="true" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="false" isRotation="false"/>
+<HtmlLabel customText="function()   {      var a;    { a=this }     return a; }  " useHtml="true" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+</VanChartAxis>
+</XAxisList>
+<YAxisList>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[温度(℃)]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor mainGridColor="-3881788" lineColor="-5197648"/>
+<AxisPosition value="2"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange minValue="=10" maxValue="=40"/>
+<AxisUnit201106 isCustomMainUnit="true" isCustomSecUnit="false" mainUnit="=5" secUnit="=0"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+<VanChartAxis class="com.fr.plugin.chart.attr.axis.VanChartValueAxis">
+<Title>
+<GI>
+<AttrBackground>
+<Background name="NullBackground"/>
+<Attr shadow="false"/>
+</AttrBackground>
+<AttrBorder>
+<Attr lineStyle="0" isRoundBorder="false" roundRadius="0"/>
+<newColor borderColor="-16777216"/>
+</AttrBorder>
+<AttrAlpha>
+<Attr alpha="1.0"/>
+</AttrAlpha>
+</GI>
+<O>
+<![CDATA[湿度(%)]]></O>
+<TextAttr>
+<Attr rotation="-90" alignText="0">
+<FRFont name="微软雅黑" style="1" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<TitleVisible value="true" position="0"/>
+</Title>
+<newAxisAttr isShowAxisLabel="true"/>
+<AxisLineStyle AxisStyle="1" MainGridStyle="1"/>
+<newLineColor lineColor="-5197648"/>
+<AxisPosition value="4"/>
+<TickLine201106 type="2" secType="0"/>
+<ArrowShow arrowShow="false"/>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="微软雅黑" style="0" size="88" foreground="-10066330"/>
+</Attr>
+</TextAttr>
+<AxisLabelCount value="=1"/>
+<AxisRange/>
+<AxisUnit201106 isCustomMainUnit="false" isCustomSecUnit="false" mainUnit="=5" secUnit="=20"/>
+<ZoomAxisAttr isZoom="false"/>
+<axisReversed axisReversed="false"/>
+<VanChartAxisAttr mainTickLine="0" secTickLine="0" axisName="Y轴2" titleUseHtml="false" autoLabelGap="true" limitSize="false" maxHeight="15.0" commonValueFormat="true" isRotation="false"/>
+<HtmlLabel customText="function(){ return this; }" useHtml="false" isCustomWidth="false" isCustomHeight="false" width="50" height="50"/>
+<alertList/>
+<customBackgroundList/>
+<VanChartValueAxisAttr isLog="false" baseLog="=10"/>
+</VanChartAxis>
+</YAxisList>
+<stackAndAxisCondition>
+<ConditionCollection>
+<DefaultAttr class="com.fr.chart.chartglyph.ConditionAttr">
+<ConditionAttr name=""/>
+</DefaultAttr>
+</ConditionCollection>
+</stackAndAxisCondition>
+</VanChartPlot>
+</CustomPlotList>
+</Plot>
+<DataProcessor class="com.fr.base.chart.chartdata.model.NormalDataModel"/>
+<ChartDefinition>
+<CustomDefinition>
+<DefinitionMapList>
+<DefinitionMap key="area">
+<MoreNameCDDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[温度]]></Name>
+</TableData>
+<CategoryName value="date_age"/>
+<ChartSummaryColumn name="湿度" function="com.fr.data.util.function.NoneFunction" customName="湿度"/>
+</MoreNameCDDefinition>
+</DefinitionMap>
+<DefinitionMap key="line">
+<MoreNameCDDefinition>
+<Top topCate="-1" topValue="-1" isDiscardOtherCate="false" isDiscardOtherSeries="false" isDiscardNullCate="false" isDiscardNullSeries="false"/>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[温度]]></Name>
+</TableData>
+<CategoryName value="date_age"/>
+<ChartSummaryColumn name="温度1" function="com.fr.data.util.function.NoneFunction" customName="温度1"/>
+<ChartSummaryColumn name="温度2" function="com.fr.data.util.function.NoneFunction" customName="温度2"/>
+<ChartSummaryColumn name="温度3" function="com.fr.data.util.function.NoneFunction" customName="温度3"/>
+<ChartSummaryColumn name="温度4" function="com.fr.data.util.function.NoneFunction" customName="温度4"/>
+<ChartSummaryColumn name="温度5" function="com.fr.data.util.function.NoneFunction" customName="温度5"/>
+<ChartSummaryColumn name="平均温度" function="com.fr.data.util.function.NoneFunction" customName="平均温度"/>
+<ChartSummaryColumn name="目标温度" function="com.fr.data.util.function.NoneFunction" customName="目标温度"/>
+<ChartSummaryColumn name="高报温度" function="com.fr.data.util.function.NoneFunction" customName="高报温度"/>
+<ChartSummaryColumn name="低报温度" function="com.fr.data.util.function.NoneFunction" customName="低报温度"/>
+<ChartSummaryColumn name="室外温度" function="com.fr.data.util.function.NoneFunction" customName="室外温度"/>
+</MoreNameCDDefinition>
+</DefinitionMap>
+</DefinitionMapList>
+</CustomDefinition>
+</ChartDefinition>
+</Chart>
+<tools hidden="false" sort="false" export="false" fullScreen="true"/>
+<VanChartZoom>
+<zoomAttr zoomVisible="false" zoomResize="true" zoomType="x"/>
+<from>
+<![CDATA[]]></from>
+<to>
+<![CDATA[]]></to>
+</VanChartZoom>
+<refreshMoreLabel>
+<TextAttr>
+<Attr alignText="0">
+<FRFont name="宋体" style="0" size="72"/>
+</Attr>
+</TextAttr>
+<attr moreLabel="true" plusColor="-11349576" minusColor="-741051"/>
+</refreshMoreLabel>
+</Chart>
+</O>
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="2">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="4">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="5">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="6">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="7">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="8">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="9">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="10">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="10" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="11">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="11" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="12">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="12" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="13">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="13" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="14">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="14" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="15">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="15" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="16">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="16" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="17">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="17" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="18">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="18" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="19">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="19" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="20">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="20" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="21">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="21" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="22">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="22" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="23">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="23" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="24">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="26" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="27" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="28" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="29" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="30" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="31" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="32" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="33" r="24" s="3">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="25">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="26">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="27">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="28">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="29">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="30">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="31">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="32">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="33">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="34">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="35">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="36">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="37">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="38">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="39">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="40">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="41">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="42">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="43">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="0" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="1" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="2" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="3" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="4" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="5" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="6" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="7" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="8" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="9" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="10" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="11" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="12" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="13" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="14" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="15" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="16" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="17" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="18" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="19" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="20" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="21" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="22" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="23" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="24" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+<C c="25" r="44">
+<PrivilegeControl/>
+<Expand/>
+</C>
+</CellElementList>
+<ReportAttrSet>
+<ReportSettings headerHeight="0" footerHeight="0">
+<PaperSetting>
+<PaperSize width="43200000" height="17424000"/>
+<Margin top="0" left="0" bottom="0" right="0"/>
+</PaperSetting>
+</ReportSettings>
+<Header reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Header>
+<Footer reportPageType="0">
+<Background name="NullBackground"/>
+<LeftList/>
+<CenterList/>
+<RightList/>
+</Footer>
+</ReportAttrSet>
+<PrivilegeControl/>
+</Report>
+<ReportParameterAttr>
+<Attributes showWindow="true" delayPlaying="false" windowPosition="1" align="0"/>
+<PWTitle>
+<![CDATA[参数]]></PWTitle>
+<ParameterUI class="com.fr.form.main.parameter.FormParameterUI">
+<Parameters/>
+<Layout class="com.fr.form.ui.container.WParameterLayout">
+<WidgetName name="para"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Margin top="0" left="0" bottom="0" right="0"/>
+<Border>
+<border style="0" color="-723724" borderRadius="0" type="0" borderStyle="0"/>
+<WidgetTitle>
+<O>
+<![CDATA[新建标题]]></O>
+<FRFont name="SimSun" style="0" size="72"/>
+<Position pos="0"/>
+</WidgetTitle>
+<Alpha alpha="1.0"/>
+</Border>
+<Background name="ColorBackground" color="-1118482"/>
+<LCAttr vgap="0" hgap="0" compInterval="0"/>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelfarm_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    农场:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="2" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="25" y="8" width="54" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="farm_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="farm_id" viName="farm_name_chs"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[农场]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:农场,Key:farm_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="79" y="8" width="140" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelhouse_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    栋舍:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="239" y="8" width="63" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="house_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="org_id" viName="name_cn"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[栋舍]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:栋舍,Key:org_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="302" y="8" width="121" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelbatch_no"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    批次:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="445" y="8" width="62" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="batch_no"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="batch_id" viName="batch_no"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[批次]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:批次,Key:batch_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="507" y="8" width="119" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.RadioGroup">
+<Listener event="statechange">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var type = this.getValue();
+var form = this.options.form;
+var t = form.getWidgetByName("type");
+var h = form.getWidgetByName("type").getValue();
+var a = form.getWidgetByName("a");
+var b = form.getWidgetByName("a").getValue();
+if(type!=""){
+	a.setValue(h);
+}else{
+     t.setValue(b);
+	} ]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="type"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.CustomDictionary">
+<CustomDictAttr>
+<Dict key="3" value="近30天"/>
+<Dict key="2" value="近7天"/>
+<Dict key="1" value="当天"/>
+</CustomDictAttr>
+</Dictionary>
+<widgetValue>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=1]]></Attributes>
+</O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="830" y="8" width="187" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labelorg_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[org_id:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="37" y="137" width="67" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="org_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="org_id" viName="name_cn"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[公司]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:公司,Key:org_id}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="104" y="137" width="140" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.parameter.FormSubmitButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="user_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$user_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="org_id"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$org_id]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<JSImport>
+<![CDATA[js/common.js]]></JSImport>
+<Content>
+<![CDATA[var time = this.options.form.getWidgetByName("time");  //获取控件名称
+time.reset();
+
+var farm = this.options.form.getWidgetByName("farm_id");
+var house = this.options.form.getWidgetByName("house_id");
+var batch = this.options.form.getWidgetByName("batch_no");
+var d = this.options.form.getWidgetByName("date");
+
+var p = {
+		user_id: user_id
+		,org_id: org_id
+		,farm_id: farm.getValue()
+		,house_id: house.getValue()
+		,batch_no: batch.getValue()
+		,d: d.getValue()
+	};
+setGlobalObj("analyzeReportParam",p);]]></Content>
+</JavaScript>
+</Listener>
+<Listener event="afterinit">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters>
+<Parameter>
+<Attributes name="farms"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$farm_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="houses"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$house_id]]></Attributes>
+</O>
+</Parameter>
+<Parameter>
+<Attributes name="batchs"/>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=$batch_no]]></Attributes>
+</O>
+</Parameter>
+</Parameters>
+<Content>
+<![CDATA[var f = this.options.form.getWidgetByName("farm_id");
+var h = this.options.form.getWidgetByName("house_id");
+var b = this.options.form.getWidgetByName("batch_no");
+
+if(farms!=null || farms!=''){
+     f.setValue(farms);	
+     h.setValue(houses);
+     b.setValue(batchs);
+}]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="Search"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[查询]]></Text>
+<Hotkeys>
+<![CDATA[enter]]></Hotkeys>
+</InnerWidget>
+<BoundsAttr x="1038" y="8" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labeldate"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[    日期:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="微软雅黑" style="1" size="72" foreground="-16304285"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="646" y="8" width="58" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.DateEditor">
+<Listener event="afterinit">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var date_age = this.options.form.getWidgetByName("time").getValue();
+var cur_age = this.options.form.getWidgetByName("date_age").getValue();
+var date = this.options.form.getWidgetByName("date").getValue();
+var date1 = this.options.form.getWidgetByName("date");
+var result = date_age.split("<br>");
+if(date_age!=""){
+    var d=new Date(date);
+	d.setDate(d.getDate()-(cur_age - result[0]A));
+	var m=d.getMonth()+1;
+	var a= d.getFullYear()+'-'+('0'+m).slice(-2)+'-'+('0'+d.getDate()).slice(-2); 
+	date1.setValue(a)}
+;]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="date"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<EMSG>
+<![CDATA[请选择日期]]></EMSG>
+<allowBlank>
+<![CDATA[false]]></allowBlank>
+<DirectEdit>
+<![CDATA[false]]></DirectEdit>
+<DateAttr/>
+<widgetValue>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=NVL($d,today())]]></Attributes>
+</O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="704" y="8" width="108" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var user_id = this.options.form.getWidgetByName("user_id").getValue();
+var orgId = this.options.form.getWidgetByName("org_id").getValue();
+var farms = this.options.form.getWidgetByName("farm_id").getValue();
+var houses = this.options.form.getWidgetByName("house_id").getValue();
+var batchs = this.options.form.getWidgetByName("batch_no").getValue();
+var dates = this.options.form.getWidgetByName("date").getValue();
+var searchType = this.options.form.getWidgetByName("type").getValue();
+var time = this.options.form.getWidgetByName("time").getValue();
+var date_age = this.options.form.getWidgetByName("date_age").getValue();
+
+window.location="ReportServer?reportlet=ifarm/temCompareProfileforfarm.cpt&user_id="+user_id+"&org_id="+orgId+"&farm_id="+farms+"&house_id="+houses+"&batch_no="+batchs+"&date="+dates+"&searchType="+searchType+"&time="+time;
+]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button0_farm"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[场内对比]]></Text>
+</InnerWidget>
+<BoundsAttr x="1124" y="8" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labeluser_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[user_id:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="272" y="137" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="user_id"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[]]></O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="352" y="137" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labeltime"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[time:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="0" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="459" y="137" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="time"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[]]></O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="539" y="137" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.ComboBox">
+<WidgetName name="date_age"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Dictionary class="com.fr.data.impl.TableDataDictionary">
+<FormulaDictAttr kiName="date_age" viName="date_age"/>
+<TableDataDictAttr>
+<TableData class="com.fr.data.impl.NameTableData">
+<Name>
+<![CDATA[批次]]></Name>
+</TableData>
+</TableDataDictAttr>
+</Dictionary>
+<widgetValue>
+<databinding>
+<![CDATA[{Name:批次,Key:date_age}]]></databinding>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="711" y="137" width="119" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.Label">
+<WidgetName name="Labeldate_age"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<widgetValue>
+<O>
+<![CDATA[日龄:]]></O>
+</widgetValue>
+<LabelAttr verticalcenter="true" textalign="0" autoline="true"/>
+<FRFont name="SimSun" style="1" size="72"/>
+<border style="0" color="-723724"/>
+</InnerWidget>
+<BoundsAttr x="649" y="137" width="62" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.FreeButton">
+<Listener event="click">
+<JavaScript class="com.fr.js.JavaScriptImpl">
+<Parameters/>
+<Content>
+<![CDATA[var user_id = this.options.form.getWidgetByName("user_id").getValue();
+var orgId = this.options.form.getWidgetByName("org_id").getValue();
+var farms = this.options.form.getWidgetByName("farm_id").getValue();
+var houses = this.options.form.getWidgetByName("house_id").getValue();
+var batchs = this.options.form.getWidgetByName("batch_no").getValue();
+var dates = this.options.form.getWidgetByName("date").getValue();
+var searchType = this.options.form.getWidgetByName("type").getValue();
+var time = this.options.form.getWidgetByName("time").getValue();
+var date_age = this.options.form.getWidgetByName("date_age").getValue();
+
+window.location="ReportServer?reportlet=ifarm/temCompareProfile.cpt&user_id="+user_id+"&org_id="+orgId+"&farm_id="+farms+"&house_id="+houses+"&batch_no="+batchs+"&date="+dates+"&searchType="+searchType+"&time="+time;
+]]></Content>
+</JavaScript>
+</Listener>
+<WidgetName name="button0"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<Text>
+<![CDATA[跨场对比]]></Text>
+</InnerWidget>
+<BoundsAttr x="1210" y="8" width="80" height="21"/>
+</Widget>
+<Widget class="com.fr.form.ui.container.WAbsoluteLayout$BoundsWidget">
+<InnerWidget class="com.fr.form.ui.TextEditor">
+<WidgetName name="a"/>
+<WidgetAttr description="">
+<PrivilegeControl/>
+</WidgetAttr>
+<TextAttr/>
+<widgetValue>
+<O t="Formula" class="Formula">
+<Attributes>
+<![CDATA[=NVL($type,1)]]></Attributes>
+</O>
+</widgetValue>
+</InnerWidget>
+<BoundsAttr x="849" y="138" width="80" height="21"/>
+</Widget>
+<Sorted sorted="false"/>
+<Display display="true"/>
+<DelayDisplayContent delay="false"/>
+<Position position="0"/>
+<Design_Width design_width="1295"/>
+<MobileWidgetList>
+<Widget widgetName="farm_id"/>
+<Widget widgetName="house_id"/>
+<Widget widgetName="batch_no"/>
+<Widget widgetName="date"/>
+<Widget widgetName="type"/>
+<Widget widgetName="button0_farm"/>
+<Widget widgetName="button0"/>
+<Widget widgetName="org_id"/>
+<Widget widgetName="user_id"/>
+<Widget widgetName="time"/>
+<Widget widgetName="date_age"/>
+<Widget widgetName="a"/>
+</MobileWidgetList>
+<WidgetNameTagMap>
+<NameTag name="date" tag="    日期:"/>
+<NameTag name="house_id" tag="    栋舍:"/>
+<NameTag name="batch_no" tag="    批次:"/>
+<NameTag name="user_id" tag="user_id:"/>
+<NameTag name="org_id" tag="org_id:"/>
+<NameTag name="time" tag="time:"/>
+<NameTag name="type" tag="org_id:"/>
+<NameTag name="date_age" tag="日龄:"/>
+<NameTag name="farm_id" tag="    农场:"/>
+</WidgetNameTagMap>
+</Layout>
+<DesignAttr width="1295" height="33"/>
+</ParameterUI>
+<Parameter>
+<Attributes name="d"/>
+<O>
+<![CDATA[]]></O>
+</Parameter>
+</ReportParameterAttr>
+<StyleList>
+<Style horizontal_alignment="0" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="128"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="4" imageLayout="1">
+<FRFont name="微软雅黑" style="1" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<FRFont name="微软雅黑" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+<Style horizontal_alignment="2" imageLayout="1">
+<FRFont name="SimSun" style="0" size="72"/>
+<Background name="NullBackground"/>
+<Border/>
+</Style>
+</StyleList>
+<DesignerVersion DesignerVersion="IAA"/>
+<PreviewType PreviewType="0"/>
+</WorkBook>

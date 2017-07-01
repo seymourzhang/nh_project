@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="ReportMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <select id="temProfileDaily" resultType="pd" useCache="false">
+       SELECT  farm_id, 
+		       house_id, 
+		       date, 
+		       right(time,2) as time, 
+		       batch_no, 
+		       ROUND(inside_temp1,1) inside_temp1,
+               ROUND(inside_temp2,1) inside_temp2,
+               ROUND(inside_temp3,1) inside_temp3,
+               ROUND(inside_temp4,1) inside_temp4,
+		       ROUND(inside_avg_temp,1) inside_avg_temp, 
+		       ROUND(inside_set_temp,1) inside_set_temp, 
+		       ROUND(high_alarm_temp,1) high_alarm_temp, 
+		       ROUND(low_alarm_temp,1) low_alarm_temp, 
+		       ROUND(outside_temp,1) outside_temp
+	   FROM     rpt_monitor_daily
+	   where 1=1
+ 		<if test="farmId != null and farmId !=''"> 
+         and farm_id = #{farmId} 
+        </if> 
+        <if test="houseId != null and houseId !=''"> 
+         and house_id = #{houseId} 
+        </if> 
+         <if test="batchId != null and batchId !=''"> 
+         and batch_no = #{batchId} 
+        </if>
+        <if test="beginTime != null and endTime != null">
+			AND (`date` BETWEEN #{beginTime} AND #{endTime} ) 
+		</if> 
+		order by date
+    </select>
+     <select id="temProfileMonth" resultType="pd" useCache="false">
+       SELECT  farm_id, 
+		       house_id, 
+		       year,
+		       month,
+		       date, 
+		       batch_no, 
+		       ROUND(inside_temp1,1) inside_temp1,
+               ROUND(inside_temp2,1) inside_temp2,
+               ROUND(inside_temp3,1) inside_temp3,
+               ROUND(inside_temp4,1) inside_temp4,
+		       ROUND(inside_avg_temp,1) inside_avg_temp, 
+		       ROUND(inside_set_temp,1) inside_set_temp, 
+		       ROUND(high_alarm_temp,1) high_alarm_temp, 
+		       ROUND(low_alarm_temp,1) low_alarm_temp, 
+		       ROUND(outside_temp,1) outside_temp
+	   FROM    rpt_monitor_month
+	   where 1=1
+ 		<if test="farmId != null and farmId !=''"> 
+         and farm_id = #{farmId} 
+        </if> 
+        <if test="houseId != null and houseId !=''"> 
+         and house_id = #{houseId} 
+        </if> 
+         <if test="batchId != null and batchId !=''"> 
+         and batch_no = #{batchId} 
+        </if>
+        <if test="beginTime != null and endTime != null">
+			AND (`date` BETWEEN #{beginTime} AND #{endTime} )
+		</if> 
+		
+		order by date
+    </select>
+
+	<select id="selectTemForMobileDay" parameterType="pd" resultType="pd" useCache="false">
+	/*温度曲线：在日龄情况下；*/
+		SELECT
+		(CASE WHEN tData1.dateId > curdate()
+		THEN 'N'
+		ELSE 'Y' END)                                               AS dataflag,
+		tData1.data_age AS data_age,
+		tData1.dateId                                                AS data_date,
+		concat(date_format(tData1.dateId, '%m-%d'), '(', tData1.data_age, ')') AS x_axis,
+		tData2.avgtempLeft1,
+		tData2.avgtempLeft2,
+		tData2.avgtempMiddle1,
+		tData2.avgtempMiddle2,
+		tData2.avgtempRight1,
+		tData2.avgtempRight2,
+		tData2.avgoutsidetemp,
+		tData2.highAlarmTemp,
+		tData2.lowAlarmTemp,
+		tData2.insideSetTemp,
+		tData2.insideHumidity
+		FROM ( SELECT date_sub(#{SpecialDate},INTERVAL biz_code -1 DAY) as dateId,
+    				  (select DATEDIFF(date_sub(#{SpecialDate},INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+                       		from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+   				from s_d_code where code_type in ('PerMinute1','PerMinute2')
+   			) as tData1
+		LEFT JOIN
+		(SELECT
+		tData.timeId,
+		tData.date_age,
+		truncate(avg(if(tData.inside_temp1 = -99, NULL, tData.inside_temp1)), 1)       AS avgtempLeft1,
+		truncate(avg(if(tData.inside_temp2 = -99, NULL, tData.inside_temp2)), 1)       AS avgtempLeft2,
+		truncate(avg(if(tData.inside_temp10 = -99, NULL, tData.inside_temp10)), 1)     AS avgtempMiddle1,
+		truncate(avg(if(tData.inside_temp11 = -99, NULL, tData.inside_temp11)), 1)     AS avgtempMiddle2,
+		truncate(avg(if(tData.inside_temp19 = -99, NULL, tData.inside_temp19)), 1)     AS avgtempRight1,
+		truncate(avg(if(tData.inside_temp20 = -99, NULL, tData.inside_temp20)), 1)     AS avgtempRight2,
+		truncate(AVG(if(tData.outside_temp = -99, NULL, tData.outside_temp)), 1)       AS avgoutsidetemp,
+		truncate(AVG(if(tData.high_alarm_temp = -99, NULL, tData.high_alarm_temp)), 1) AS highAlarmTemp,
+		truncate(AVG(if(tData.low_alarm_temp = -99, NULL, tData.low_alarm_temp)), 1)   AS lowAlarmTemp,
+		truncate(AVG(if(tData.inside_set_temp = -99, NULL, tData.inside_set_temp)), 1) AS insideSetTemp,
+		truncate(AVG(if(tData.inside_humidity = -99, NULL, tData.inside_humidity)), 1) AS insideHumidity
+		FROM (SELECT
+		date_format(update_datetime, '%Y-%m-%d') AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE 1 = 1 AND a.house_id = ${HouseId}
+		AND a.update_datetime BETWEEN date_sub(#{SpecialDate}, INTERVAL 60 DAY) AND date_add(#{SpecialDate}, INTERVAL 1 DAY)
+		) tData
+		GROUP BY tData.timeId
+		ORDER BY tData.timeId) AS tData2 on tData1.dateId = tData2.timeId
+		WHERE 1=1  ORDER BY data_age
+	</select>
+
+	<select id="selectTemForMobileHour" parameterType="pd" resultType="pd" useCache="false">
+		/*在小时情况下*/
+		SELECT
+		(CASE WHEN concat(tData3.data_date, ' ', sc.biz_code) > date_format(adddate(now(), INTERVAL 30 MINUTE), '%Y-%m-%d %H:%i')
+		THEN 'N'
+		ELSE 'Y' END)          				  AS dataflag,
+		sc.biz_code             				  AS x_axis,
+		${HouseId}               				  AS house_id,
+		tData3.data_date        				  AS data_date,
+		concat('(日龄：', tData4.data_age, ')') AS data_age,
+		tData2.avgtempLeft1,
+		tData2.avgtempLeft2,
+		tData2.avgtempMiddle1,
+		tData2.avgtempMiddle2,
+		tData2.avgtempRight1,
+		tData2.avgtempRight2,
+		tData2.avgoutsidetemp,
+		tData2.highAlarmTemp,
+		tData2.lowAlarmTemp,
+		tData2.insideSetTemp,
+  		tData2.insideHumidity
+		FROM s_d_code sc
+		LEFT JOIN (
+		SELECT
+		CASE WHEN tData.timeId = '00:00'
+		THEN '24:00'
+		ELSE tData.timeId END                   AS timeId,
+		tData.house_id,
+		tData.date_age,
+		TRUNCATE(AVG(if(tData.inside_temp1=-99, null, tData.inside_temp1)), 1)    AS avgtempLeft1,
+		TRUNCATE(AVG(if(tData.inside_temp2=-99, null, tData.inside_temp2)), 1)    AS avgtempLeft2,
+		TRUNCATE(AVG(if(tData.inside_temp10=-99, null, tData.inside_temp10)), 1)    AS avgtempMiddle1,
+		TRUNCATE(AVG(if(tData.inside_temp11=-99, null, tData.inside_temp11)), 1)    AS avgtempMiddle2,
+		TRUNCATE(AVG(if(tData.inside_temp19=-99, null, tData.inside_temp19)), 1)    AS avgtempRight1,
+		TRUNCATE(AVG(if(tData.inside_temp20=-99, null, tData.inside_temp20)), 1)    AS avgtempRight2,
+		TRUNCATE(AVG(if(tData.outside_temp=-99, null, tData.outside_temp)), 1)    AS avgoutsidetemp,
+		TRUNCATE(AVG(if(tData.high_alarm_temp=-99, null, tData.high_alarm_temp)), 1) AS highAlarmTemp,
+		TRUNCATE(AVG(if(tData.low_alarm_temp=-99, null, tData.low_alarm_temp)), 1)  AS lowAlarmTemp,
+		TRUNCATE(AVG(if(tData.inside_set_temp=-99, null, tData.inside_set_temp)), 1) AS insideSetTemp,
+		TRUNCATE(AVG(if(tData.inside_humidity=-99, null, tData.inside_humidity)), 1) AS insideHumidity
+		FROM (SELECT
+		(CASE WHEN DATE_FORMAT(update_datetime, '%i') BETWEEN '00' AND '30'
+		THEN CONCAT(DATE_FORMAT(update_datetime, '%H'), ':30')
+		ELSE CONCAT(DATE_FORMAT(adddate(update_datetime, INTERVAL 1 HOUR), '%H'), ':00') END) AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE a.house_id = ${HouseId}
+		AND DATE_FORMAT(a.update_datetime, '%Y-%m-%d') = #{DataRange}
+		) tData
+		GROUP BY tData.timeId
+		ORDER BY tData.timeId
+		) AS tData2 ON tData2.timeId = sc.biz_code
+		LEFT JOIN (SELECT #{DataRange} AS data_date) AS tData3 ON 1 = 1
+		LEFT JOIN ( SELECT date_sub(#{DataRange}, INTERVAL biz_code -1 DAY) as dateId,
+                          (select DATEDIFF(date_sub(#{DataRange}, INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+                            from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+                      from s_d_code where code_type in ('PerMinute1','PerMinute2')
+                    ) as tData4 on tData4.dateId = tData3.data_date
+        WHERE sc.code_type = 'HalfHour'
+		ORDER BY x_axis
+	</select>
+
+	<select id="selectTemForMobileMinute" resultType="pd" parameterType="pd" useCache="false">
+		/*在分钟情况下*/
+		SELECT
+		'Y'                                            AS dataflag,
+		CONCAT(${Hour}, ':', CASE WHEN tData.timeId = '00'
+		THEN '60'
+		ELSE tData.timeId END) AS x_axis,
+		'Null'                                         AS data_date,
+		concat('(日龄：', tData2.data_age, ')')            AS data_age,
+		tData.house_id,
+		truncate(AVG(if(tData.inside_temp1=-99, null, tData.inside_temp1)), 1)           AS avgtempLeft1,
+		truncate(AVG(if(tData.inside_temp2=-99, null, tData.inside_temp2)), 1)           AS avgtempLeft2,
+		truncate(AVG(if(tData.inside_temp10=-99, null, tData.inside_temp10)), 1)           AS avgtempMiddle1,
+		truncate(AVG(if(tData.inside_temp11=-99, null, tData.inside_temp11)), 1)           AS avgtempMiddle2,
+		truncate(AVG(if(tData.inside_temp19=-99, null, tData.inside_temp19)), 1)           AS avgtempRight1,
+		truncate(AVG(if(tData.inside_temp20=-99, null, tData.inside_temp20)), 1)           AS avgtempRight2,
+		truncate(AVG(if(tData.outside_temp=-99, null, tData.outside_temp)), 1)           AS avgoutsidetemp,
+		truncate(AVG(if(tData.high_alarm_temp=-99, null, tData.high_alarm_temp)), 1)        AS highAlarmTemp,
+		truncate(AVG(if(tData.low_alarm_temp=-99, null, tData.low_alarm_temp)), 1)         AS lowAlarmTemp,
+		truncate(AVG(if(tData.inside_set_temp=-99, null, tData.inside_set_temp)), 1)        AS insideSetTemp,
+		truncate(AVG(if(tData.inside_humidity=-99, null, tData.inside_humidity)), 1)        AS insideHumidity
+		FROM (SELECT
+		DATE_FORMAT(adddate(a.update_datetime, INTERVAL 1 MINUTE), '%i') AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE 1 = 1
+		AND a.house_id = ${HouseId}
+		AND a.update_datetime &gt;= STR_TO_DATE(#{DataRangeStart}, '%Y-%m-%d %H:%i')
+		AND a.update_datetime &lt; STR_TO_DATE(#{DataRangeEnd}, '%Y-%m-%d %H:%i')
+		) tData
+		LEFT JOIN ( SELECT date_sub(#{DataRange}, INTERVAL biz_code -1 DAY) as dateId,
+                     (select DATEDIFF(date_sub(#{DataRange}, INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+                      from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+              from s_d_code where code_type in ('PerMinute1','PerMinute2')
+            ) as tData2 on tData2.dateId = STR_TO_DATE(tData.update_datetime, '%Y-%m-%d')
+        GROUP BY tData.timeId
+		UNION ALL
+		SELECT
+		'N'                              AS dataflag,
+		CONCAT(${Hour}, ':', sc.biz_code) AS x_axis,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+		FROM s_d_code sc
+		WHERE 1 = 1
+		AND sc.code_type = #{DataType}
+		AND sc.biz_code > (SELECT right(concat('0', ifnull(DATE_FORMAT(MAX(sbh.update_datetime), '%i') + 1, 0)), 2)
+		FROM s_b_monitor_hist sbh
+		WHERE 1 = 1
+		AND sbh.house_id = ${HouseId}
+		AND sbh.update_datetime BETWEEN
+		STR_TO_DATE(#{DataRangeStart}, '%Y-%m-%d %H:%i') AND
+		STR_TO_DATE(#{DataRangeEnd}, '%Y-%m-%d %H:%i'))
+		ORDER BY x_axis;
+	</select>
+
+	<select id="selectLCForMobileDay" parameterType="pd" resultType="pd" useCache="false">
+		/*二氧化碳和光照曲线：在日龄情况下；*/
+		SELECT
+		(CASE WHEN tData1.dateId > curdate()
+		THEN 'N'
+		ELSE 'Y' END)                                               AS dataflag,
+		tData1.data_age AS data_age,
+		tData1.dateId                                                AS data_date,
+		concat(date_format(tData1.dateId, '%m-%d'), '(', tData1.data_age, ')') AS x_axis,
+		tData2.co2,
+		tData2.lux
+		FROM ( SELECT date_sub(#{SpecialDate},INTERVAL biz_code -1 DAY) as dateId,
+    				  (select DATEDIFF(date_sub(#{SpecialDate},INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+                       		from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+   				from s_d_code where code_type in ('PerMinute1','PerMinute2')
+   			) as tData1
+		LEFT JOIN
+		(SELECT
+		tData.timeId,
+		tData.date_age,
+		truncate(avg(if(tData.co2 = -99, NULL, tData.co2)), 1)       AS co2,
+		truncate(avg(if(tData.lux = -99, NULL, tData.lux)), 1)       AS lux
+		FROM (SELECT
+		date_format(update_datetime, '%Y-%m-%d') AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE 1 = 1 AND a.house_id = ${HouseId}
+		AND a.update_datetime BETWEEN date_sub(#{SpecialDate}, INTERVAL 60 DAY) AND date_add(#{SpecialDate}, INTERVAL 1 DAY)
+		) tData
+		GROUP BY tData.timeId
+		ORDER BY tData.timeId) AS tData2 on tData1.dateId = tData2.timeId
+		WHERE 1=1  ORDER BY data_age
+	</select>
+
+	<select id="selectLCForMobileHour" parameterType="pd" resultType="pd" useCache="false">
+		/*在小时情况下*/
+		SELECT
+		(CASE WHEN concat(tData3.data_date, ' ', sc.biz_code) > date_format(adddate(now(), INTERVAL 30 MINUTE), '%Y-%m-%d %H:%i')
+		THEN 'N'
+		ELSE 'Y' END)          				  AS dataflag,
+		sc.biz_code             				  AS x_axis,
+		${HouseId}               				  AS house_id,
+		tData3.data_date        				  AS data_date,
+		concat('(日龄：', tData4.data_age, ')') AS data_age,
+		tData2.co2,
+		tData2.lux
+		FROM s_d_code sc
+		LEFT JOIN (
+		SELECT
+		CASE WHEN tData.timeId = '00:00'
+		THEN '24:00'
+		ELSE tData.timeId END                   AS timeId,
+		tData.house_id,
+		tData.date_age,
+		TRUNCATE(AVG(if(tData.co2=-99, null, tData.co2)), 1)    AS co2,
+		TRUNCATE(AVG(if(tData.lux=-99, null, tData.lux)), 1)    AS lux
+		FROM (SELECT
+		(CASE WHEN DATE_FORMAT(update_datetime, '%i') BETWEEN '00' AND '30'
+		THEN CONCAT(DATE_FORMAT(update_datetime, '%H'), ':30')
+		ELSE CONCAT(DATE_FORMAT(adddate(update_datetime, INTERVAL 1 HOUR), '%H'), ':00') END) AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE a.house_id = ${HouseId}
+		AND DATE_FORMAT(a.update_datetime, '%Y-%m-%d') = #{DataRange}
+		) tData
+		GROUP BY tData.timeId
+		ORDER BY tData.timeId
+		) AS tData2 ON tData2.timeId = sc.biz_code
+		LEFT JOIN (SELECT #{DataRange} AS data_date) AS tData3 ON 1 = 1
+		LEFT JOIN ( SELECT date_sub(#{DataRange}, INTERVAL biz_code -1 DAY) as dateId,
+                          (select DATEDIFF(date_sub(#{DataRange}, INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+                            from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+                      from s_d_code where code_type in ('PerMinute1','PerMinute2')
+                    ) as tData4 on tData4.dateId = tData3.data_date
+		WHERE sc.code_type = 'HalfHour'
+		ORDER BY x_axis
+	</select>
+
+	<select id="selectLCForMobileMinute" resultType="pd" parameterType="pd" useCache="false">
+		SELECT
+		'Y'                                            AS dataflag,
+		CONCAT(${Hour}, ':', CASE WHEN tData.timeId = '00'
+		THEN '60'
+		ELSE tData.timeId END) AS x_axis,
+		'Null'                                         AS data_date,
+		concat('(日龄：', tData2.data_age, ')')            AS data_age,
+		tData.house_id,
+		truncate(AVG(if(tData.co2=-99, null, tData.co2)), 1)           AS co2,
+		truncate(AVG(if(tData.lux=-99, null, tData.lux)), 1)           AS lux
+		FROM (SELECT
+		DATE_FORMAT(adddate(a.update_datetime, INTERVAL 1 MINUTE), '%i') AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE 1 = 1
+		AND a.house_id = ${HouseId}
+		AND a.update_datetime &gt;= STR_TO_DATE(#{DataRangeStart}, '%Y-%m-%d %H:%i')
+		AND a.update_datetime &lt; STR_TO_DATE(#{DataRangeEnd}, '%Y-%m-%d %H:%i')
+		) tData
+		LEFT JOIN ( SELECT date_sub(#{DataRange}, INTERVAL biz_code -1 DAY) as dateId,
+                     (select DATEDIFF(date_sub(#{DataRange}, INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+                      from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+              from s_d_code where code_type in ('PerMinute1','PerMinute2')
+            ) as tData2 on tData2.dateId = STR_TO_DATE(tData.update_datetime, '%Y-%m-%d')
+        GROUP BY tData.timeId
+		UNION ALL
+		SELECT
+		'N'                              AS dataflag,
+		CONCAT(${Hour}, ':', sc.biz_code) AS x_axis,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+		FROM s_d_code sc
+		WHERE 1 = 1
+		AND sc.code_type = #{DataType}
+		AND sc.biz_code > (SELECT right(concat('0', ifnull(DATE_FORMAT(MAX(sbh.update_datetime), '%i') + 1, 0)), 2)
+		FROM s_b_monitor_hist sbh
+		WHERE 1 = 1
+		AND sbh.house_id = ${HouseId}
+		AND sbh.update_datetime BETWEEN
+		STR_TO_DATE(#{DataRangeStart}, '%Y-%m-%d %H:%i') AND
+		STR_TO_DATE(#{DataRangeEnd}, '%Y-%m-%d %H:%i'))
+		ORDER BY x_axis;
+	</select>
+
+	<select id="selectCO2NH4ForMobileDay" parameterType="pd" resultType="pd" useCache="false">
+		/*二氧化碳和氨气曲线：在日龄情况下；*/
+		SELECT
+		(CASE WHEN tData1.dateId > curdate()
+		THEN 'N'
+		ELSE 'Y' END)                                               AS dataflag,
+		tData1.data_age AS data_age,
+		tData1.dateId                                                AS data_date,
+        #{SpecialDate}                                               AS date_date,
+		concat(date_format(tData1.dateId, '%m-%d'), '(', tData1.data_age, ')') AS x_axis,
+		tData2.co2,
+		tData2.nh4
+		FROM ( SELECT date_sub(#{SpecialDate},INTERVAL biz_code -1 DAY) as dateId,
+		(select DATEDIFF(date_sub(#{SpecialDate},INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+		from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+		from s_d_code where code_type in ('PerMinute1','PerMinute2')
+		) as tData1
+		LEFT JOIN
+		(SELECT
+		tData.timeId,
+		tData.date_age,
+		truncate(if(tData.co2 = -99, NULL, tData.co2), 1)       AS co2,
+		truncate(if(tData.ammonia_1 = -99, NULL, tData.ammonia_1), 1)       AS nh4
+		FROM (SELECT
+		date_format(a.date, '%Y-%m-%d') AS timeId,
+		a.*
+		FROM rpt_monitor_month a
+		WHERE 1 = 1 AND a.house_id = ${HouseId}
+		AND a.date BETWEEN date_sub(#{SpecialDate}, INTERVAL 60 DAY) AND date_add(#{SpecialDate}, INTERVAL 1 DAY)
+		) tData
+		GROUP BY tData.timeId
+		ORDER BY tData.timeId) AS tData2 on tData1.dateId = tData2.timeId
+		WHERE 1=1  ORDER BY data_age
+	</select>
+
+	<select id="selectCO2NH4ForMobileHour" parameterType="pd" resultType="pd" useCache="false">
+		/*二氧化碳和氨气曲线：在小时情况下*/
+		SELECT
+		(CASE WHEN concat(tData3.data_date, ' ', sc.biz_code) > date_format(adddate(now(), INTERVAL 30 MINUTE), '%Y-%m-%d %H:%i')
+		THEN 'N'
+		ELSE 'Y' END)          				  AS dataflag,
+		sc.biz_code             				  AS x_axis,
+		${HouseId}               				  AS house_id,
+		tData3.data_date        				  AS data_date,
+        #{SpecialDate}                            AS date_date,
+		concat('(日龄：', tData4.data_age, ')') AS data_age,
+		tData2.co2,
+		tData2.nh4
+		FROM s_d_code sc
+		LEFT JOIN (
+		SELECT
+		CASE WHEN tData.timeId = '00:00'
+		THEN '24:00'
+		ELSE tData.timeId END                   AS timeId,
+		tData.house_id,
+		tData.date_age,
+		TRUNCATE(AVG(if(tData.co2=-99, null, tData.co2)), 1)    AS co2,
+		TRUNCATE(AVG(if(tData.ammonia_1=-99, null, tData.ammonia_1)), 1)    AS nh4
+		FROM (SELECT
+		(CASE WHEN DATE_FORMAT(update_datetime, '%i') BETWEEN '00' AND '30'
+		THEN CONCAT(DATE_FORMAT(update_datetime, '%H'), ':30')
+		ELSE CONCAT(DATE_FORMAT(adddate(update_datetime, INTERVAL 1 HOUR), '%H'), ':00') END) AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE a.house_id = ${HouseId}
+		AND a.update_datetime BETWEEN date_format(#{DataRange}, '%Y-%m-%d') AND date_format(date_add(#{DataRange}, INTERVAL 1 DAY), '%Y-%m-%d')
+		) tData
+		GROUP BY tData.timeId
+		ORDER BY tData.timeId
+		) AS tData2 ON tData2.timeId = sc.biz_code
+		LEFT JOIN (SELECT #{DataRange} AS data_date) AS tData3 ON 1 = 1
+		LEFT JOIN ( SELECT date_sub(#{DataRange}, INTERVAL biz_code -1 DAY) as dateId,
+		(select DATEDIFF(date_sub(#{DataRange}, INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+		from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+		from s_d_code where code_type in ('PerMinute1','PerMinute2')
+		) as tData4 on tData4.dateId = tData3.data_date
+		WHERE sc.code_type = 'HalfHour'
+		ORDER BY x_axis
+	</select>
+
+	<select id="selectCO2NH4ForMobileMinute" resultType="pd" parameterType="pd" useCache="false">
+		/*二氧化碳和氨气曲线：在分钟情况下*/
+		SELECT
+		'Y'                                            AS dataflag,
+		CONCAT(${Hour}, ':', CASE WHEN tData.timeId = '00'
+		THEN '60'
+		ELSE tData.timeId END) AS x_axis,
+		'Null'                                         AS data_date,
+		concat('(日龄：', tData2.data_age, ')')            AS data_age,
+		tData.house_id,
+		truncate(AVG(if(tData.co2=-99, null, tData.co2)), 1)           AS co2,
+		truncate(AVG(if(tData.ammonia_1=-99, null, tData.ammonia_1)), 1)     AS nh4
+		FROM (SELECT
+		DATE_FORMAT(adddate(a.update_datetime, INTERVAL 1 MINUTE), '%i') AS timeId,
+		a.*
+		FROM s_b_monitor_hist a
+		WHERE 1 = 1
+		AND a.house_id = ${HouseId}
+		AND a.update_datetime &gt;= STR_TO_DATE(#{DataRangeStart}, '%Y-%m-%d %H:%i')
+		AND a.update_datetime &lt; STR_TO_DATE(#{DataRangeEnd}, '%Y-%m-%d %H:%i')
+		) tData
+		LEFT JOIN ( SELECT date_sub(#{DataRange}, INTERVAL biz_code -1 DAY) as dateId,
+		(select DATEDIFF(date_sub(#{DataRange}, INTERVAL biz_code -1 DAY),sbb.operation_date)+ sbb.grow_age AS date_age
+		from s_b_batch_change sbb where sbb.operation_type = 2 and sbb.house_code = ${HouseId} ORDER BY sbb.operation_date DESC LIMIT 1) AS data_age
+		from s_d_code where code_type in ('PerMinute1','PerMinute2')
+		) as tData2 on tData2.dateId = STR_TO_DATE(tData.update_datetime, '%Y-%m-%d')
+		GROUP BY tData.timeId
+		UNION ALL
+		SELECT
+		'N'                              AS dataflag,
+		CONCAT(${Hour}, ':', sc.biz_code) AS x_axis,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+		FROM s_d_code sc
+		WHERE 1 = 1
+		AND sc.code_type = #{DataType}
+		AND sc.biz_code > (SELECT right(concat('0', ifnull(DATE_FORMAT(MAX(sbh.update_datetime), '%i') + 1, 0)), 2)
+		FROM s_b_monitor_hist sbh
+		WHERE 1 = 1
+		AND sbh.house_id = ${HouseId}
+		AND sbh.update_datetime BETWEEN
+		STR_TO_DATE(#{DataRangeStart}, '%Y-%m-%d %H:%i') AND
+		STR_TO_DATE(#{DataRangeEnd}, '%Y-%m-%d %H:%i'))
+		ORDER BY x_axis;
+	</select>
+</mapper>

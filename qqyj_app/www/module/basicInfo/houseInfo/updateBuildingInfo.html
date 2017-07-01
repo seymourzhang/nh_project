@@ -1,0 +1,44 @@
+
+  <ion-view> 
+   <div class="bar bar-header bar-balanced"> 
+    <a class="button icon ion-chevron-left button-clear" ng-hide="backBtn" ng-click="backTable()"></a>
+    <a class="button button-clear" ng-hide="cancelBtn" ng-click="cancelEvent()">取消</a> 
+    <h1 class="title">栋舍详情</h1> 
+   </div> 
+   <ion-content class="has-header"> 
+    <form name="myForm">
+      <div class="list"> 
+       <label class="item item-input"> <span class="input-label fontColor">农场</span> <i class="icon ion-ios-arrow-forward"></i> <p style="color: #6E6E6E;">{{sparraw_user_temp.farminfo.name}}</p></label>
+       <label class="item item-input"> <span class="input-label fontColor">栋名称</span> <i class="icon ion-ios-arrow-forward" style="position: relative;left: 2px;"></i>
+            <input  id="updateMtcIdInput"
+                    type      =  "text" 
+                    placeholder  =  "手动输入或条形码扫描"
+                    ng-model  =  "tempVar.houseTemp.name"
+                    style="position: relative;left: 5px;" /></label>
+       <label class="item item-input"> <span class="input-label fontColor">栋舍类型</span> <i class="icon ion-ios-arrow-forward"></i><p style="color: #6E6E6E;">{{sparraw_user_temp.farminfo.farm_type}}</p></label> 
+      <br />
+      <p style="color:#808080; position:relative; left:10px; top:1rem; font-size:16px;">注：只允许修改栋名称。</p>
+      <br /> 
+      <br />
+      
+    </form>
+
+
+    <table style="position: absolute; width: 100%;height: 40px;" ng-hide="editTable">
+      <tr>
+        <td style="width: 50%;" class="middle">
+          <a class="button  button-balanced saveBtn"  ng-click="startEdit()" nav-transition="android">编辑栋舍</a>
+        </td>
+        <td style="width: 50%;" class="middle">
+          <a class="button  button-balanced saveBtn" href="#/updateDevice/{{deviceData.houseId}}" nav-transition="android">绑定设备</a>
+        </td>
+      </tr>
+    </table>
+    <br /> 
+    <div class="middle">  
+     <a class="button  button-balanced saveBtn" ng-show="visible" ng-click="saveUpdate()" nav-transition="android">保   存</a> 
+    </div>
+    <br /> 
+    <br /> 
+   </ion-content> 
+  </ion-view>

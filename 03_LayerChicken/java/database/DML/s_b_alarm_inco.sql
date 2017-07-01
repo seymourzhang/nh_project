@@ -1,0 +1,1 @@
+INSERT INTO s_b_alarm_inco (id, alarm_code, alarm_name, farm_id, house_id, farm_breed_id, house_breed_id, monitor_id, actual_value, set_value, value_unit, alarm_time, deal_status, deal_delay, deal_time, response_person, is_remove, remove_time) VALUES (null, 'null', 'null', 0, 0, 0, 0, 0, null, null, null, '2016-04-26 10:34:00', '00', null, null, null, null, null);

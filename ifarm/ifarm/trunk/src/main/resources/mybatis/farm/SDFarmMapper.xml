@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SDFarmMapper">
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+	
+	<!-- 查询全部 -->
+	<select id="selectAll" resultType="pd" useCache="false">
+		select  
+		d.id,
+		d.farm_code,
+		d.farm_name_chs,
+		d.farm_name_en,
+		d.feed_method,
+		d.layers,
+		d.rows,
+		d.feed_density,
+		d.h_length,
+		d.h_width,
+		d.h_height,
+		d.feed_purpose,
+		d.corporation,
+		(select a.name from s_d_area_china a where a.id = d.farm_add1) as farm_add1,
+		(select a.name from s_d_area_china a where a.id = d.farm_add2) as farm_add2,
+		(select a.name from s_d_area_china a where a.id = d.farm_add3) as farm_add3,
+		d.farm_add4,
+		d.farm_add5,
+		d.memo_1,
+		d.memo_2,
+		d.freeze_status,
+		d.create_person,
+		d.create_date,
+		d.create_time,
+		d.modify_person,
+		d.modify_date,
+		d.modify_time
+		from s_d_farm d
+		where d.freeze_status='0'
+	</select>
+	<!-- 根据条件查询 -->
+	<select id="selectByCondition" parameterType="pd" resultType="pd" useCache="false">
+		select  
+			d.id,
+			d.farm_code,
+			d.farm_name_chs,
+			d.farm_name_en,
+			d.feed_method,
+			d.layers,
+			d.rows,
+			d.feed_density,
+			d.h_length,
+			d.h_width,
+			d.h_height,
+			d.feed_purpose,
+			d.corporation,
+			(select a.name from s_d_area_china a where a.id = d.farm_add1) as farm_add1,
+			(select a.name from s_d_area_china a where a.id = d.farm_add2) as farm_add2,
+			(select a.name from s_d_area_china a where a.id = d.farm_add3) as farm_add3,
+			d.farm_add4,
+			d.farm_add5,
+			d.memo_1,
+			d.memo_2,
+			d.freeze_status,
+			d.create_person,
+			d.create_date,
+			d.create_time,
+			d.modify_person,
+			d.modify_date,
+			d.modify_time,
+			d.farm_type
+		from s_d_farm d 
+		where d.freeze_status=0
+			<if test="farmCode != null">
+			and d.farm_code = #{farmCode}
+			</if>
+			<if test="farmNameChs != null ">
+			and d.farm_name_chs = #{farmNameChs}
+			</if>
+			<if test="farmId != null and farmId != 0">
+			and d.id = #{farmId}
+			</if>
+			<if test="user_id != null and user_id != 0">
+			and exists(select
+							usr.role_level,
+							org.id,
+							org.parent_id,
+							org2.max_level
+						from s_d_organization org
+							left join v_user usr
+								on usr.id= #{user_id}
+									and usr.obj_type=2
+									and usr.obj_id = org.id
+							join (select max(level_id) max_level from s_d_organization) org2
+								on 1=1
+						where usr.id is not null
+									and org.level_id=(org2.max_level-1)
+									and (d.id = org.id or usr.role_level=1))
+			</if>
+	</select>
+	<!-- 查询栋舍全部 -->
+	<select id="selectHouseByCondition" resultType="pd" useCache="false">
+		select  
+		 id ,
+		 house_code ,
+		 house_name ,
+		 house_type ,
+		 farm_id ,
+		 feed_density ,
+		 house_length ,
+		 house_width ,
+		 house_height ,
+		 memo_1 ,
+		 memo_2 ,
+		 freeze_status ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time 
+		from s_d_house 
+		where freeze_status="0"
+ 		<if test="farmId != null and farmId !='' "> 
+         and farm_id = #{farmId} 
+        </if> 
+        order by farm_id,house_code
+	</select>
+	
+	<select id="selectHouseById" resultType="pd" useCache="false">
+		select  
+		 id ,
+		 house_code ,
+		 house_name ,
+		 house_type ,
+		 farm_id ,
+		 feed_density ,
+		 house_length ,
+		 house_width ,
+		 house_height ,
+		 memo_1 ,
+		 memo_2 ,
+		 freeze_status ,
+		 create_person ,
+		 create_date ,
+		 create_time ,
+		 modify_person ,
+		 modify_date ,
+		 modify_time,
+		 code.code_name house_type_name
+		from s_d_house
+		LEFT JOIN (SELECT * FROM s_d_code
+					WHERE code_type='HOUSE_TYPE') code
+		ON code.biz_code = house_type
+		where freeze_status = 0
+        <if test="houseId != null and houseId != 0">
+			and id = #{houseId}
+		</if>
+		<if test="house_name != null and house_name != ''">
+			and house_name = #{house_name}
+		</if>
+		<if test="farmId != null and farmId != ''">
+			and farm_id = #{farmId}
+		</if>
+		<if test="farm_id != null and farm_id != ''">
+			and farm_id = #{farm_id}
+		</if>
+	</select>
+	
+	<!-- 查询农场栋舍批次 -->
+	<select id="selectBatchByCondition" parameterType="pd" resultType="pd" useCache="false">
+		SELECT distinct batch_no
+		FROM   s_b_batch_curr
+	    where status =1
+ 		<if test="farmId != null and farmId !='' "> 
+         and farm_id = #{farmId} 
+        </if> 
+        <if test="houseId != null and houseId !=''"> 
+         and house_code = #{houseId} 
+        </if> 
+         <if test="batch_no != null and batch_no !=''"> 
+         and batch_no = #{batch_no} 
+        </if> 
+        order by batch_id desc
+	</select>
+	
+	
+	<!-- 查询农场信息 -->
+	<select id="findFarm" parameterType="pd" resultType="pd" useCache="false">
+		SELECT s_d_farm.*, 
+		       a1.name as province,
+		       a2.name as city,
+		       a3.name as area,
+		       c1.code_name,
+		       c2.code_name as code_name1,
+			   org.parent_id
+		FROM s_d_farm
+		left join s_d_area_china a1 on a1.id=s_d_farm.farm_add1
+		left join s_d_area_china a2 on a2.id=s_d_farm.farm_add2
+		left join s_d_area_china a3 on a3.id=s_d_farm.farm_add3
+		left join s_d_code as c1 on c1.biz_code=s_d_farm.feed_method and c1.code_type='FEED_METHOD' 
+		left join s_d_code as c2 on c2.biz_code=s_d_farm.feed_type and c2.code_type='FEED_TYPE'
+		left join s_d_organization org on org.id = s_d_farm.id
+		where s_d_farm.freeze_status='0'
+		<if test="parent_id != null and parent_id != ''">
+		and org.parent_id = #{parent_id}
+		</if>
+		<if test="id != null and id != ''">
+			and s_d_farm.id = #{id}
+		</if>
+		<if test="user_id != null and user_id != ''">
+			and (exists(select
+							usr.role_level,
+							org.id,
+							org.parent_id,
+							org2.max_level
+						from s_d_organization org
+							left join v_user usr
+							on usr.id= #{user_id}
+								and usr.obj_type=2
+								and usr.obj_id = org.id
+							join (select max(level_id) max_level from s_d_organization) org2
+							on 1=1
+						where usr.id is not null and org.level_id=(org2.max_level-1)
+								and s_d_farm.id = org.id)
+					or s_d_farm.create_person = #{user_id}
+						)
+		</if>
+		<if test="farm_name_chs != null and farm_name_chs !='' ">
+			and (s_d_farm.farm_name_chs LIKE CONCAT(CONCAT('%', #{farm_name_chs}),'%') or s_d_farm.farm_code LIKE CONCAT(CONCAT('%', #{farm_name_chs}),'%'))
+		</if>
+		<if test="feed_type != null and feed_type !='' ">
+			and s_d_farm.feed_type = #{feed_type} 
+		</if>
+		<if test="feed_method != null and feed_method !='' ">
+			and s_d_farm.feed_method = #{feed_method} 
+		</if>
+	</select>
+	
+	<!-- 查询栋舍信息 -->
+	<select id="findHouse" parameterType="pd" resultType="pd" useCache="false">
+		SELECT s_d_house.* ,
+		c1.code_name,
+		s_d_farm.farm_name_chs
+		FROM   s_d_house
+		left join s_d_farm on s_d_farm.id=s_d_house.farm_id
+		left join s_d_code as c1 on c1.biz_code=s_d_house.house_type and c1.code_type='HOUSE_TYPE'
+		where s_d_house.freeze_status='0'
+		<if test="user_id != null and user_id != ''">
+			and (exists(select
+			usr.role_level,
+			org.id,
+			org.parent_id,
+			org2.max_level
+			from s_d_organization org
+			left join v_user usr
+			on usr.id= #{user_id}
+			and usr.obj_type=2
+			and usr.obj_id = org.id
+			join (select max(level_id) max_level from s_d_organization) org2
+			on 1=1
+			where usr.id is not null
+			and org.level_id=org2.max_level
+			and (case when usr.role_level=org2.max_level then org.organization_id else (select distinct organization_id from s_d_organization where id = org.parent_id and level_id = (org2.max_level-1)) end)
+			= (case when usr.role_level=org2.max_level then s_d_house.id else s_d_house.farm_id end))
+			or 
+            s_d_house.create_person =#{user_id})
+		</if>
+		<if test="id != null and id !='' ">
+			and s_d_house.id = #{id}
+		</if>
+		<if test="farmId != null and farmId !='' ">
+			and s_d_house.farm_id = #{farmId}
+		</if>
+		<if test="house_name != null and house_name !='' ">
+			and (s_d_house.house_name LIKE CONCAT(CONCAT('%', #{house_name}),'%') or s_d_house.house_code LIKE CONCAT(CONCAT('%', #{house_name}),'%'))
+		</if>
+		<if test="farm_name_chs != null and farm_name_chs !='' ">
+			and (s_d_farm.farm_name_chs LIKE CONCAT(CONCAT('%', #{farm_name_chs}),'%') or s_d_farm.farm_code LIKE CONCAT(CONCAT('%', #{farm_name_chs}),'%'))
+		</if>
+		<if test="house_type != null and house_type !='' ">
+			and s_d_house.house_type = #{house_type}
+		</if>
+	</select>
+	
+	<!-- 查询批次信息 -->
+	<select id="findBatchlistPage" parameterType="page" resultType="pd" useCache="false">
+		SELECT s_d_batch.*,
+		       s_d_farm.farm_name_chs,
+		       s_d_code.code_name
+		FROM   s_d_batch
+		left join s_d_farm on s_d_farm.id=s_d_batch.farm_id
+		left join s_d_code on s_d_code.biz_code=s_d_batch.operation_type and s_d_code.code_type='OPERATION_TYPE'
+		where 1=1
+		<if test="pd.id != null and pd.id !='' "> 
+         and s_d_batch.id = #{pd.id} 
+        </if>
+        order by s_d_batch.id desc
+	</select>
+	
+	<!-- 查询代码表 -->
+	<select id="findCode" parameterType="pd" resultType="pd" useCache="false">
+		SELECT *
+		FROM   s_d_code
+		where 1=1
+ 		<if test="code_type != null and code_type !='' "> 
+         and code_type = #{code_type} 
+        </if>
+		<if test="biz_code != null and biz_code != ''">
+		 and biz_code = #{biz_code}
+		</if>
+	</select>
+	<!-- 查询地区表 -->
+	<select id="findAreaChina" parameterType="pd" resultType="pd" useCache="false">
+		SELECT * FROM s_d_area_china
+		where status=1
+ 		<if test="parent_id != null and parent_id !='' "> 
+         	and parent_id = #{parent_id} 
+        </if> 
+        <if test="level != null and level !='' "> 
+         	and level = #{level} 
+        </if> 
+        <if test="parent_id2 != null and parent_id2 !='' "> 
+        and parent_id in(select id from s_d_area_china a where a.parent_id = #{parent_id2})
+        </if>
+        order by sort 
+	</select>
+	<!-- 新增农场 -->
+	<insert id="saveFarm" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_farm (
+			id,
+			farm_code,
+			farm_name_chs,
+			farm_name_en,
+			feed_method,
+			feed_type,
+			farm_add1,
+			farm_add2,
+			farm_add3,
+			freeze_status,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time,
+			farm_type
+		) values (
+			get_organization_id(TRUE),
+			get_organization_id(FALSE),
+			CONCAT(#{farm_name_chs}, '(', get_organization_id(FALSE), ')') ,
+			#{farm_name_en},
+			#{feed_method},
+			#{feed_type},
+			#{farm_add1},
+			#{farm_add2},
+			#{farm_add3},
+			#{freeze_status},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time},
+			#{farm_type}
+		)
+	</insert>
+	<!-- 修改农场信息 -->
+	<update id="editFarm" parameterType="pd" flushCache="false">
+		update  s_d_farm
+			set modify_person	= #{modify_person}
+				<choose>
+					<when test="modify_date != null and modify_date != ''">
+						,modify_date 	= #{modify_date}
+					</when>
+					<otherwise>
+						,modify_date 	= current_date
+					</otherwise>
+				</choose>
+				<choose>
+					<when test="modify_time != null and modify_time != ''">
+						,modify_time 	= #{modify_time}
+					</when>
+					<otherwise>
+						,modify_time 	= current_time
+					</otherwise>
+				</choose>
+			<if test="farm_code != null and farm_code != ''">
+				,farm_code				= #{farm_code}
+			</if>
+			<if test="farm_name_chs != null and farm_name_chs != ''">
+				,farm_name_chs				= CONCAT(#{farm_name_chs}, '(', id, ')')
+			</if>
+			<if test="farm_name != null and farm_name != ''">
+				,farm_name_chs				= #{farm_name}
+			</if>
+			<if test="farm_name_en != null and farm_name_en != ''">
+				,farm_name_en			 = #{farm_name_en}
+			</if>
+			<if test="feed_method != null and feed_method != ''">
+				,feed_method			 = #{feed_method}
+			</if>
+			<if test="feed_type != null and feed_type != ''">
+				,feed_type			 = #{feed_type}
+			</if>
+			<if test="freeze_status != null and freeze_status != ''">
+				,freeze_status			 = #{freeze_status}
+			</if>
+			<if test="farm_add1 != null and farm_add1 != ''">
+				,farm_add1			 = #{farm_add1}
+			</if>
+			<if test="farm_add2 != null and farm_add2 != ''">
+				,farm_add2			 = #{farm_add2}
+			</if>
+			<if test="farm_add3 != null and farm_add3 != ''">
+				,farm_add3			 = #{farm_add3}
+			</if>
+			<if test="farm_type != null and farm_type != ''">
+				,farm_type			 = #{farm_type}
+			</if>
+			where 
+				id = #{id}
+	</update>
+	
+	
+	
+	
+	<!-- 新增批次 -->
+	<insert id="saveBatch" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_batch (
+			house_code,
+			house_name,
+			farm_id,
+			batch_no,
+			batch_date,
+			day_age_curr,
+			count,
+			operation_type,
+			create_person,
+			create_date,
+			create_time
+		) values (
+			#{house_code},
+			#{house_name},
+			#{farm_id},
+			#{batch_no},
+			#{batch_date},
+			#{day_age_curr},
+			#{count},
+			#{operation_type},
+			#{create_person},
+			#{create_date},
+			#{create_time}
+		)
+	</insert>
+	
+	<!-- 修改批次信息 -->
+	<update id="editBatch" parameterType="pd" flushCache="false">
+		update  s_d_batch
+			set 
+			day_age_curr = #{day_age_curr}
+			<if test="count != null and count !='' "> 
+			,count	= #{count}
+			</if>
+			<if test="count == null or count =='' "> 
+			,count	= null
+			</if>
+			where id = #{id}
+	</update>
+	
+	<!-- 查询设备表 -->
+	<select id="findDevice" parameterType="pd" resultType="pd" useCache="false">
+		select * from s_d_device t
+		where 1=1
+		<if test="app_flag != 'app'">
+			and exists (
+			   select 1 from (select device_code from s_b_devi_house a
+			   INNER JOIN s_d_organization c on c.organization_id = a.house_id
+			   INNER JOIN s_d_house b on c.organization_id = b.house_code and b.freeze_status = '0'
+			   <if test="house_id != null and house_id !='' ">
+					and a.house_id = #{house_id}
+			   </if>
+			   ) t1
+			where t.device_code = t1.device_code)
+		</if>
+		<if test="device_code != null and device_code !='' ">
+         	and t.device_code = #{device_code}
+        </if>
+	</select>
+
+	<select id="selectDevice_v2" parameterType="pd" resultType="pd" useCache="false">
+		select *
+		from s_d_device d
+		where 1=1
+		      and d.device_code = #{device_code}
+	</select>
+
+	<select id="selectDeviceForOut" parameterType="pd" resultType="pd" useCache="false">
+		SELECT b.*,a.*
+		FROM s_b_devi_house a LEFT JOIN s_d_device_sub b ON b.main_id = concat(a.device_type, '-', a.device_code, '-x')
+		WHERE a.house_id = ${house_id}
+		LIMIT 1
+	</select>
+
+	<!-- 查询是否绑定 -->
+	<select id="findDeviceIsExist" parameterType="pd" resultType="pd" useCache="false">
+		select * from s_b_devi_house a
+		where 1=1
+		<if test="house_id != null and house_id !='' ">
+			and a.house_id &lt;&gt; #{house_id}
+		</if>
+		<if test="device_code != null and device_code !='' ">
+			and a.device_code = #{device_code}
+		</if>
+	</select>
+
+	<!-- 查询传感器表 -->
+	<select id="findSensor" parameterType="pd" resultType="pd" useCache="false">
+		SELECT
+			c.biz_code location_code
+			,c.code_name location_name
+			,IFNULL(dds.sensor_no,'') sensor_no
+			,IFNULL(dds.main_id,'') main_id
+			,IFNULL(dds.sensor_code,'') sensor_type
+		FROM s_d_code c
+			LEFT JOIN s_d_device_sub dds
+			ON c.biz_code = dds.show_column
+				<if test="sensor_code != null and sensor_code !='' ">
+					AND dds.sensor_code = #{sensor_code}
+				</if>
+				<if test="main_id != null and main_id !='' ">
+					AND dds.main_id = #{main_id}
+				</if>
+			WHERE c.code_type='SENSOR_LOCATION'
+-- 			ORDER BY c.bak1, dds.main_id, dds.sensor_code
+	  		ORDER BY sensor_no
+	</select>
+
+	<!-- 绑定栋舍与设备 -->
+	<insert id="mappingDevice" parameterType="pd"  flushCache="false" keyProperty="id">
+		INSERT INTO s_b_devi_house(device_code
+									,device_type
+									,farm_id
+									,house_id
+									,create_person
+									,create_date
+									,create_time)
+			SELECT
+			  device_code
+			  ,device_type
+			  ,#{farm_id}
+			  ,#{house_id}
+			  ,#{create_person}
+			  ,current_date
+			  ,current_time
+			FROM s_d_device
+			WHERE device_code = #{device_code}
+	</insert>
+
+	<!-- 解绑栋舍与设备 -->
+	<delete id="delDevice" parameterType="pd"  flushCache="false">
+		DELETE FROM s_b_devi_house
+			WHERE 1=1
+				AND house_id = #{house_id}
+				<if test="device_code != null and device_code != ''">
+					AND device_code = #{device_code}
+				</if>
+	</delete>
+
+	<!-- 解绑设备与传感器 -->
+	<delete id="delSensor" parameterType="pd"  flushCache="false">
+		DELETE FROM s_d_device_sub
+			WHERE main_id = #{main_id}
+					<if test="sensor_code != null and sensor_code !='' ">
+						AND sensor_code = #{sensor_code}
+					</if>
+					<if test="show_column != null and show_column !='' ">
+						AND show_column = #{show_column}
+					</if>
+	</delete>
+
+	<!-- 绑定设备与传感器 -->
+	<insert id="insertSensor" parameterType="pd"  flushCache="false">
+		INSERT INTO s_d_device_sub(main_id
+									,sensor_code
+									,sensor_no
+									,show_column
+									,create_person
+									,make_date)
+			VALUES(#{main_id}
+					,#{sensor_code}
+					,#{sensor_no}
+					,#{show_column}
+					,#{create_person}
+					,now() )
+	</insert>
+
+	<!-- 新增栋舍 Varro -->
+	<insert id="saveHouse" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_d_house (
+			id,
+			house_code,
+			house_name,
+			house_type,
+			farm_id,
+			freeze_status,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+			<if test="selectSensorNum != null and selectSensorNum !='' ">
+				,sensor_count
+			</if>
+		) values (
+		    get_organization_id(TRUE),
+			#{house_code},
+			#{house_name},
+			#{house_type},
+			#{farm_id},
+			#{freeze_status},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+			<if test="selectSensorNum != null and selectSensorNum !='' ">
+				, #{selectSensorNum}
+			</if>
+		)
+	</insert>
+	<!-- 修改栋舍 Varro -->
+	<update id="editHouse" parameterType="pd" flushCache="false">
+		update  s_d_house
+			set modify_person	= #{modify_person},
+				modify_date 	= #{modify_date},
+				modify_time 	= #{modify_time}
+			<if test="house_code != null and house_code != ''">
+				,house_code				= #{house_code}
+			</if>
+			<if test="house_name != null and house_name != ''">
+				,house_name				= #{house_name}
+			</if>
+			<if test="house_type != null and house_type != ''">
+				,house_type			 = #{house_type}
+			</if>
+			<if test="farm_id != null and farm_id != ''">
+				,farm_id			 = #{farm_id}
+			</if>
+			<if test="freeze_status != null and freeze_status != ''">
+				,freeze_status			 = #{freeze_status}
+			</if>
+			<if test="selectSensorNum != null and selectSensorNum !='' ">
+				,sensor_count = #{selectSensorNum}
+			</if>
+		where
+				id = #{id}
+	</update>
+	
+	<!-- 新增栋舍警报 Varro -->
+	<insert id="saveHouseAlarm" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_b_house_alarm (
+			farm_id,
+			house_id,
+			alarm_type,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (
+			#{farm_id},
+			#{house_id},
+			#{alarm_type},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+
+	<!-- 初始化栋舍警报历史（基础设置） raymon -->
+	<insert id="initHouseAlarmBasicHis" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_b_house_alarm_his (farm_id
+											,house_id
+											,alarm_type
+											,alarm_delay
+											,temp_cpsation
+											,temp_cordon
+											,alarm_way
+											,alarm_probe
+											,alarm_sensor_no
+											,point_alarm
+											,modify_person
+											,modify_date
+											,modify_time)
+			select
+				farm_id
+				,house_id
+				,alarm_type
+				,alarm_delay
+				,temp_cpsation
+				,temp_cordon
+				,alarm_way
+				,alarm_probe
+				,c.sensor
+				,point_alarm
+				,create_person
+				,create_date
+				,create_time
+			from s_b_house_alarm
+				join (select GROUP_CONCAT(t.biz_code separator ',') sensor from (select a.* from s_d_code a  where a.code_type = 'SENSOR_LOCATION' order by a.bak1) t) c
+				on 1=1
+			where farm_id = #{farm_id}
+				and house_id =#{house_id}
+				and alarm_type = #{alarm_type}
+	</insert>
+	
+	<!-- 新增栋舍和设备关系 Varro -->
+	<insert id="saveDeviHouse" parameterType="pd"  flushCache="false" keyProperty="id">
+		insert into s_b_devi_house (
+			device_code,
+			device_type,
+			port_id,
+			farm_id,
+			house_id,
+			create_person,
+			create_date,
+			create_time,
+			modify_person,
+			modify_date,
+			modify_time
+		) values (
+			#{device_code},
+			#{device_type},
+			#{port_id},
+			#{farm_id},
+			#{house_id},
+			#{create_person},
+			#{create_date},
+			#{create_time},
+			#{modify_person},
+			#{modify_date},
+			#{modify_time}
+		)
+	</insert>
+	
+	<!-- 删除栋舍和设备关系 Varro -->
+	<delete id="delDeviHouse" parameterType="pd" flushCache="false">
+		delete from s_b_devi_house
+		where 1=1
+ 		<if test="house_id != null and house_id !='' "> 
+         	and house_id = #{house_id} 
+        </if> 
+        <if test="farm_id != null and farm_id !='' "> 
+         	and farm_id = #{farm_id} 
+        </if> 
+	</delete>
+	
+	<!-- 查询栋舍设备关联表 -->
+	<select id="findHouseDevice" parameterType="pd" resultType="pd" useCache="false">
+		SELECT s_d_device.* ,
+		 s_b_devi_house.house_id
+		FROM s_d_device
+		left join s_b_devi_house on s_b_devi_house.device_code = s_d_device.device_code
+		where 1=1
+		<if test="house_id != null and house_id !='' "> 
+         	and s_b_devi_house.house_id = #{house_id} 
+        </if> 
+	</select>
+	
+	
+	<!-- 判断同一栋舍下如果有未出栏的的批次，不能做入栏操作 -->
+	<select id="isBatchHouseNull" parameterType="pd" resultType="pd" useCache="false">
+		SELECT * from s_d_batch t
+		where   id = (SELECT MAX(id) from s_d_batch where house_code = #{house_code}  )
+	</select>
+	
+	<select id="selectOganizationList" parameterType="pd" resultType="pd" useCache="false">
+		SELECT
+			  o.id,
+			  o.organization_id,
+			  o.name_cn,
+			  o.parent_id,
+			  o.level_id,
+			  o.level_name,
+			  o.create_person,
+			  o.create_date,
+			  o.create_time
+		FROM s_d_organization o
+		WHERE 1=1
+			  AND level_id = ${level_id}
+			  AND (select 1 from v_user u
+						  where u.id = #{user_id}
+								and u.obj_type=2
+								and u.obj_id = o.id
+					)
+    </select>
+
+	<select id="selectShowHouseType" parameterType="pd" resultType="pd" useCache="false">
+		select
+		  DISTINCT t1.house_type SHOW_HOUSE_TYPE
+		from (
+		  SELECT DISTINCT sdh.house_type
+		  FROM s_d_house sdh
+		  WHERE exists(SELECT 1
+					   FROM v_user vu
+					   WHERE vu.id = #{user_id} AND vu.obj_type = 2 AND vu.obj_id = sdh.id)
+		  ORDER BY sdh.house_type
+		) t1
+	</select>
+	
+</mapper>

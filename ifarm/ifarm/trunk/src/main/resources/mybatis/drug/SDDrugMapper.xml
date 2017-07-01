@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SDDrugMapper" >
+  <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+    <!-- 查询药品疫苗计划表 -->
+    <select id="selectDrugPlan" resultType="pd" useCache="false">
+      SELECT d.id,
+             d.drug_id,
+             d.farm_name,
+             d.grow_week_age,
+             d.drug_name,
+             round(d.use_unit,0) as use_unit,
+             d.use_type,
+             a.corporation,
+             c1.code_name spec,
+             c2.code_name unit
+       from s_b_use_drug_plan d
+            left join
+            s_d_goods g
+            on g.good_id = d.drug_id
+            left join s_d_corporation a
+		on a.corporation_id = d.corporation_id
+		LEFT JOIN s_d_code c1 on c1.biz_code=d.spec and c1.code_type='spec'
+		LEFT JOIN s_d_code c2 on c2.biz_code=d.unit and c2.code_type='unit'
+       where 1 = 1
+<!--         <if test="grow_week_age != null and grow_week_age !=''"> -->
+<!--         and d.grow_week_age in -->
+<!--         <foreach collection="grow_week_age" index="index" item="item"  open="(" separator="," close=")" >   -->
+<!--            #{item} -->
+<!--            </foreach>  -->
+<!--         </if>  -->
+        <if test="good_type != null and good_type !=''"> 
+           and g.good_type = #{good_type} 
+        </if>
+<!--          <if test="drug_id != null and drug_id !=''">   -->
+<!--             and d.drug_id = #{drug_id}  -->
+<!--          </if> -->
+         <if test="farmId != null and farmId !=''">  
+            and d.farm_id = #{farmId} 
+         </if>
+<!--         <if test="instruction != null and instruction !=''">  -->
+<!--            and d.Instruction = #{instruction}  -->
+<!--         </if>  -->
+<!--         <if test="start_grow_week_age != null and start_grow_week_age !=''">  -->
+<!--            and d.grow_week_age >= #{start_grow_week_age}  -->
+<!--         </if>  -->
+<!--         <if test="end_grow_week_age != null and end_grow_week_age !=''">  -->
+<!--            and #{end_grow_week_age} >=d.grow_week_age   -->
+<!--         </if>  -->
+        <if test="ord == 1">
+        order by d.modify_time desc,d.create_time desc
+        </if>
+        <if test="ord == 2">
+        order by d.grow_week_age
+        </if>
+    </select>
+    <!-- 查询药品疫苗使用表 -->
+   <select id="selectDrugFact" resultType="pd" useCache="false">
+   select u.id,
+          u.farm_name,
+          DATE_FORMAT(u.use_date,'%Y-%m-%d') as use_date,
+          u.house_id,
+          u.house_name,
+          u.drug_name,
+          u.good_batch_no,
+          f.factory_name,
+          round(u.use_unit,2) as use_unit,
+<!--           (select c.code_name from s_d_code c where c.code_type = 'use_type' and u.Instruction = c.biz_code) Instruction, -->
+          u.use_type,
+          u.main_constitute,
+          d.user_real_name,
+          a.corporation,
+          c1.code_name spec,
+          c2.code_name unit
+   from s_b_use_drug u
+        left join 
+        s_d_goods g
+        on g.good_id = u.drug_id
+        left join
+        s_d_stock s
+        on g.good_id = s.good_id
+        left join 
+        s_d_factory f
+        on s.factory_id = f.factory_id
+        left join 
+        s_d_user d
+        on u.use_user_id = d.id
+        left join s_d_corporation a
+		on a.corporation_id = u.corporation_id
+		LEFT JOIN s_d_code c1 on c1.biz_code=u.spec and c1.code_type='spec'
+		LEFT JOIN s_d_code c2 on c2.biz_code=u.unit and c2.code_type='unit'
+        where 1=1
+        <if test="houseId != null and houseId !=''"> 
+           and u.house_id = #{houseId} 
+        </if>
+        <if test="use_date != null and use_date !=''"> 
+           and u.use_date = #{use_date} 
+        </if>
+        <if test="good_type1 != null and good_type1 !=''"> 
+           and u.good_type = #{good_type1} 
+        </if>
+    </select>
+    <!-- 新增药品疫苗计划 -->
+    <insert id="saveDrugPlan" parameterType="pd"  flushCache="false">
+    INSERT INTO s_b_use_drug_plan(farm_id,
+							   farm_name,
+							   drug_id,
+							   drug_name,
+							   grow_day_age,
+							   grow_week_age,
+							   lay_eggs_day_age,
+							   lay_eggs_week_age,
+							   use_unit,
+							   use_type,
+<!-- 							   Instruction, -->
+                               spec,
+                               unit,
+                               corporation_id,
+							   status,
+							   create_person,
+							   create_date,
+							   create_time,
+							   modify_person,
+							   modify_date,
+							   modify_time,
+							   good_type )value
+							   <foreach collection="grow_week_age" index="index" item="item"  open="" separator="," close="" >
+							   (
+										#{farmId},
+										#{farm_name},
+										#{drug_id},
+										#{drug_name},
+										null,
+										#{item},
+										null,
+										null,
+										#{use_unit},
+										#{use_type},
+<!-- 										#{instruction}, -->
+                                        #{spec},
+                                        #{unit},
+                                        #{corporation_id},
+										#{status},
+										#{create_person},
+										#{create_date},
+										#{create_time},
+										#{modify_person},
+										#{modify_date},
+										#{modify_time},
+										#{good_type})
+										</foreach>
+    </insert>
+    <!-- 删除药品疫苗计划 -->
+    <delete id="deleteDrugPlan" flushCache="false">
+	delete from s_b_use_drug_plan 
+	where id = #{id}
+	</delete>
+    <!-- 新增药品疫苗使用 -->
+    <insert id="saveDrugFact" parameterType="pd"  flushCache="false">
+    INSERT INTO s_b_use_drug(farm_id,
+							   farm_name,
+							   house_id,
+							   house_name,
+							   use_date,
+							   use_user_id,
+							   drug_id,
+							   drug_name,
+							   grow_day_age,
+							   grow_week_age,
+							   lay_eggs_day_age,
+							   lay_eggs_week_age,
+							   good_batch_no,
+							   use_unit,
+							   main_constitute,
+							   use_type,
+<!-- 							   Instruction, -->
+                               spec,
+                               unit,
+                               corporation_id,
+							   good_type,
+							   status,
+							   create_person,
+							   create_date,
+							   create_time,
+							   modify_person,
+							   modify_date,
+							   modify_time,
+							   stock_change_id )value(
+										#{farmId},
+										#{farm_name},
+										#{houseId},
+										#{house_name},
+										#{use_date},
+										#{use_user_id},
+										#{drug_id},
+										#{drug_name},
+										null,
+										null,
+										null,
+										null,
+										#{good_batch_no},
+										#{use_unit},
+										#{main_constitute},
+										#{use_type},
+<!-- 										#{instruction}, -->
+                                        #{spec},
+                                        #{unit},
+                                        #{corporation_id},
+										#{good_type},
+										#{status},
+										#{create_person},
+										#{create_date},
+										#{create_time},
+										#{modify_person},
+										#{modify_date},
+										#{modify_time},
+										0)
+    </insert>
+    <!-- 删除药品疫苗使用 -->
+    <delete id="deleteDrugFact" flushCache="false">
+	delete from s_b_use_drug 
+	where 1=1
+        <if test="id != null"> 
+        and id = #{id}
+        </if>
+	</delete>
+	<!-- 查询用户对应的农场 -->
+	<select id="selectFarm" resultType="pd" useCache="false">
+	 select farm_id from s_b_user_farm where user_id = #{userId}
+	</select>
+	<!-- 查询负责人 -->
+	<select id="selectUser" resultType="pd" useCache="false">
+	select distinct u.id,u.user_real_name from v_user u
+	 where 
+	 u.obj_id in(SELECT distinct obj_id FROM v_user 
+	where obj_type =2
+	and id = #{user_id})
+	<if test="houseId != null and houseId != ''"> 
+        and u.obj_id = #{houseId}
+        </if>
+    order by u.obj_id
+	</select>
+	<!-- 查询物资 -->
+	<select id="selectGoods" resultType="pd" useCache="false">
+	 select g.* from 
+	 s_d_goods g
+	 left join 
+	 s_d_code c
+	 on g.good_type = c.biz_code
+	 where c.bak1 = 's_b_use_drug'
+	 and c.code_type = 'good_type'
+	 <if test="good_type != null and good_type != ''"> 
+        and g.good_type = #{good_type}
+        </if>
+	</select>
+	<!-- 查询code -->
+	<select id="selectCode" resultType="pd" useCache="false">
+	 select * from s_d_code where 1=1
+		<if test="code_type != null and code_type != ''">
+			and code_type = #{code_type}
+		</if>
+		<if test="code_desc != null and code_desc != ''">
+			and code_desc = #{code_desc}
+		</if>
+	 	<if test="bak1 != null and bak1 != ''">
+        	and bak1 = #{bak1}
+        </if>
+	</select>
+	<!-- 药品关联工厂 -->
+	<select id="selectFactory" resultType="pd" useCache="false">
+	 select f.* from 
+	 s_d_goods g
+	 left join 
+	 s_d_stock s
+	 on s.good_id = g.good_id
+	 left join
+	 s_d_factory f
+	 on f.factory_id = s.factory_id
+	 where 1=1
+	 <if test="good_type != null and good_type != ''"> 
+        and g.good_type = #{good_type}
+        </if>
+	 <if test="good_id != null and good_id != ''"> 
+        and g.good_id = #{good_id}
+        </if>
+	</select>
+</mapper>

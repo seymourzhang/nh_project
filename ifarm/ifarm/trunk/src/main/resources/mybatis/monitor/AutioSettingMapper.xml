@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AutioSettingMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <insert id="saveInfoSetting" parameterType="pd" flushCache="false">
+      insert into s_b_remind_setting
+      (farm_id, remind_method, switch_rele_house, person_rele_house, alarm_rele_house, create_time)
+      VALUES (${farmId}
+              , #{remindMethod}
+              , #{switch_rele_house}
+              , #{person_rele_house}
+              , #{alarm_rele_house}
+              , #{create_time}
+              )
+      ON DUPLICATE KEY UPDATE remind_method = #{remindMethod}
+    </insert>
+
+    <insert id="saveInfoSwitch" parameterType="pd" flushCache="false">
+        insert into s_b_remind_switch
+        (farm_id, house_id, remind_method, status, create_time, create_person, modify_person, modify_time)
+        VALUES (${farmId}
+                , ${houseId}
+                , #{remindMethod}
+                , #{status}
+                , #{create_time}
+                , #{create_person}
+                , #{modify_person}
+                , #{modify_time}
+               )
+      ON DUPLICATE KEY UPDATE remind_method = #{remindMethod}
+                              , status = #{status}
+                              , modify_person = #{modify_person}
+                              , modify_time = #{modify_time}
+    </insert>
+
+    <insert id="saveInfoAlarmCode" parameterType="pd" flushCache="false">
+        insert into s_b_remind_alarmcode
+        (farm_id, house_id, remind_method, alarm_code, create_time, create_person, modify_person, modify_time)
+        select
+                ${farmId}           farm_id
+                , 0                 house_id
+                , #{remindMethod}   remind_method
+                , biz_code          alarm_code
+                , #{create_time}    create_time
+                , #{create_person}  create_person
+                , #{modify_person}  modify_person
+                , #{modify_time}    modify_time
+                from s_d_code
+                where code_type = 'ALARM_CODE'
+                and biz_code in ('2', 'HH1', 'HH2', 'HL1', 'HL2', 'PH', 'PL', 'QH1', 'QH2', 'QL1', 'QL2', 'ZH1', 'ZH2', 'ZL1', 'ZL2')
+    </insert>
+
+    <insert id="saveInfoReminder" parameterType="pd" flushCache="false">
+        insert into s_b_reminder
+        (user_order, remind_method, farm_id, house_id, user_type, user_id, create_time, create_person, modify_person, modify_time)
+        VALUES (#{userOrder}
+                , #{remindMethod}
+                , ${farmId}
+                , ${houseId}
+                , #{userType}
+                , #{userId}
+                , #{create_time}
+                , #{create_person}
+                , #{modify_person}
+                , #{modify_time}
+              )
+    </insert>
+
+
+    <delete id="delInfoAlarmCode" parameterType="pd">
+        DELETE FROM s_b_remind_alarmcode where farm_id = ${farmId}
+    </delete>
+
+    <delete id="delInfoReminder" parameterType="pd">
+        DELETE FROM s_b_reminder where house_id = ${houseId} and farm_id = ${farmId} and user_order = ${userOrder}
+    </delete>
+
+    <select id="queryInfoSetting" parameterType="pd" resultType="pd">
+        select r.*
+              , d.id house_id
+              , d.name_cn
+        from s_d_organization d
+        LEFT JOIN s_b_remind_setting r
+        on d.parent_id = r.farm_id
+		LEFT JOIN s_d_rights c
+		on d.id = c.obj_id
+		LEFT JOIN s_d_role_rights a
+		on c.rights_id = a.rights_id
+		LEFT JOIN s_d_user_role b
+		on a.role_id = b.role_id
+        LEFT JOIN s_d_user u
+        on u.id = b.user_id
+        where d.parent_id = ${farmId} and u.id = ${userId}
+    </select>
+
+    <select id="queryInfoSwitch" parameterType="pd" resultType="pd">
+        select r.*, h.house_name
+        from s_b_remind_switch r
+          LEFT JOIN s_d_house h
+            on h.id = r.house_id
+        where r.farm_id = ${farmId} and r.house_id = ${houseId}
+    </select>
+
+    <select id="queryInfoReminder" parameterType="pd" resultType="pd">
+        select * from s_b_reminder where farm_id = ${farmId} and house_id = ${houseId}
+    </select>
+
+    <select id="queryInfoAlarmCode" parameterType="pd" resultType="pd">
+        select * from s_b_remind_alarmcode where farm_id = ${farmId} and house_id = ${houseId}
+    </select>
+
+    <select id="queryImeiInfo" parameterType="pd" resultType="pd" useCache="false">
+        select * from s_b_user_imei where imei_no = #{imei_no}
+    </select>
+</mapper>

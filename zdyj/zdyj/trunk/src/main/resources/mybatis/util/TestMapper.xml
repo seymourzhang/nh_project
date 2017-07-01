@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="TestMapper" >
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+    <insert id="insertData" parameterType="pd" flushCache="false">
+        INSERT INTO ll_test(f1
+        , f2)
+        VALUES(
+                #{f1}
+                ,#{f2}
+                )
+    </insert>
+    <insert id="insertData2" parameterType="pd" flushCache="false">
+        INSERT INTO ll_test2(f1
+        , f2)
+        VALUES(
+        #{f1}
+        ,#{f2}
+        )
+    </insert>
+
+</mapper>

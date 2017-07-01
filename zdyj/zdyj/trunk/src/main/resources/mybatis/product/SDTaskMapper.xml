@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SDTaskMapper" >
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+    <select id="getTaskTypeName" resultType="pd" parameterType="pd" useCache="false">
+        SELECT
+        t.task_type,
+        c.code_name
+        FROM s_d_task t LEFT JOIN s_d_code c ON c.code_type = 'task_type' AND t.task_type = c.biz_code
+        GROUP BY t.task_type;
+    </select>
+
+    <select id="getTaskCodeName" resultType="pd" parameterType="pd" useCache="false">
+        SELECT
+        t.task_id,
+        t.task_code,
+        t.task_name,
+        t.task_type,
+        c.code_name
+        FROM s_d_task t LEFT JOIN s_d_code c
+        ON c.code_type = 'task_type' AND t.task_type = c.biz_code
+        WHERE 1=1
+        <if test="task_type != null">
+            AND t.task_type = ${task_type}
+        </if>
+        <if test="task_id != null">
+            AND t.task_id = ${task_id}
+        </if>
+        GROUP BY t.task_code
+    </select>
+
+    <select id="getDateTypeName" resultType="pd" useCache="false">
+        SELECT biz_code, code_name FROM s_d_code WHERE code_type = 'date_type'
+        and biz_code = 2
+    </select>
+
+
+    <select id="exec_SP_TASK_REMIND" statementType="CALLABLE">
+        call SP_TASK_REMIND ()
+    </select>
+
+</mapper>

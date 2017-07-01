@@ -1,0 +1,463 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+  <a class="button icon ion-chevron-left button-clear" ng-click="goEnvMonitoring()"></a>
+    <h1 class="title">
+      报警设置
+    </h1>
+  <a class="button"  on-tap="openFun()"><img width="20" height="20" style="position: relative; top: 5px;"  src="img/newFolder/public/whiteHelpImg.png"></img></a>
+</div>
+<div class="bar bar-subheader">
+  <table style="position: relative; 
+                  top:-0.4rem; 
+                  left:-0.4rem;
+                  width:103.5%;
+                  height:3rem;">
+      <tr style="color: #33cd5f;">
+        <td style="width:25%; vertical-align:middle; text-align:center;border: solid 1px #FFF;" ng-click="selectType(0)" id="basicTD">
+          基础
+        </td>
+        <td style="width:25%; vertical-align:middle; text-align:center;border: solid 1px #FFF;" ng-click="selectType(1)" id="tempTD">
+          温度
+        </td>
+        <td style="width:25%; vertical-align:middle; text-align:center;border: solid 1px #FFF;" ng-click="selectType(3)" id="co2TD">
+          CO2
+        </td>
+        <td style="width:25%; vertical-align:middle; text-align:center;border: solid 1px #FFF;" ng-click="selectType(2)" id="beamTD">
+          光照
+        </td>
+      </tr>
+    </table>
+</div>
+    <ion-content class="has-header">
+    <div style="width: 100%;height: 3rem;background: #FFF;">
+    </div>
+    <label class="item item-input item-select"> 
+        <span class="input-label fontColor">栋舍号 </span>
+          <i class="icon ion-ios-arrow-forward"></i> 
+            <select ng-model="alarmSet.houseId" ng-change="selectedHouse()"> 
+                <option value        =  "{{item.id}}" 
+                        ng-repeat    =  "item in sparraw_user_temp.houseinfos" 
+                        ng-selected  =  "item.id==alarmSet.houseId">
+                        {{item.name}}
+                </option> 
+            </select> 
+     </label>
+
+
+
+
+
+
+
+
+    <div id="basic_DIV" ng-show="basicShow" style="">
+
+    <label class="item item-input item-select"> 
+      <span class="input-label fontColor">报警延迟 </span>
+        <i class="icon ion-ios-arrow-forward"></i> 
+          <select ng-model="alarmSet.alarm_delay">  
+              <option value="{{key}}" ng-repeat="(key,val) in myConfig.Delay" ng-selected="key==alarmSet.alarm_delay">{{val}}</option> 
+          </select> 
+     </label>
+
+
+     <ion-toggle ng-model="alarmSet.temp_cpsation" ng-change="temperatureOffsetChange()" class="fontColor">
+        <span>温度补偿</span>
+     </ion-toggle>
+
+     <label class="item item-input" ng-show="showTempCpsationVal"> 
+        <span class="input-label fontColor">补偿数值</span> 
+          <i class="icon ion-ios-arrow-forward"></i> 
+            <input type="text" ng-model="alarmSet.temp_cordon" /> 
+      </label>
+
+      <label class="item item-input"> 
+        <span class="input-label fontColor">点温差报警</span> 
+          <i class="icon ion-ios-arrow-forward"></i> 
+            <input type="number" ng-model="alarmSet.point_alarm" style="position: absolute; top:0.85rem; right:0.8rem; width:3.5rem; height:1.5rem;" />
+            <p style="position: absolute; top:15px; right:-1rem; width:3.5rem; height:1.5rem;">℃</p> 
+      </label>
+
+      <div >
+
+      <label class="item item-input item-select">
+            <span class="input-label fontColor">报警方式</span>
+            <i class="icon ion-ios-arrow-forward"></i>
+            <select ng-model="alarmSet.alarm_method">
+                <option value="{{key}}" ng-repeat="(key,val) in myConfig.alarmProbe" ng-selected="key==alarmSet.alarm_method">{{val}}</option>
+            </select>
+        </label>
+
+     <label class="item item-input" ng-show="showProbe"> 
+      <span class="input-label fontColor">选择报警探头</span>
+      </label>
+          <div id="probeId">
+          <li class="item item-checkbox" style="height:15px;line-height:0px;padding-left:250px;"
+              ng-repeat="tempCheck in alarmSet.temp_probe">
+              <label class="checkbox"><input type="checkbox" ng-model="tempCheck.is_alarm"></label>
+              {{tempCheck.probe_name_cn}}
+          </li>
+          </div>
+          <br />
+          <div class="middle">
+            <a class="button  button-balanced saveBtn" ng-click="saveAlarmSet()" nav-transition="android">保   存</a>
+          </div>
+
+      </div>
+
+      <br>
+      <div class="item" style="background: #FFF;"   ui-sref="voiceSettings">
+        <strong style="color: #ABABAB;">语音设置</strong>
+         <button class="button button-small button-light"  style="position:absolute;right:10px; top:10px; background:rgba(51, 205, 95, 1);color:#FFF;border: solid 0px #FFF;">点击进入</button>
+      </div>
+      
+      <br>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="temp_DIV" ng-show="tempShow" style="">
+
+      
+
+      <table style="position: relative; 
+                    top:0rem; 
+                    left:-0.4rem;
+                    width:102%;
+                    height:2rem;font-size: 14px;
+                  ">
+           <tr style="color: black; background: #FFF; vertical-align:middle; text-align:center;">
+             <td style="width: 10%;border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>日龄</strong>
+             </td>
+             <td style="width: 15%;border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>目标</strong>
+             </td>
+             <td style="width: 15%;border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>高报</strong>
+             </td>
+             <td style="width: 15%;border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>低报</strong>
+             </td>
+             <td style="width: 15%;border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>高报警示</strong>
+             </td>
+             <td style="width: 15%;border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>低报警示</strong>
+             </td>
+           </tr>
+      </table>
+
+      <ion-list>
+        <ion-item ng-repeat  =  "item in alarmSet.tableData">
+           <table style="position: relative; 
+                        top:-0.1rem; 
+                        left:-0.4rem;
+                        width:121.5%;
+                        height:2rem;
+                        background-color:#FFF; margin-left:-4%; margin-top:-5%; margin-bottom:-5%;font-size: 14px; text-align:center;">
+             <tr>
+               <td style="width: 10%;vertical-align:middle;">
+                <a href="#/alarmSetting/updateTemp/{{item}}/{{alarmSet.houseId}}" style="text-decoration:none; color:#000;position: absolute; top: 0px; left: 0px; width: 100%;height: 100%;">
+                </a>
+                  {{item.day_age}}
+               </td>
+               <td style="width: 15%;border-left: solid 1px #FFF;vertical-align:middle;">
+                 {{item.set_temp}}
+               </td>
+               <td style="width: 15%;border-left: solid 1px #FFF;vertical-align:middle;">
+                 {{item.high_alarm_temp}}
+               </td>
+               <td style="width: 15%;border-left: solid 1px #FFF;vertical-align:middle;">
+                 {{item.low_alarm_temp}}
+               </td>
+
+               <td style="width: 15%;border-left: solid 1px #FFF;vertical-align:middle;">
+                 {{item.high_caution_temp}}
+               </td>
+               <td style="width: 15%;border-left: solid 1px #FFF;vertical-align:middle;">
+                 {{item.low_caution_temp}}
+               </td>
+
+             </tr>
+           </table>
+           <ion-option-button class = "button-assertive" ng-click="deleteTableCell(item)">
+            <p style="position: relative; top:-5px;color:#FFF;">删除</p>
+           </ion-option-button>
+        </ion-item>
+      </ion-list>
+      <br />
+      <table style="width: 100%;">
+        <tr>
+          <td class="middle"><a class="button  button-balanced saveBtn" ng-click="copyPageOpenFun()" nav-transition="android">应用至其它栋</a></td>
+          <td class="middle"><a class="button  button-balanced saveBtn" href="#/alarmSetting/addTemp/{{alarmSet.houseId}}"  nav-transition="android">新   增</a></td>
+        </tr>
+      </table>
+
+      <br />
+      <p style="color:#808080; position:relative; left:10px; top:1rem; font-size:16px;">提示：</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">1、修改：点击图表中的行数据可以修改该行。</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">2、删除：左滑图表中的行数据可以删除该行。</p>
+        <br /> 
+        <br /> 
+        <br />
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="co2_DIV" ng-show="co2Show" style="">
+      
+      <label class="item item-input"> 
+        <span class="input-label fontColor">CO2报警值</span> 
+          <i class="icon ion-ios-arrow-forward"></i> 
+            <input type="text" ng-model="alarmSet.high_alarm_co2" ng-blur = "getHighCautionCo2(alarmSet.high_alarm_co2)"/> 
+      </label>
+
+      <label class="item item-input"> 
+        <span class="input-label fontColor">CO2警示值</span> 
+          <i class="icon ion-ios-arrow-forward"></i> 
+            <input type="text" ng-model="alarmSet.high_caution_co2" /> 
+      </label>
+
+      <br>
+      
+      <table style="width: 100%;">
+        <tr>
+          <td class="middle"><a class="button  button-balanced saveBtn" ng-click="copyPageOpenFun()" nav-transition="android">应用至其它栋</a></td>
+          <td class="middle"><a class="button  button-balanced saveBtn" ng-click="saveCo2()" nav-transition="android">保   存</a></td>
+        </tr>
+      </table>
+      </div>
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="beam_DIV" ng-show="beamShow" style="">
+
+      <table style="position: relative; 
+                    top:0rem; 
+                    left:-0.4rem;
+                    width:102%;
+                    height:2rem;font-size: 14px;
+                  ">
+           <tr style="color: black; background: #FFF; vertical-align:middle; text-align:center;">
+             <td style="width: 10%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>周<br>龄</strong>
+             </td>
+             <td style="width: 10%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>光照<br>目标</strong>
+             </td>
+             <td style="width: 10%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>光照<br>高报</strong>
+             </td>
+             <td style="width: 10%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>光照<br>低报</strong>
+             </td>
+             <td style="width: 10%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>高报<br>警示</strong>
+             </td>
+             <td style="width: 10%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>低报<br>警示</strong>
+             </td>
+             <td style="width: 12%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>开始<br>时间</strong>
+             </td>
+             <td style="width: 12%; border-left: solid 1px #E3E3E3;vertical-align:middle;">
+               <strong>结束<br>时间</strong>
+             </td>
+           </tr>
+    </table>
+
+    <ion-list>
+      <ion-item ng-repeat  =  "item in alarmSet.tableData">
+         <table style="position: relative; 
+                        top:-0.1rem; 
+                        left:-0.4rem;
+                        width:123.5%;
+                        height:2rem;
+                        background-color:#FFF; margin-left:-4%; margin-top:-5%; margin-bottom:-5%;font-size: 14px; text-align:center; ">
+            
+           <tr>
+             <td style="width: 10%; border-left: solid 1px #FFF;vertical-align:middle;">
+               <a href="#/alarmSetting/updateLux/{{item}}/{{alarmSet.houseId}}" style="text-decoration:none; color:#000;position: absolute; top: 0px; left: 0px; width: 100%;height: 100%;">
+               </a>
+                {{item.day_age}}
+             </td>
+             <td style="width: 10%; border-left: solid 1px #FFF;vertical-align:middle;">
+                {{item.set_lux}}
+             </td>
+             <td style="width: 10%; border-left: solid 1px #FFF;vertical-align:middle;">
+                {{item.high_lux}}
+             </td>
+             <td style="width: 10%; border-left: solid 1px #FFF;vertical-align:middle;">
+                {{item.low_lux}}
+             </td>
+             <td style="width: 10%; border-left: solid 1px #FFF;vertical-align:middle;">
+                {{item.high_caution_lux}}
+             </td>
+             <td style="width: 10%; border-left: solid 1px #FFF;vertical-align:middle;">
+                {{item.low_caution_lux}}
+             </td>
+             <td style="width: 12%; border-left: solid 1px #FFF;vertical-align:middle;">
+                {{item.start_time}}
+             </td>
+             <td style="width: 12%; border-left: solid 1px #FFF;vertical-align:middle;">
+                {{item.end_time}}
+             </td>
+           </tr>          
+         </table>
+         <ion-option-button class = "button-assertive" ng-click="deleteTableCell(item)">
+          <p style="position: relative; top:-5px;color:#FFF;">删除</p>
+         </ion-option-button>
+      </ion-item>
+    </ion-list>
+    <br />
+
+    <table style="width: 100%;">
+      <tr>
+        <td class="middle"><a class="button  button-balanced saveBtn" ng-click="copyPageOpenFun()" nav-transition="android">应用至其它栋</a></td>
+        <td class="middle"><a class="button  button-balanced saveBtn" href="#/alarmSetting/addLux/{{alarmSet.houseId}}"  nav-transition="android">新   增</a></td>
+      </tr>
+    </table>
+
+    <br />
+      <p style="color:#808080; position:relative; left:10px; top:1rem; font-size:16px;">提示：</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">1、修改：点击图表中的行数据可以修改该行。</p>
+      <p style="color:#808080; position:relative; left:25px; top:1rem; font-size:16px;">2、删除：左滑图表中的行数据可以删除该行。</p>
+        <br /> 
+        <br /> 
+        <br />
+    </div>
+
+    </ion-content>
+</ion-view>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script id="useHelp.html" type="text/ng-template">
+  <ion-modal-view>
+    <ion-header-bar class="bar bar-header bar-balanced">
+    <a class="button" ng-click="closeFun()">返回</a>
+      <h1 class="title">
+        帮助
+      </h1>
+    </ion-header-bar>
+    <ion-content>
+      <div style="position: relative; left: 3%; width: 94%;height: 100%;">
+        <br>
+        <p style="position:relative; top:5px;"><strong>报警延迟</strong></p>
+        <p style="position:relative; top:-5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主要起到防止误报警的作用，用户可以自行设置相应延迟时间避免由于各种原因出现的瞬时性报警，系统默认时间为3分钟。</p>
+        <p style="position:relative; top:5px;"><strong>温度补偿</strong></p>
+        <p style="position:relative; top:-5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当室外温度高于用户设置的高报警戒线时，系统以室外温度作为高报警戒线进行报警。防止夏天室外温度过高，从而导致频繁报警。</p>
+        <p style="position:relative; top:5px;"><strong>点温差报警</strong></p>
+        <p style="position:relative; top:-5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主要用于了解和分析舍内温度均匀度情况。系统将自动计算所有勾选的有效探头中最高温与最低温的温差值，如果超出设置的数值，则会触发报警。</p>
+        <p style="position:relative; top:5px;"><strong>报警方式</strong></p>
+        <p style="position:relative; top:-5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主要体现在触发温度异常报警的两种模式，独立温区模式下判断每个已勾选的有效探头温度从而触发报警，而平均温度模式下判断每个已勾选的有效探头温度组成的平均温度从而触发报警。</p>
+        <p style="position:relative; top:5px;"><strong>选择报警探头</strong></p>
+        <p style="position:relative; top:-5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;勾选的探头系统视为有效，如果不选，则该探头不会触发报警，并且不参与平均温度的计算。</p>
+      </div>
+    </ion-content>
+  </ion-modal-view>
+</script>
+
+
+
+
+
+<script id="copyPage.html" type="text/ng-template">
+  <ion-modal-view>
+    <ion-header-bar class="bar bar-header bar-balanced">
+    <a class="button" ng-click="copyPageCloseFun()">返回</a>
+      <h1 class="title">
+        应用至其它栋
+      </h1>
+    </ion-header-bar>
+    <ion-content>
+      <label class="item item-input"> 
+        <span class="input-label fontColor">当前农场</span>
+            <input type="text" ng-model="alarmSet.copyFarm.name"
+                style="position: relative;right: 16px; background-color: #fff; font-size:15px;color:#000;text-align:right;" disabled/>
+      </label>
+
+      <label class="item item-input"> 
+        <span class="input-label fontColor">当前栋舍</span>
+            <input type="text" ng-model="alarmSet.copyNativeHouse.name"
+                style="position: relative;right: 16px; background-color: #fff; font-size:15px;color:#000;text-align:right;" disabled/>
+      </label>
+
+      <label class="item item-input"> 
+        <span class="input-label fontColor">当前指标类型</span>
+            <input type="text"  ng-model="alarmSet.copyType"
+                style="position: relative;right: 16px; background-color: #fff; font-size:15px;color:#000;text-align:right;" disabled/>
+      </label>
+
+      <label class="item item-input"> 
+        <span class="input-label fontColor">指标应用至</span>
+            <input type="text" ng-model="alarmSet.copySelectHouse.name"
+                style="position: relative;right: 16px; background-color: #fff; font-size:15px;color:#000;text-align:right;" disabled/>
+      </label>
+      <div class="list"> 
+      <div class="item item-divider">
+        请选择所属栋号 
+      </div> 
+      <div class="list">
+          <ion-radio radio-color="balanced"  ng-repeat="item in alarmSet.copyHouseArr"  
+                     ng-model="alarmSet.copySelectHouse" ng-value="item">  
+              {{item.name}} 
+          </ion-radio>  
+      </div>  
+     <br>
+     <div class="middle">  
+       <a class="button  button-balanced saveBtn" ng-click="saveCopy()" nav-transition="android">保   存</a> 
+      </div>
+
+
+    </ion-content>
+  </ion-modal-view>
+</script>
+

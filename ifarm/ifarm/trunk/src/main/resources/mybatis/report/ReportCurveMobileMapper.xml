@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReportCurveMobileMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <select id="selectCurveData" parameterType="pd" resultType="pd">
+        SELECT
+            z.farm_id,
+            z.house_id,
+            z.house_id house_code,
+            z.house_name,
+            z.growth_week_age,
+            z.laying_week_age,
+            ifnull(round(z.实际产蛋率, 1), 0)         AS 实际产蛋率,
+            ifnull(round(z.标准产蛋率, 1), 0)         AS 标准产蛋率,
+            round(z.实际母均重, 1)                    AS 实际母均重,
+            ifnull(round(z.标准母均重, 1), 0)         AS 标准母均重,
+            ifnull(round(z.母鸡累计死淘率, 1), 0)     AS 母鸡累计死淘率,
+            ifnull(round(z.母鸡标准累计死淘率, 1), 0)     AS 母鸡标准累计死淘率,
+            ifnull(round(z.蛋均重,1), 0) as 蛋重,
+            ifnull(round(z.实际日耗料,1), 0)as 实际日耗料,
+            ifnull(round(z.标准日耗料,1), 0)as 标准日耗料,
+            ifnull(round(z.实际日耗水/datediff(z.end_growth_date,z.begin_growth_date),1), 0)as 实际日耗水
+        FROM (
+                SELECT
+                    w.farm_id,
+                    w.house_id,
+                    h.house_name,
+                    w.growth_week_age,
+                    w.laying_week_age,
+                    w.end_growth_date,
+                    w.begin_growth_date,
+                    w.act_cl_laying_rate                                     AS 实际产蛋率,
+                    w.std_cl_laying_rate                                     AS 标准产蛋率,
+                    w.female_week_weight                                     AS 实际母均重,
+                    w.std_female_cur_weight                                  AS 标准母均重,
+                    ROUND((w.female_total_cd / w.female_in_amount) * 100, 1) AS 母鸡累计死淘率,
+                    s.female_week_total_weed_out                             AS 母鸡标准累计死淘率,
+                    w.act_feed_daliy                                         AS 实际日耗料,
+                    w.std_feed_daliy                                         AS 标准日耗料,
+                    w.act_water_daliy                                        AS 实际日耗水,
+                    round(w.laying_qual_week_weight/w.laying_qual_week_amount,1)   AS 蛋均重
+                FROM
+                    rpt_breed_detail_week w
+                LEFT JOIN s_b_lay_egg_std s
+                    ON w.laying_week_age = s.lay_egg_week_age
+                    AND w.feed_type = s.variety_id
+                LEFT JOIN s_d_organization o
+                    ON o.id = w.farm_id
+                    AND o.freeze_status = 0
+                LEFT JOIN s_d_house h
+                    ON w.house_id = h.id
+                    AND w.farm_id = h.farm_id
+                    AND h.freeze_status = 0
+                LEFT JOIN v_user u
+                    ON o.id = u.obj_id
+                    AND u.obj_type = 2
+                WHERE u.id = ${UserId} AND h.house_type = #{FarmType} AND h.farm_id = ${FarmId}
+                <if test="HouseId != null and HouseId != 0">
+                    and t1.house_code = ${HouseId}
+                </if>
+                AND w.growth_week_age BETWEEN (SELECT if(max(growth_week_age) - 60 &lt; 0, 0, max(growth_week_age) - 60)
+                                                    FROM rpt_breed_detail_week
+                                                  WHERE farm_id = ${FarmId}) AND w.growth_week_age
+           ) z
+        ORDER BY z.house_id, z.growth_week_age;
+    </select>
+
+    <select id="selectAlarmStatisticHouse" useCache="false" parameterType="pd" resultType="pd">
+        /*单栋*/
+        SELECT
+          hb.house_code,
+          hb.house_name,
+          bd.age                        AS dayAge,
+          SUM(CASE WHEN ad.alarm_code LIKE '%H'
+            THEN 1
+              ELSE 0 END) AS temp_H,
+          SUM(CASE WHEN ad.alarm_code LIKE '%L'
+            THEN 1
+              ELSE 0 END) AS temp_L,
+          SUM(CASE WHEN ad.alarm_code = '6'
+            THEN 1
+              ELSE 0 END) AS point_temp_alarm,
+          SUM(CASE WHEN ad.alarm_code = '2'
+            THEN 1
+              ELSE 0 END) AS power_status,
+          SUM(CASE WHEN ad.alarm_code in ('3','4')
+            THEN 1
+              ELSE 0 END) AS co2
+        FROM s_b_breed_detail bd LEFT JOIN s_b_batch_curr hb ON hb.batch_id = bd.batch_id
+          LEFT JOIN (SELECT sbd.*
+                               FROM s_b_alarm_done sbd
+                               WHERE sbd.house_id = ${house_id}  ) ad
+            ON ad.house_id = hb.house_code AND ad.alarm_time = bd.growth_date
+              AND ad.house_breed_id = hb.batch_no
+          LEFT JOIN (SELECT
+                       date_format(max(bd1.growth_date), '%Y-%m-%d') specialDate,
+                       bd1.batch_id,
+                       hb1.house_code
+                     FROM s_b_breed_detail bd1 LEFT JOIN s_b_batch_curr hb1 ON hb1.batch_id = bd1.batch_id
+                     WHERE hb1.batch_id = #{batch_id} AND hb1.house_code = ${house_id}) ae ON 1 = 1
+        WHERE hb.batch_id = #{batch_id} AND hb.house_code = ${house_id} AND
+              bd.growth_date BETWEEN date_sub(date_format(CASE WHEN hb.status = 1
+                THEN if((ae.specialDate) > curdate(), curdate(), ae.specialDate)
+                                                          ELSE hb.operation_date END, '%Y-%m-%d'),
+                                              INTERVAL 31 DAY) AND date_format(
+                  CASE WHEN hb.status = 1
+                    THEN if(ae.specialDate > curdate(), curdate(), ae.specialDate)
+                  ELSE hb.operation_date END, '%Y-%m-%d')
+        GROUP BY dayAge, hb.house_code;
+    </select>
+
+    <select id="selectAlarmStatisticFarm" useCache="false" parameterType="pd" resultType="pd">
+        /*全场*/
+        SELECT
+          bd.age          AS dayAge,
+          SUM(CASE WHEN ad.alarm_code LIKE '%H'
+            THEN 1
+              ELSE 0 END) AS temp_H,
+          SUM(CASE WHEN ad.alarm_code LIKE '%L'
+            THEN 1
+              ELSE 0 END) AS temp_L,
+          SUM(CASE WHEN ad.alarm_code = '6'
+            THEN 1
+              ELSE 0 END) AS point_temp_alarm,
+          SUM(CASE WHEN ad.alarm_code = '2'
+            THEN 1
+              ELSE 0 END) AS power_status,
+          SUM(CASE WHEN ad.alarm_code in ('3','4')
+            THEN 1
+              ELSE 0 END) AS co2
+        FROM s_b_breed_detail bd
+          LEFT JOIN s_b_batch_curr hb ON hb.batch_id = bd.batch_id
+          LEFT JOIN (SELECT sbd.*
+                     FROM s_b_alarm_done sbd
+                     WHERE sbd.farm_id = ${farm_id}) ad ON ad.house_breed_id = hb.batch_no
+               AND datediff(ad.alarm_time, bd.growth_date) = 0
+          LEFT JOIN (SELECT
+                       max(bd1.growth_date) specialDate,
+                       bd1.batch_id,
+                       hb1.house_code
+                     FROM s_b_breed_detail bd1
+                       LEFT JOIN s_b_batch_curr hb1 ON hb1.batch_id = bd1.batch_id
+                     WHERE hb1.batch_no = #{batch_no}) ae ON 1 = 1
+        WHERE hb.batch_no = #{batch_no}
+              AND bd.growth_date BETWEEN date_sub(date_format(CASE WHEN hb.status = 1
+          THEN if((ae.specialDate) > curdate(), curdate(), ae.specialDate)
+                                                              ELSE hb.operation_date END, '%Y-%m-%d'),
+                                                  INTERVAL 31 DAY)
+              AND date_format(CASE WHEN hb.status = 1
+          THEN if(ae.specialDate > curdate(), curdate(), ae.specialDate)
+                              ELSE hb.operation_date END, '%Y-%m-%d')
+        GROUP BY dayAge;
+    </select>
+</mapper>

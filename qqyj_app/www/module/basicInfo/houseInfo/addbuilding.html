@@ -1,0 +1,40 @@
+  <ion-view> 
+   <div class="bar bar-header bar-balanced"> 
+    <a class="button icon ion-chevron-left button-clear" 
+       ng-hide="backBtn"
+       ng-click="GoBuildingTable()">
+    </a>
+    <h1 class="title">添加栋舍</h1> 
+   </div> 
+   <ion-content class="has-header"> 
+    <form name="myForm">
+      <div class="list"> 
+       <label class="item item-input"> 
+        <span class="input-label fontColor">农场</span>
+         <i class="icon ion-ios-arrow-forward"></i> 
+          <p>{{sparraw_user_temp.farminfo.name}}</p> 
+       </label>
+        <label class="item item-input"> 
+            <span class="input-label fontColor">栋舍名称</span> 
+            <i class="icon ion-ios-arrow-forward"></i>
+            <input type="text" ng-model="tempVar.houseTemp.house_name"/>
+       </label>
+
+      </div> 
+      <br />
+      <br /> 
+      <br />
+      <div class="middle"> 
+        <a class           =  "button  button-balanced saveBtn"  
+           ng-disabled     =  "myForm.$invalid" 
+           ng-click        =  "addHouse()" 
+           nav-transition  =  "android">
+           保   存
+        </a> 
+      </div>  
+    </form>
+    <br /> 
+    <br /> 
+    <br /> 
+   </ion-content> 
+  </ion-view>

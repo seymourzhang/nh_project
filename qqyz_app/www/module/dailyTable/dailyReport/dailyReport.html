@@ -1,0 +1,259 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+<a class="button icon ion-chevron-left button-clear" ng-click="goHome()"></a>
+    <h1 class="title">
+      生产记录
+    </h1>
+</div>
+      <div class="bar bar-subheader" style="border:1px solid #fff; background:#fff; background-color:#fff;border-bottom:solid 0.5px #878787;">
+          <table style="position: relative;top:0rem;left:-0.6rem;width:106%;height:32px; font-size: 0.9rem;">
+            <tr>
+              <td class="middle">
+                <span style="position: relative;top:0.5rem;left:0rem;">今天：{{dailyReportData.DayAge}}日龄
+                </span>
+              </td>
+              <td >
+                <span style="position: relative;top:0.5rem;left:0rem;">生长{{dailyReportData.GrowthWeekAge}}周
+                </span>
+              </td>
+              <td ng-show="eggContent">
+                <span style="position: relative;top:0.5rem;left:0rem;">产蛋{{dailyReportData.LayerWeekAge}}周
+                </span>
+              </td>
+            </tr>
+          </table>
+      </div>
+      <ion-content class="has-header">
+        <div style="width: 100%;  height:44px; ">
+            
+        </div>
+        <label class="item item-input item-select" style="border:solid 0px #fff; border-bottom:solid 1px #878787;  position: relative;  top:0rem;  left:0rem; height:3rem; width:100%; "> 
+          <span class="input-label" style="color: rgba(47, 127, 255, 1)">栋舍号 </span>
+            <i class="icon ion-ios-arrow-forward"></i> 
+              <select ng-model="dailyReportData.selectHouse"
+                      ng-change="judgeHouse()"> 
+                  <option value        =  "{{item}}" 
+                          ng-repeat    =  "item in sparraw_user_temp.houseinfos"
+                          ng-selected  =  "item == dailyReportData.selectHouse">
+                          {{item.name}}栋
+                  </option> 
+              </select> 
+        </label>
+
+        <label class="item item-input"> 
+            <span class="input-label fontColor">生长日期</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input type="text" 
+                       placeholder="请选择日期"
+                       ng-model="dailyReportData.selectDayAge" 
+                       readonly="readonly"
+                       ng-click="clickDateInput()"
+                       style="background-color: #fff;" /> 
+        </label>
+        <p ng-show="dataNullText" id="dataNullTextId" style="border: 1px black; position: relative;top: 120px;left: 0%;" class="middle"></p>
+        <div ng-show="inputTable">
+          <label class="item item-input"> 
+            <span class="input-label fontColor">公鸡死亡</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.death_num_male"
+                       type="tel" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur = "if (this.value == '') {
+                                    this.value = 0;
+                                } else {
+                                    if (this.value % 1 != 0) {
+                                        this.value = parseInt(this.value);
+                                    }
+                                }"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">只</p>
+          </label>
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">母鸡死亡</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.death_num_female"
+                       type="tel" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur = "if (this.value == '') {
+                                    this.value = 0;
+                                } else {
+                                    if (this.value % 1 != 0) {
+                                        this.value = parseInt(this.value);
+                                    }
+                                }"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">只</p>
+          </label>
+
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">公鸡淘汰</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.culling_num_male"
+                       type="tel"
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur = "if (this.value == '') {
+                                    this.value = 0;
+                                } else {
+                                    if (this.value % 1 != 0) {
+                                        this.value = parseInt(this.value);
+                                    }
+                                }"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">只</p>
+          </label>
+
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">母鸡淘汰</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.culling_num_female"
+                       type="tel"
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur = "if (this.value == '') {
+                                    this.value = 0;
+                                } else {
+                                    if (this.value % 1 != 0) {
+                                        this.value = parseInt(this.value);
+                                    }
+                                }"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">只</p>
+          </label>
+
+          
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">母鸡采食料号</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.feed_code_female"
+                       type="text" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;"></p>
+          </label>
+
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">母鸡采食重量</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.feed_weight_female"
+                       type="number" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/>
+                <p style="position: absolute; top:15px; right:1rem; width:2rem; height:1.5rem;">千克</p>
+          </label>
+
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">母鸡饮水量</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.water_capacity_female"
+                       type="number" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">升</p>
+          </label>
+
+
+          <label class="item item-input" ng-show="eggContent"> 
+            <span class="input-label fontColor">产蛋数量</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.layer_amount"
+                       type="tel"
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur = "if (this.value == '') {
+                                    this.value = 0;
+                                } else {
+                                    if (this.value % 1 != 0) {
+                                        this.value = parseInt(this.value);
+                                    }
+                                }"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">枚</p>
+          </label>
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">公鸡鉴别错误</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.gender_error_male"
+                       type="tel"
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur = "if (this.value == '') {
+                                    this.value = 0;
+                                } else {
+                                    if (this.value % 1 != 0) {
+                                        this.value = parseInt(this.value);
+                                    }
+                                }"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;"></p>
+          </label>
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">母鸡鉴别错误</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.gender_error_female"
+                       type="tel"
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur = "if (this.value == '') {
+                                    this.value = 0;
+                                } else {
+                                    if (this.value % 1 != 0) {
+                                        this.value = parseInt(this.value);
+                                    }
+                                }"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;"></p>
+          </label>
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">公鸡体重</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.body_weight_male"
+                       type="number" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">克</p>
+          </label>
+
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">母鸡体重</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.body_weight_female"
+                       type="number" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">克</p>
+          </label>
+
+          <label class="item item-input"> 
+            <span class="input-label fontColor">均匀度</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+                <input ng-model="dailyReportData.inputData.uniformity"
+                       type="number" 
+                       placeholder="请输入"
+                       onfocus="if(this.value==0)this.value='';" 
+                       onblur="if(this.value=='')this.value=0;"/>
+                <p style="position: absolute; top:15px; right:1rem; width:1.3rem; height:1.5rem;">%</p>
+          </label>
+
+          <br />
+          <div class="middle">
+            <a class="button button-balanced" id="saveBtnStatus" ng-click="save()" style="width:180px;height:3px;position:relative;top:0rem;left:0rem;border:solid 0px #FFF;">保   存</a>
+          </div>
+        </div>
+
+
+
+
+    </ion-content>
+
+</ion-view>

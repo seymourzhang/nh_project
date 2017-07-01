@@ -1,0 +1,118 @@
+<ion-view>
+<div class="bar bar-header bar-balanced" style="background: #439AFC;">
+  <a class="button icon ion-chevron-left button-clear" ui-sref="home"></a>
+    <h1 class="title">
+      出栏
+    </h1>
+  <a  class="button button-clear" ng-click="endBatch()" style="color:#FFF; border: solid 1px #FFF;" id="endBatchBtn">结束本批</a>
+</div>
+    <ion-content class="has-header" style="background: #EFEFF9;">
+      <br />
+      <div ng-repeat="item in breedAffirmData.houseInfo">
+      <div  style="width:100%;
+                         height:110px;
+                         background:#FFF;">
+              <div style="position:relative;
+                          top:0px;
+                          left:0px;
+                          width:20%;
+                          height:100%;
+                          background:#FFF;">
+                  <div style="position:relative;
+                              top:0px;
+                              left:0px;
+                              width:100%;
+                              height:50%;
+                              background: #FFF;">
+                      <img src="img/newFolder/envMonitor/voiceSettings/house.png" height="30" width="30" style="position:relative; left:25%; top:30%;" />
+                  </div>
+                  <div style="position:relative;
+                              top:0px;
+                              bottom:0px;
+                              width:100%;
+                              height:50%;
+                              background: #FFF;">
+                    <span style="position:relative; left:25%; top:30%; font-size: 28px;">{{item.houseName}}</span>
+                  </div>
+                  <div style="position:relative;
+                              top:-95%;
+                              left:85%;
+                              width:1px;
+                              height:100px;
+                              background:#AEAEAE;
+                              z-index:2;">
+                </div>
+                  <div style="position:relative;
+                                top:-150px;
+                                left:70px;
+                                width:500px;
+                                height:1px;
+                                background:#AEAEAE;
+                                z-index:2;">
+                  </div>
+              </div>
+                  <div style="position:relative;
+                              top:-88%;
+                              left:20%;
+                              width:80%;
+                              height:25%;
+                              background:#FFF;">
+                    <img src="img/newFolder/newBatchManages/docPlaceAffirm/Group7.png" height="20" width="20" style="position:relative; left:0%; top:35%;" />
+                        <span style="position:relative; left:2%; top:20%; font-size: 14px;">出栏日期</span>
+                        <input style="position: absolute;right: 5%;top: 15%;width: 50%;height: 100%;text-align: right;border:solid 1px  #fff;color: #000; direction: rtl; -webkit-appearance: none;background:#FFF;" ng-model="item.market_date"  placeholder="请点击选择" readonly="readonly" placeholder="请输入" ng-click="clickDateInput(item)">
+                        </input>
+                  </div>
+                  <div style="position:relative;
+                              top:-65%;
+                              left:20%;
+                              width:80%;
+                              height:25%;
+                              background:#FFF;">
+
+
+                        <img src="img/newFolder/newBatchManages/docPlaceAffirm/Group8.png" height="20" width="20" style="position:relative; left:0%; top:35%;" />
+                        <span style="position:relative; left:2%; top:20%; font-size: 14px;">出栏数量</span>
+                        <input style="position: absolute;right: 5%;top: 15%;width: 50%;height: 100%;text-align: right;border:solid 1px  #fff;color: #000; direction: rtl; background:#FFF;" ng-model="item.marketNum" type="number"   ng-change="getthedate()" placeholder="请输入" onfocus="if(this.value==0)this.value='';" onblur="if(this.value=='')this.value=0;">
+                        </input>
+                  </div>
+                  
+              </div>
+              <div style="position:relative;
+                            top:10px;
+                            left:5%;
+                            width:90%;
+                            height:35px;
+                            background: #439AFC;
+                            border: solid 0px #439AFC;" ng-style="{{judgeBreedStatus(item)}}" class="employesListBtn" ng-click="slaughter(item)">
+                    <p style="position:relative; left:0%; top:18%; width: 100%;height:100%;font-size: 20px;color:#FFF; text-align:center;">出&nbsp;&nbsp;栏</p>
+              </div>
+          <br />
+      </div>
+      <!-- <div style="position:relative;
+                            top:10px;
+                            left:5%;
+                            width:90%;
+                            height:35px;
+                            background: #439AFC;
+                            border: solid 0px #439AFC;" ng-click="endBatch()" id="endBatchBtn" >
+                    <p style="position:relative; left:0%; top:18%; width: 100%;height:100%;font-size: 20px;color:#FFF; text-align:center;">结束本批次</p>
+      </div> -->
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+    </ion-content>
+
+   
+
+    <div class="tabs tabs-icon-top" style="background: #EFEFF9; border: solid 0px #EFEFF9;">
+      <table style="position: relative;left: 0%;top: 0%;width: 100%;height: 100%;">
+        <tr style="height: 100%;color:#FFF;">
+          <td style="width: 50%; background: #439AFC;"  class="middle" ui-sref="docPlaceAffirm">进鸡</td>
+          <td style="width: 50%; background: #E3E3E3;" class="middle">出栏</td>
+        </tr>
+      </table>
+    </div>
+
+</ion-view>

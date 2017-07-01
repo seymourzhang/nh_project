@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SDDeviceDataCurMapper">
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache" />
+
+    <!-- 查询数据 -->
+    <select id="findById" parameterType="pd" resultType="pd" useCache="false">
+        SELECT * FROM s_d_device_data_cur
+        WHERE id = #{id}
+    </select>
+
+    <!-- 清除数据 -->
+    <delete id="delete" parameterType="pd" flushCache="false">
+        DELETE FROM s_d_device_data_cur
+        where id = #{id}
+    </delete>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="pd" flushCache="false">
+        INSERT into s_d_device_data_cur(
+        ID, device_id, device_type, port_id, source_code, alarm_code, set_temp, outside_temp, avg_temp, inside_temp1, inside_temp2, inside_temp3, inside_temp4, inside_temp5, inside_temp6, inside_temp7, inside_temp8, inside_temp9, inside_temp10, inside_temp11, inside_temp12, inside_temp13, inside_temp14, inside_temp15, inside_temp16, inside_temp17, inside_temp18, inside_temp19, inside_temp20, inside_temp21, inside_temp22, inside_temp23, inside_temp24, inside_temp25, inside_temp26, inside_temp27, humidity, water_consumption, lux, negative_pressure, CO2, small_fan_1, small_fan_2, small_fan_3, larger_fan_1, larger_fan_2, larger_fan_3, fenestella, skateboard, refrigeration, heating, collect_datetime, yt_datetime, status, signal_strength
+        )
+        VALUES (
+        #{id},#{device_id},#{device_type},#{port_id},#{source_code},#{alarm_code},#{set_temp},#{outside_temp},#{avg_temp},#{inside_temp1},#{inside_temp2},#{inside_temp3},#{inside_temp4},#{inside_temp5},#{inside_temp6},#{inside_temp7},#{inside_temp8},#{inside_temp9},#{inside_temp10},#{inside_temp11},#{inside_temp12},#{inside_temp13},#{inside_temp14},#{inside_temp15},#{inside_temp16},#{inside_temp17},#{inside_temp18},#{inside_temp19},#{inside_temp20},#{inside_temp21},#{inside_temp22},#{inside_temp23},#{inside_temp24},#{inside_temp25},#{inside_temp26},#{inside_temp27},#{humidity},#{water_consumption},#{lux},#{negative_pressure},#{CO2},#{small_fan_1},#{small_fan_2},#{small_fan_3},#{larger_fan_1},#{larger_fan_2},#{larger_fan_3},#{fenestella},#{skateboard},#{refrigeration},#{heating},#{collect_datetime},#{yt_datetime},#{status},#{signal_strength}
+        )
+    </insert>
+    
+    <update id="updateYT" parameterType="pd" flushCache="false">
+		update  s_d_device_data_cur
+		set collect_datetime			= #{collect_datetime}
+        <if test="source_code != null and source_code != ''">
+            , source_code				= #{source_code}
+        </if>
+        <if test="inside_temp1 != null and inside_temp1 != ''">
+            , inside_temp1				= #{inside_temp1}
+        </if>
+        <if test="inside_temp2 != null and inside_temp2 != ''">
+            , inside_temp2				= #{inside_temp2}
+        </if>
+        <if test="inside_temp3 != null and inside_temp3 != ''">
+            , inside_temp3				= #{inside_temp3}
+        </if>
+        <if test="inside_temp4 != null and inside_temp4 != ''">
+            , inside_temp4				= #{inside_temp4}
+        </if>
+        <if test="inside_temp5 != null and inside_temp5 != ''">
+            , inside_temp5				= #{inside_temp5}
+        </if>
+        <if test="inside_temp6 != null and inside_temp6 != ''">
+            , inside_temp6				= #{inside_temp6}
+        </if>
+        <if test="inside_temp7 != null and inside_temp7 != ''">
+            , inside_temp7				= #{inside_temp7}
+        </if>
+        <if test="inside_temp8 != null and inside_temp8 != ''">
+            , inside_temp8				= #{inside_temp8}
+        </if>
+        <if test="inside_temp9 != null and inside_temp9 != ''">
+            , inside_temp9				= #{inside_temp9}
+        </if>
+        <if test="humidity != null and humidity != ''">
+            , humidity				= #{humidity}
+        </if>
+        <if test="outside_temp != null and outside_temp != ''">
+            , outside_temp				= #{outside_temp}
+        </if>
+        <if test="lux != null and lux != ''">
+            , lux				= #{lux}
+        </if>
+        <if test="co2 != null and co2 != ''">
+            , co2				= #{co2}
+        </if>
+        <if test="negative_pressure != null and negative_pressure != ''">
+            , negative_pressure				= #{negative_pressure}
+        </if>
+        <if test="status != null and status != ''">
+            , status				= #{status}
+        </if>
+        <if test="yt_datetime != null and yt_datetime != ''">
+            , yt_datetime				= #{yt_datetime}
+        </if>
+        <if test="signal_strength != null and signal_strength != ''">
+            , signal_strength				= #{signal_strength}
+        </if>
+			where
+				device_id = #{device_id} and  device_type=#{device_type} and port_id=#{port_id}
+	</update>
+</mapper>

@@ -1,0 +1,180 @@
+<ion-view>
+    <div class="bar bar-header bar-balanced" style="background: #33cd5f;">
+    <a class="button icon ion-chevron-left button-clear" ui-sref="batchManage"></a>
+        <h1 class="title">
+          物资核对
+        </h1>
+    </div>
+    <div class="bar bar-subheader">
+      <table style="position: relative; 
+                      top:-0.4rem; 
+                      left:-0.4rem;
+                      width:103.5%;
+                      height:3rem;">
+          <tr style="color: #33cd5f;">
+            <td id="placeChildBtn" style="width:25%; vertical-align:middle; text-align:center;border: solid 1px #FFF;" ng-click="chooseType('01')">
+              发雏
+            </td>
+            <td id="materialBtn" style="width:25%; vertical-align:middle; text-align:center;border: solid 1px #FFF;" ng-click="chooseType('02')">
+              发料
+            </td>
+            <td id="drugBtn" style="width:25%; vertical-align:middle; text-align:center;border: solid 1px #FFF;" ng-click="chooseType('03')">
+              发药
+            </td>
+          </tr>
+        </table>
+    </div>
+    <ion-content style="background: #FFF;" class="has-header">
+      <div id="placeChildView" ng-show="placeChildShow" style="position: absolute; top: 45px; width: 100%;background: #FFF;">
+        <div ng-repeat="placeChildItem in placeChildData.ChildInfos">
+          <table style="position: relative;width: 100%; font-size: 16px; border-top: solid 1px #E3E3E3;">
+            <tr style="height: 23px;">
+              <td style="width: 50%; background: #FFF; color: #4B4848;" class="middle"><p style="position: relative; width: 100%; top: 5px;"><strong>发雏批次：{{placeChildItem.childBatchNo}}</strong></p></td>
+              <td style="width: 50%; background: #FFF; color: #4B4848;" class="middle"><p style="position: relative; width: 100%; top: 5px;"><strong>品种：{{placeChildItem.variety}}</strong></p></td>
+            </tr>
+          </table>
+          <label class="item item-input showFontColor">
+            <span class="input-label">发雏数量</span> 
+            <i class="icon ion-ios-arrow-forward"></i> 
+            <span>{{placeChildItem.sendNum}}</span>
+          </label>
+          <label class="item item-input showFontColor">
+            <span class="input-label">发雏日期</span> 
+            <i class="icon ion-ios-arrow-forward"></i> 
+            <span>{{placeChildItem.sendDate}}</span>
+          </label>
+
+          <label class="item item-input">
+            <span class="input-label" ng-style="{{inputLabelColor(placeChildItem.btnText)}}">确认数量</span> 
+            <i class="icon ion-ios-arrow-forward"></i> 
+            <input type="number" ng-model="placeChildItem.checkNum" placeholder="请输入"/>
+          </label>
+          <label class="item item-input">
+            <span class="input-label" ng-style="{{inputLabelColor(placeChildItem.btnText)}}">确认日期</span> 
+            <i class="icon ion-ios-arrow-forward"></i> 
+            <input style="background: #FFF; box-shadow: 0px 0 0 #FFF,0 0px 0 #FFF,0 0px 0 #FFF,0px 0 0 #FFF;" ng-model="placeChildItem.checkDate" type="text" placeholder="请点击选择" readonly="readonly" ng-click="clickDateInput(placeChildItem)"></input>
+          </label>
+            <br />
+            <div style="position: relative;width: 100%;height: 43px;background: #FFF;" class="middle">
+              <a ng-style        =  "{{saveBtnStyle(placeChildItem.sendStatus)}}"
+                 class           =  "button  button-balanced saveBtn"
+                 style           =  "background: #33cd5f; border: solid 1px rgba(239, 239, 244, 1);" 
+                 ng-click        =  "clickSave(placeChildItem)">
+                 {{placeChildItem.btnText}}
+              </a>
+            </div>
+            <br />
+          </div>
+      </div>
+
+      <div id="materialView" ng-show="materialShow" style="position: absolute; top: 45px; width: 100%;background: #FFF;">
+        <ion-list>
+          <div ng-repeat="spiceItem in placeChildData.ChildInfos">
+
+            <table style="position: relative;width: 100%; font-size: 16px;  border-top: solid 1px #E3E3E3;">
+              <tr style="height: 23px;">
+                <td style="width: 50%; background: #FFF; color: #4B4848;" class="middle"><p style="position: relative; width: 100%; top: 5px;"><strong>发料批次：{{spiceItem.childBatchNo}}</strong></p></td>
+                <td style="width: 50%; background: #FFF; color: #4B4848;" class="middle"><p style="position: relative; width: 100%; top: 5px;"><strong></strong></p></td>
+              </tr>
+            </table>
+            <label class="item item-input showFontColor">
+              <span class="input-label">饲料名称</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <span>{{spiceItem.goodName}}</span>
+            </label>
+            <label class="item item-input showFontColor">
+              <span class="input-label">分发数量</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <span>{{spiceItem.sendNum}}</span>
+            </label>
+            <label class="item item-input showFontColor">
+              <span class="input-label">分发日期</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <span>{{spiceItem.sendDate}}</span>
+            </label>
+
+            <label class="item item-input">
+              <span class="input-label" ng-style="{{inputLabelColor(spiceItem.btnText)}}">确认数量</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <input type="number" ng-model="spiceItem.checkNum" placeholder="请输入"/>
+            </label>
+            <label class="item item-input">
+              <span class="input-label" ng-style="{{inputLabelColor(spiceItem.btnText)}}">确认日期</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+              <input style="background: #FFF; box-shadow: 0px 0 0 #FFF,0 0px 0 #FFF,0 0px 0 #FFF,0px 0 0 #FFF;" ng-model="spiceItem.checkDate" type="text" placeholder="请点击选择" readonly="readonly" ng-click="clickDateInput(spiceItem)"></input>
+            </label>
+
+
+            
+            
+            <br />
+            <div style="position: relative;width: 100%;height: 43px;background: #FFF;" class="middle">
+              <a ng-style        =  "{{saveBtnStyle(spiceItem.sendStatus)}}"
+                 class           =  "button  button-balanced saveBtn"
+                 style           =  "background: #33cd5f; border: solid 1px rgba(239, 239, 244, 1);" 
+                 ng-click        =  "clickSave(spiceItem)">
+                 {{spiceItem.btnText}}
+              </a>
+            </div>
+            <br />
+          </div>
+        </ion-list>
+      </div>
+
+
+
+
+      <div id="drugView" ng-show="drugShow" style="position: absolute; top: 45px; width: 100%;background: #FFF;">
+        <ion-list>
+          <div ng-repeat="drugItem in placeChildData.ChildInfos">
+
+            <table style="position: relative;width: 100%; font-size: 16px;  border-top: solid 1px #E3E3E3;">
+              <tr style="height: 23px;">
+                <td style="width: 50%; background: #FFF; color: #4B4848;" class="middle"><p style="position: relative; width: 100%; top: 5px;"><strong>发药批次：{{drugItem.childBatchNo}}</strong></p></td>
+                <td style="width: 50%; background: #FFF; color: #4B4848;" class="middle"><p style="position: relative; width: 100%; top: 5px;"><strong>药品类型：{{drugItem.goodType}}</strong></p></td>
+              </tr>
+            </table>
+            <label class="item item-input showFontColor">
+              <span class="input-label">药品名称</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <span>{{drugItem.goodName}}</span>
+            </label>
+            <label class="item item-input showFontColor">
+              <span class="input-label">分发数量</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <span>{{drugItem.sendNum}}</span>
+            </label>
+            <label class="item item-input showFontColor">
+              <span class="input-label">分发日期</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <span>{{drugItem.sendDate}}</span>
+            </label>
+            <label class="item item-input">
+              <span class="input-label" ng-style="{{inputLabelColor(drugItem.btnText)}}">确认数量</span> 
+              <i class="icon ion-ios-arrow-forward"></i> 
+              <input type="number" ng-model="drugItem.checkNum" placeholder="请输入"/>
+            </label>
+            <label class="item item-input">
+              <span class="input-label" ng-style="{{inputLabelColor(drugItem.btnText)}}">确认日期</span> 
+              <i class="icon ion-ios-arrow-forward"></i>
+              <input style="background: #FFF; box-shadow: 0px 0 0 #FFF,0 0px 0 #FFF,0 0px 0 #FFF,0px 0 0 #FFF;" ng-model="drugItem.checkDate" type="text" placeholder="请点击选择" readonly="readonly" ng-click="clickDateInput(drugItem)"></input>
+            </label>
+
+            <br />
+            <div style="position: relative;width: 100%;height: 43px;background: #FFF;" class="middle">
+              <a ng-style        =  "{{saveBtnStyle(drugItem.sendStatus)}}"
+                 class           =  "button  button-balanced saveBtn"
+                 style           =  "background: #33cd5f; border: solid 1px rgba(239, 239, 244, 1);" 
+                 ng-click        =  "clickSave(drugItem)">
+                 {{drugItem.btnText}}
+              </a>
+            </div>
+            <br />
+          </div>
+        </ion-list>
+      </div>
+
+
+
+    </ion-content>
+</ion-view>
