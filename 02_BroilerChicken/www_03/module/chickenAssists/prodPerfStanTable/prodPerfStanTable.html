@@ -1,0 +1,25 @@
+<ion-view>
+<div class="bar bar-header bar-balanced">
+	<a class="button icon ion-chevron-left button-clear" ui-sref="myView"></a>
+    <h1 class="title">
+      生产性能标准
+    </h1>
+</div>
+    <ion-content class="has-header" style="background: #EFEFF9;">
+        <ion-list>
+            <ion-item class="item-icon-right" ui-sref="myStandard" >
+                  设置我的标准
+               <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+        <div class="item" style="background: #EFEFF9;">
+          <strong style="color: #ABABAB;">参考标准</strong>
+        </div>
+        <ion-list>
+            <ion-item class="item-icon-right" ng-repeat="item in listArray" ng-click="goNext(item)" >
+                  {{item}}
+               <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>
